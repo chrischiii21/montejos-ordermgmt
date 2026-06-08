@@ -24,6 +24,10 @@
 			<button class="filter-tab" data-status="Cancelled">
 				Cancelled <span class="tab-count count-cancelled" id="count-cancelled">0</span>
 			</button>
+			<button class="tab-view-all-btn" id="tab-view-all-btn" title="View all orders in Order History">
+				<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+				View All
+			</button>
 		</div>
 	</div>
 
@@ -31,7 +35,7 @@
 		<table class="orders-table">
 			<thead>
 				<tr>
-					<th style="width: 40px;"></th>
+					<th class="action-col"></th>
 					<th>Order ID</th>
 					<th>Customer</th>
 					<th>Delivery Date</th>
@@ -182,6 +186,45 @@
 		color: white;
 	}
 
+	/* View All Orders button — sits after Cancelled tab, accent-styled */
+	:global(#tab-view-all-btn),
+	.tab-view-all-btn {
+		background: rgba(255, 94, 0, 0.12);
+		border: 1px solid rgba(255, 94, 0, 0.45);
+		height: 36px;
+		padding: 0 14px 0 12px;
+		border-radius: 8px;
+		color: #ff5e00;
+		font-family: var(--font-family);
+		font-size: 0.8rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+		margin-left: 6px;
+		letter-spacing: 0.01em;
+	}
+	:global(#tab-view-all-btn:hover),
+	.tab-view-all-btn:hover {
+		background: #ff5e00;
+		border-color: #ff5e00;
+		color: #fff;
+		box-shadow: 0 0 14px rgba(255, 94, 0, 0.35);
+	}
+	:global(#tab-view-all-btn svg),
+	.tab-view-all-btn svg {
+		transition: transform 0.2s ease;
+		flex-shrink: 0;
+	}
+	:global(#tab-view-all-btn:hover svg),
+	.tab-view-all-btn:hover svg {
+		transform: translateX(3px);
+	}
+
 	/* Specific status counts */
 	.tab-count.count-pending { color: var(--status-pending); background: var(--status-pending-light); }
 	.tab-count.count-preparing { color: var(--status-preparing); background: var(--status-preparing-light); }
@@ -217,9 +260,20 @@
 	}
 
 	.orders-table td {
-		padding: 14px 16px;
+		padding: 16px 16px;
 		border-bottom: 1px solid var(--border-color);
 		color: var(--text-secondary);
+		vertical-align: middle;
+	}
+
+	/* Action column — wider with centered padding */
+	.action-col {
+		width: 64px;
+		text-align: center;
+	}
+	:global(.orders-table td:first-child) {
+		padding: 12px 8px;
+		text-align: center;
 		vertical-align: middle;
 	}
 

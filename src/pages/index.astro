@@ -33,6 +33,10 @@ import OrderTable from '../components/OrderTable.astro';
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7v5l3 3"/></svg>
 					<span>Live Kitchen</span>
 				</a>
+				<a href="#" class="nav-item" data-view="calendar">
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+					<span>Calendar</span>
+				</a>
 				<div class="nav-divider"></div>
 				<a href="#" class="nav-item" data-view="settings">
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -222,6 +226,36 @@ import OrderTable from '../components/OrderTable.astro';
 					<div class="kds-all-empty-icon">🍽️</div>
 					<p class="kds-all-empty-title">Kitchen is clear!</p>
 					<p class="kds-all-empty-sub">No active orders right now. New orders will appear here automatically.</p>
+				</div>
+			</div>
+
+			<!-- CALENDAR VIEW -->
+			<div id="view-calendar" class="view-container" style="display:none">
+				<div class="cal-layout">
+					<!-- Calendar Panel -->
+					<div class="glass-panel cal-panel">
+						<div class="cal-header">
+							<button class="cal-nav-btn" id="cal-prev-btn" aria-label="Previous month">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+							</button>
+							<span class="cal-month-label" id="cal-month-label"></span>
+							<button class="cal-nav-btn" id="cal-next-btn" aria-label="Next month">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+							</button>
+						</div>
+						<div class="cal-weekdays">
+							<span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+						</div>
+						<div class="cal-grid" id="cal-grid"></div>
+					</div>
+					<!-- Day Orders Panel -->
+					<div class="glass-panel cal-day-panel" id="cal-day-panel">
+						<div class="cal-day-header" id="cal-day-header">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+							<span>Select a date to view orders</span>
+						</div>
+						<div id="cal-day-orders"></div>
+					</div>
 				</div>
 			</div>
 
@@ -1020,6 +1054,11 @@ import OrderTable from '../components/OrderTable.astro';
 	.view-container { display: flex; flex-direction: column; gap: 32px; animation: fadeSlideIn 0.25s ease; }
 	@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
+	/* Upcoming order row — subtle left accent */
+	tr.row-upcoming td:first-child { border-left: 3px solid var(--accent-primary); }
+	tr.row-upcoming { background: var(--accent-primary-light) !important; }
+
+
 	/* ===== ORDER HISTORY ===== */
 	.view-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 	.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -1565,11 +1604,11 @@ import OrderTable from '../components/OrderTable.astro';
 		border-color: #ef4444 !important;
 	}
 
-	/* === Kitchen: view details button === */
+	/* === Calendar: view details button === */
 	.kcard-btn-details {
-		background: rgba(255,255,255,0.06);
-		border: 1px solid rgba(255,255,255,0.12);
-		color: rgba(255,255,255,0.5);
+		background: var(--bg-card-hover);
+		border: 1px solid var(--border-color);
+		color: var(--text-muted);
 		border-radius: 6px;
 		width: 28px;
 		height: 28px;
@@ -1585,6 +1624,200 @@ import OrderTable from '../components/OrderTable.astro';
 		border-color: var(--border-color-hover);
 		color: var(--accent-primary);
 	}
+
+	/* ===== CALENDAR VIEW ===== */
+	.cal-layout {
+		display: grid;
+		grid-template-columns: 1fr 340px;
+		gap: 24px;
+		align-items: start;
+	}
+	@media (max-width: 900px) { .cal-layout { grid-template-columns: 1fr; } }
+
+	.cal-panel { padding: 24px; }
+
+	/* Header: month nav */
+	.cal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 20px;
+	}
+	.cal-month-label {
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+	.cal-nav-btn {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		color: var(--text-secondary);
+		width: 32px; height: 32px;
+		border-radius: 8px;
+		cursor: pointer;
+		display: flex; align-items: center; justify-content: center;
+		transition: all 0.2s;
+	}
+	.cal-nav-btn:hover {
+		background: var(--accent-primary-light);
+		border-color: var(--accent-primary);
+		color: var(--accent-primary);
+	}
+
+	/* Weekday row */
+	.cal-weekdays {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		margin-bottom: 8px;
+		gap: 4px;
+	}
+	.cal-weekdays span {
+		text-align: center;
+		font-size: 0.68rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--text-muted);
+		padding: 4px 0;
+	}
+
+	/* Calendar grid */
+	.cal-grid {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 4px;
+	}
+	.cal-cell {
+		position: relative;
+		min-height: 60px;
+		border-radius: 10px;
+		padding: 8px 6px 6px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		cursor: pointer;
+		border: 1px solid transparent;
+		background: transparent;
+		transition: background 0.15s, border-color 0.15s;
+	}
+	.cal-cell-empty { cursor: default; pointer-events: none; }
+	.cal-cell:not(.cal-cell-empty):hover {
+		background: var(--bg-card);
+		border-color: var(--border-color);
+	}
+	.cal-day-num {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-secondary);
+		line-height: 1;
+	}
+	.cal-cell.cal-today { background: var(--accent-primary-light); border-color: var(--accent-primary); }
+	.cal-cell.cal-today .cal-day-num { color: var(--accent-primary); font-weight: 800; }
+	.cal-cell.cal-selected { background: var(--accent-primary); border-color: var(--accent-primary); }
+	.cal-cell.cal-selected .cal-day-num { color: #fff; }
+	.cal-cell.cal-selected .cal-order-badge { background: rgba(255,255,255,0.25); color: #fff; }
+
+	/* Order count badge on a day cell */
+	.cal-order-badge {
+		font-size: 0.62rem;
+		font-weight: 800;
+		background: var(--accent-primary);
+		color: #fff;
+		padding: 1px 5px;
+		border-radius: 20px;
+		line-height: 1.5;
+		min-width: 18px;
+		text-align: center;
+	}
+	.cal-cell.cal-has-orders:not(.cal-selected) .cal-order-badge {
+		background: var(--accent-primary);
+		color: #fff;
+	}
+
+	/* Day detail panel */
+	.cal-day-panel {
+		padding: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100vh - 180px);
+	}
+	.cal-day-header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 18px 20px;
+		border-bottom: 1px solid var(--border-color);
+		color: var(--text-primary);
+		flex-shrink: 0;
+	}
+	.cal-day-header svg { color: var(--accent-primary); flex-shrink: 0; }
+	.cal-day-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+	.cal-day-count { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+	#cal-day-orders {
+		overflow-y: auto;
+		flex: 1;
+		padding: 12px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.cal-no-orders {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 40px 20px;
+		color: var(--text-muted);
+		text-align: center;
+		font-size: 0.85rem;
+	}
+
+	/* Order card inside the day panel */
+	.cal-order-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		border-radius: 10px;
+		padding: 12px 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		transition: border-color 0.2s;
+	}
+	.cal-order-card:hover { border-color: var(--border-color-hover); }
+	.cal-order-top {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 8px;
+	}
+	.cal-order-customer { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
+	.cal-order-id { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+	.cal-order-items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+	.cal-order-item-pill {
+		font-size: 0.7rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		color: var(--text-secondary);
+		padding: 2px 8px;
+		border-radius: 20px;
+	}
+	.cal-order-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+	}
+	.cal-order-total { font-size: 0.88rem; font-weight: 800; color: var(--accent-primary); }
+	.cal-order-time { font-size: 0.7rem; color: var(--text-muted); }
 </style>
 
 <script>
@@ -2064,35 +2297,49 @@ function showConfirm(message) {
 		}
 
 		// 2. Search query filter
-		if (searchQuery.trim() !== '') {
+		const isSearching = searchQuery.trim() !== '';
+		if (isSearching) {
 			const query = searchQuery.toLowerCase().trim();
-			filteredOrders = filteredOrders.filter(o => 
+			filteredOrders = filteredOrders.filter(o =>
 				o.id.toLowerCase().includes(query) ||
 				o.customer.toLowerCase().includes(query) ||
 				o.items.some(item => item.name.toLowerCase().includes(query))
 			);
 		}
 
-		// Sort orders by closeness of deliveryDateTime (or order creation date) to current local time
+		// 3. Sort: upcoming (future delivery) first by soonest, then past orders newest-first
 		const now = new Date();
-		filteredOrders.sort((a, b) => {
-			const dateAStr = a.deliveryDateTime || a.date;
-			const dateBStr = b.deliveryDateTime || b.date;
-			
-			const dateA = new Date(dateAStr.replace(' ', 'T'));
-			const dateB = new Date(dateBStr.replace(' ', 'T'));
-			
-			const timeA = isNaN(dateA.getTime()) ? Infinity : dateA.getTime();
-			const timeB = isNaN(dateB.getTime()) ? Infinity : dateB.getTime();
-			
-			const diffA = Math.abs(timeA - now.getTime());
-			const diffB = Math.abs(timeB - now.getTime());
-			
-			return diffA - diffB;
-		});
+		const upcoming = filteredOrders
+			.filter(o => {
+				const dt = new Date((o.deliveryDateTime || o.date).replace(' ', 'T'));
+				return !isNaN(dt.getTime()) && dt > now;
+			})
+			.sort((a, b) => {
+				const da = new Date((a.deliveryDateTime || a.date).replace(' ', 'T')).getTime();
+				const db = new Date((b.deliveryDateTime || b.date).replace(' ', 'T')).getTime();
+				return da - db; // soonest first
+			});
+
+		const past = filteredOrders
+			.filter(o => {
+				const dt = new Date((o.deliveryDateTime || o.date).replace(' ', 'T'));
+				return isNaN(dt.getTime()) || dt <= now;
+			})
+			.sort((a, b) => {
+				const da = new Date((a.deliveryDateTime || a.date).replace(' ', 'T')).getTime();
+				const db = new Date((b.deliveryDateTime || b.date).replace(' ', 'T')).getTime();
+				return db - da; // newest first
+			});
+
+		const sorted = [...upcoming, ...past];
+
+		// 4. Limit to 5 rows in default (no search, no active status filter)
+		const PREVIEW_LIMIT = 5;
+		const isLimited = !isSearching && currentFilter === 'All' && sorted.length > PREVIEW_LIMIT;
+		const displayed = isLimited ? sorted.slice(0, PREVIEW_LIMIT) : sorted;
 
 		// Show/hide empty state
-		if (filteredOrders.length === 0) {
+		if (displayed.length === 0) {
 			tableBody.innerHTML = '';
 			emptyState.style.display = 'flex';
 			return;
@@ -2101,11 +2348,12 @@ function showConfirm(message) {
 		}
 
 		// Render rows
-		tableBody.innerHTML = filteredOrders.map(order => {
+		tableBody.innerHTML = displayed.map(order => {
 			const statusClass = `badge-${order.status.toLowerCase()}`;
+			const isUpcoming = upcoming.includes(order);
 
 			return `
-				<tr data-order-id="${order.id}">
+				<tr data-order-id="${order.id}"${isUpcoming ? ' class="row-upcoming"' : ''}>
 					<td>
 						<button class="action-btn btn-view-details" data-id="${order.id}" title="View Details">
 							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -2165,6 +2413,13 @@ function showConfirm(message) {
 			searchQuery = (e.target as HTMLInputElement).value;
 			renderOrdersTable();
 		});
+
+		// Tab view-all button
+		const tabViewAllBtn = document.getElementById('tab-view-all-btn');
+		if (tabViewAllBtn && !tabViewAllBtn.dataset.bound) {
+			tabViewAllBtn.dataset.bound = '1';
+			tabViewAllBtn.addEventListener('click', () => navigateTo('order-history'));
+		}
 
 		// Filter Tabs
 		const tabContainer = document.getElementById('order-status-tabs');
@@ -4244,6 +4499,7 @@ Christy Montejo
 		'order-history': 'Order History',
 		'analytics': 'Analytics',
 		'live-kitchen': 'Live Kitchen',
+		'calendar': 'Order Calendar',
 		'settings': 'Settings',
 	};
 
@@ -4280,6 +4536,7 @@ Christy Montejo
 			renderKitchenView();
 			kitchenRefreshInterval = setInterval(renderKitchenView, 30000);
 		}
+		if (view === 'calendar') renderCalendarView();
 		if (view === 'settings') renderSettingsView();
 	}
 
@@ -4696,4 +4953,160 @@ Christy Montejo
 		localStorage.setItem('theme', nextTheme);
 		updateThemeIcons(nextTheme);
 	});
+
+	// ===== CALENDAR VIEW =====
+	let calYear = new Date().getFullYear();
+	let calMonth = new Date().getMonth(); // 0-indexed
+	let calSelectedDate: string | null = null;
+
+	function renderCalendarView() {
+		const grid = document.getElementById('cal-grid');
+		const label = document.getElementById('cal-month-label');
+		const prevBtn = document.getElementById('cal-prev-btn');
+		const nextBtn = document.getElementById('cal-next-btn');
+		if (!grid || !label) return;
+
+		// Build order count map keyed by 'YYYY-MM-DD'
+		const countMap: Record<string, { count: number; orders: Order[] }> = {};
+		orders.forEach(o => {
+			// Use delivery date if available, otherwise created date
+			const raw = o.deliveryDateTime || o.date;
+			const dateKey = raw ? raw.slice(0, 10) : null;
+			if (!dateKey) return;
+			if (!countMap[dateKey]) countMap[dateKey] = { count: 0, orders: [] };
+			countMap[dateKey].count++;
+			countMap[dateKey].orders.push(o);
+		});
+
+		// Month label
+		label.textContent = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+		// Wire up nav buttons (once)
+		if (prevBtn && !prevBtn.dataset.calBound) {
+			prevBtn.dataset.calBound = '1';
+			prevBtn.addEventListener('click', () => {
+				if (calMonth === 0) { calMonth = 11; calYear--; } else { calMonth--; }
+				calSelectedDate = null;
+				renderCalendarView();
+			});
+		}
+		if (nextBtn && !nextBtn.dataset.calBound) {
+			nextBtn.dataset.calBound = '1';
+			nextBtn.addEventListener('click', () => {
+				if (calMonth === 11) { calMonth = 0; calYear++; } else { calMonth++; }
+				calSelectedDate = null;
+				renderCalendarView();
+			});
+		}
+
+		// Build calendar grid
+		const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+		const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+		const todayStr = new Date().toISOString().slice(0, 10);
+
+		let html = '';
+		// Blank cells for offset
+		for (let i = 0; i < firstDay; i++) {
+			html += `<div class="cal-cell cal-cell-empty"></div>`;
+		}
+		// Day cells
+		for (let d = 1; d <= daysInMonth; d++) {
+			const mm = String(calMonth + 1).padStart(2, '0');
+			const dd = String(d).padStart(2, '0');
+			const dateKey = `${calYear}-${mm}-${dd}`;
+			const info = countMap[dateKey];
+			const isToday = dateKey === todayStr;
+			const isSelected = dateKey === calSelectedDate;
+			const hasOrders = info && info.count > 0;
+
+			let cls = 'cal-cell';
+			if (isToday) cls += ' cal-today';
+			if (isSelected) cls += ' cal-selected';
+			if (hasOrders) cls += ' cal-has-orders';
+
+			const badge = hasOrders
+				? `<span class="cal-order-badge">${info.count}</span>`
+				: '';
+
+			html += `<div class="${cls}" data-date="${dateKey}" tabindex="0" role="button" aria-label="${dateKey}">
+				<span class="cal-day-num">${d}</span>
+				${badge}
+			</div>`;
+		}
+		grid.innerHTML = html;
+
+		// Click listeners on day cells
+		grid.querySelectorAll<HTMLElement>('.cal-cell[data-date]').forEach(cell => {
+			cell.addEventListener('click', () => {
+				const date = cell.getAttribute('data-date')!;
+				calSelectedDate = date;
+				// Update selected highlight
+				grid.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('cal-selected'));
+				cell.classList.add('cal-selected');
+				// Render day orders panel
+				renderCalendarDayPanel(date, countMap[date]?.orders || []);
+			});
+			cell.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter' || e.key === ' ') cell.click();
+			});
+		});
+
+		// If a date was already selected, re-render its panel
+		if (calSelectedDate) {
+			renderCalendarDayPanel(calSelectedDate, countMap[calSelectedDate]?.orders || []);
+		} else {
+			renderCalendarDayPanel(null, []);
+		}
+	}
+
+	function renderCalendarDayPanel(dateKey: string | null, dayOrders: Order[]) {
+		const header = document.getElementById('cal-day-header');
+		const body = document.getElementById('cal-day-orders');
+		if (!header || !body) return;
+
+		if (!dateKey) {
+			header.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg><span>Select a date to view orders</span>`;
+			body.innerHTML = '';
+			return;
+		}
+
+		const formatted = new Date(dateKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+		header.innerHTML = `
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+			<div>
+				<div class="cal-day-title">${formatted}</div>
+				<div class="cal-day-count">${dayOrders.length} order${dayOrders.length !== 1 ? 's' : ''}</div>
+			</div>`;
+
+		if (dayOrders.length === 0) {
+			body.innerHTML = `<div class="cal-no-orders">
+				<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+				<p>No orders on this day</p>
+			</div>`;
+			return;
+		}
+
+		const statusClass: Record<string, string> = {
+			Pending: 'status-pending',
+			Preparing: 'status-preparing',
+			Completed: 'status-completed',
+			Cancelled: 'status-cancelled'
+		};
+
+		body.innerHTML = dayOrders.map(o => `
+			<div class="cal-order-card">
+				<div class="cal-order-top">
+					<div>
+						<div class="cal-order-customer">${o.customer}</div>
+						<div class="cal-order-id">#${o.id}</div>
+					</div>
+					<span class="status-badge ${statusClass[o.status] || ''} cal-order-status">${o.status}</span>
+				</div>
+				<div class="cal-order-items">${o.items.map(it => `<span class="cal-order-item-pill">${it.quantity}× ${it.name}</span>`).join('')}</div>
+				<div class="cal-order-footer">
+					<span class="cal-order-total">₱${o.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+					${o.deliveryDateTime ? `<span class="cal-order-time">${o.deliveryDateTime.replace('T', ' ')}</span>` : ''}
+				</div>
+			</div>`).join('');
+	}
 </script>
