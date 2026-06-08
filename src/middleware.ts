@@ -27,10 +27,7 @@ export const onRequest = defineMiddleware(({ request, cookies, redirect }, next)
   if (!isProtected) return next();
 
   const token = cookies.get('dashboard_token')?.value;
-  const validToken = import.meta.env.DASHBOARD_PASSWORD;
-
-  // If no dashboard password is configured, allow access (dev fallback)
-  if (!validToken) return next();
+  const validToken = import.meta.env.DASHBOARD_PASSWORD || 'montejo2026';
 
   // If token missing or invalid, redirect to login and preserve original path
   if (!token || token !== validToken) {

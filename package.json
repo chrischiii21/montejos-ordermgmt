@@ -18,6 +18,7 @@
     "astro": "^6.4.4"
   },
   "devDependencies": {
-    "@astrojs/netlify": "^7.0.12"
+    "@astrojs/netlify": "^7.0.12",
+    "@astrojs/vercel": "^10.0.8"
   }
 }

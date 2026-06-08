@@ -3,10 +3,10 @@ import type { APIRoute } from 'astro';
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const data = await request.formData();
   const password = data.get('password')?.toString() ?? '';
-  const validPassword = import.meta.env.DASHBOARD_PASSWORD;
+  const validPassword = import.meta.env.DASHBOARD_PASSWORD || 'montejo2026';
 
-  if (!validPassword || password === validPassword) {
-    cookies.set('dashboard_token', validPassword ?? 'dev', {
+  if (password === validPassword) {
+    cookies.set('dashboard_token', validPassword, {
       httpOnly: true,
       secure: import.meta.env.PROD,
       sameSite: 'strict',

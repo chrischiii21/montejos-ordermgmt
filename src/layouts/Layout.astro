@@ -10,6 +10,12 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+		<script is:inline>
+			(function() {
+				const savedTheme = localStorage.getItem('theme') || 'dark';
+				document.documentElement.setAttribute('data-theme', savedTheme);
+			})();
+		</script>
 	</head>
 	<body>
 		<slot />
@@ -18,7 +24,8 @@
 
 <style is:global>
 	:root {
-		/* Colors */
+		color-scheme: dark;
+		/* Colors - DARK MODE (Default) */
 		--bg-primary: #0a0706;
 		--bg-secondary: #120e0d;
 		--bg-card: rgba(24, 18, 16, 0.72);
@@ -43,6 +50,15 @@
 		--status-cancelled: #ef4444;
 		--status-cancelled-light: rgba(239, 68, 68, 0.12);
 
+		--bg-sidebar: rgba(11, 17, 32, 0.9);
+		--bg-modal: #0f172a;
+		--ambient-light-1: rgba(255, 90, 0, 0.09);
+		--ambient-light-2: rgba(245, 158, 11, 0.06);
+
+		--scrollbar-track: #0a0706;
+		--scrollbar-thumb: rgba(255, 255, 255, 0.1);
+		--scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+
 		/* Typography */
 		--font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 		
@@ -52,6 +68,47 @@
 		
 		/* Transitions */
 		--transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	:root[data-theme="light"] {
+		color-scheme: light;
+		/* Colors - LIGHT MODE */
+		--bg-primary: #fbf9f8;
+		--bg-secondary: #f4efed;
+		--bg-card: rgba(255, 255, 255, 0.75);
+		--bg-card-hover: rgba(255, 255, 255, 0.95);
+		--border-color: rgba(255, 90, 0, 0.16);
+		--border-color-hover: rgba(255, 90, 0, 0.45);
+		
+		--text-primary: #1c110d;
+		--text-secondary: #4a362f;
+		--text-muted: #7d655c;
+		
+		--accent-primary: #ff5e00;
+		--accent-primary-hover: #e04d00;
+		--accent-primary-light: rgba(255, 94, 0, 0.1);
+		
+		--status-pending: #d97706;
+		--status-pending-light: rgba(217, 119, 6, 0.1);
+		--status-preparing: #ea580c;
+		--status-preparing-light: rgba(234, 88, 12, 0.1);
+		--status-completed: #059669;
+		--status-completed-light: rgba(5, 150, 105, 0.1);
+		--status-cancelled: #dc2626;
+		--status-cancelled-light: rgba(220, 38, 38, 0.1);
+
+		--bg-sidebar: rgba(244, 239, 237, 0.95);
+		--bg-modal: #ffffff;
+		--ambient-light-1: rgba(255, 90, 0, 0.04);
+		--ambient-light-2: rgba(245, 158, 11, 0.04);
+
+		--scrollbar-track: #fbf9f8;
+		--scrollbar-thumb: rgba(74, 54, 47, 0.15);
+		--scrollbar-thumb-hover: rgba(74, 54, 47, 0.3);
+
+		/* Shadow & Glow */
+		--glow-effect: 0 4px 20px rgba(255, 94, 0, 0.06);
+		--card-shadow: 0 10px 30px -10px rgba(74, 54, 47, 0.15);
 	}
 
 	*, *::before, *::after {
@@ -71,9 +128,10 @@
 		-moz-osx-font-smoothing: grayscale;
 		/* Background ambient lights */
 		background-image: 
-			radial-gradient(circle at 10% 20%, rgba(255, 90, 0, 0.09) 0%, transparent 40%),
-			radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 40%);
+			radial-gradient(circle at 10% 20%, var(--ambient-light-1) 0%, transparent 40%),
+			radial-gradient(circle at 90% 80%, var(--ambient-light-2) 0%, transparent 40%);
 		background-attachment: fixed;
+		transition: background-color 0.3s ease, color 0.3s ease;
 	}
 
 	/* Scrollbars */
@@ -83,16 +141,16 @@
 	}
 
 	::-webkit-scrollbar-track {
-		background: var(--bg-primary);
+		background: var(--scrollbar-track);
 	}
 
 	::-webkit-scrollbar-thumb {
-		background: rgba(255, 255, 255, 0.1);
+		background: var(--scrollbar-thumb);
 		border-radius: 4px;
 	}
 
 	::-webkit-scrollbar-thumb:hover {
-		background: rgba(255, 255, 255, 0.25);
+		background: var(--scrollbar-thumb-hover);
 	}
 
 	/* Common glassmorphism class */
@@ -108,7 +166,7 @@
 
 	.glass-panel:hover {
 		border-color: var(--border-color-hover);
-		box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.05);
+		box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 94, 0, 0.05);
 	}
 
 	/* Keyframe Animations */
