@@ -7,3 +7,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[build.environment]
+# Disable Rollup native bindings fallback (prevents missing native package errors)
+  ROLLUP_DISABLE_NATIVE = "1"
+# Pin Node version for Netlify build to match local requirement
+  NODE_VERSION = "22.12.0"
