@@ -44,3 +44,43 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## Netlify Deployment
+
+Quick steps to prepare and deploy this Astro app to Netlify:
+
+- Install Netlify CLI (optional but recommended for manual deploys):
+
+```bash
+npm install -g netlify-cli
+```
+
+- (Optional) Install the Astro Netlify adapter to enable server-side routes:
+
+```bash
+npm install -D @astrojs/netlify
+```
+
+Then update `astro.config.mjs` to use the Netlify adapter instead of Vercel. Example:
+
+```js
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+	output: 'server',
+	adapter: netlify(),
+});
+```
+
+- Build and deploy:
+
+```bash
+npm run build
+npm run netlify:deploy
+```
+
+Notes:
+- If you keep using the Vercel adapter locally, Netlify will still be able to deploy a static build. For server routes under `src/pages/api` you should install and configure the Netlify adapter above.
+- The `netlify.toml` at the project root contains defaults (`command = "npm run build"`, `publish = "dist"`).
+

@@ -20,6 +20,18 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/logout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/login/?$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/order/?$",
 			"dest": "_render"
 		},

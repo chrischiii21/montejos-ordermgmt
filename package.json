@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "netlify:login": "netlify login",
+    "netlify:deploy": "netlify deploy --dir=dist --prod"
   },
   "dependencies": {
     "@astrojs/vercel": "^10.0.8",
