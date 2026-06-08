@@ -2826,7 +2826,7 @@ function showConfirm(message) {
 			};
 
 			try {
-				const resp = await fetch('/.netlify/functions/update-order', {
+				const resp = await fetch('/api/update-order', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ id, orderUpdates })
@@ -2877,7 +2877,7 @@ function showConfirm(message) {
 			};
 
 			try {
-				const resp = await fetch('/.netlify/functions/update-order', {
+				const resp = await fetch('/api/update-order', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ id, orderUpdates })
@@ -2952,7 +2952,7 @@ function showConfirm(message) {
 			};
 
 			try {
-				const resp = await fetch('/.netlify/functions/update-order', {
+				const resp = await fetch('/api/update-order', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ id, orderUpdates, items: updatedItems })
@@ -3220,7 +3220,7 @@ function showConfirm(message) {
 
 	async function deleteOrder(id: string) {
 		try {
-			const resp = await fetch('/.netlify/functions/delete-order', {
+			const resp = await fetch('/api/delete-order', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id })
@@ -4150,7 +4150,7 @@ Christy Montejo
 
 			// Save via serverless function to avoid exposing service role and to satisfy RLS
 			try {
-				const resp = await fetch('/.netlify/functions/create-order', {
+				const resp = await fetch('/api/create-order', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
