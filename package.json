@@ -14,8 +14,10 @@
     "netlify:deploy": "netlify deploy --dir=dist --prod"
   },
   "dependencies": {
-    "@astrojs/netlify": "^7.0.12",
     "@supabase/supabase-js": "^2.107.0",
     "astro": "^6.4.4"
+  },
+  "devDependencies": {
+    "@astrojs/netlify": "^7.0.12"
   }
 }

@@ -84,3 +84,16 @@ Notes:
 - If you keep using the Vercel adapter locally, Netlify will still be able to deploy a static build. For server routes under `src/pages/api` you should install and configure the Netlify adapter above.
 - The `netlify.toml` at the project root contains defaults (`command = "npm run build"`, `publish = "dist"`).
 
+Important: secure server-side inserts
+
+- This project uses Supabase row-level security. To allow safe server-side inserts from the deployed site, set the `SUPABASE_SERVICE_ROLE_KEY` as a Netlify environment variable (not committed to the repo):
+
+1. In Netlify dashboard > Site settings > Build & deploy > Environment > Environment variables, add:
+
+	- `PUBLIC_SUPABASE_URL` = your Supabase project URL
+	- `SUPABASE_SERVICE_ROLE_KEY` = your Supabase service role key (server-side only)
+
+2. The project includes a Netlify Function at `netlify/functions/create-order.js` which uses the service role key to insert into `orders` and `order_items` securely. The front-end calls this function instead of inserting directly with the public anon key.
+
+Do NOT commit your service role key to source control. Keep it as an environment variable in Netlify.
+

@@ -3202,35 +3202,40 @@ Christy Montejo
 				deliveryFee: deliveryFeeVal
 			};
 
-			// Save to Supabase
-			const { error: orderErr } = await supabase.from('orders').insert({
-				id: newOrder.id,
-				date: newOrder.date,
-				customer: newOrder.customer,
-				address: newOrder.address,
-				contact: newOrder.contact,
-				delivery_date_time: newOrder.deliveryDateTime || null,
-				fulfillment_type: newOrder.fulfillmentType ?? 'Delivery',
-				status: newOrder.status,
-				total: newOrder.total,
-				downpayment: newOrder.downpayment,
-				balance: newOrder.balance,
-				delivery_fee: newOrder.deliveryFee ?? 0
-			});
-			if (orderErr) { console.error('Failed to save order:', orderErr.message); showToast('Failed to save order.'); return; }
+			// Save via serverless function to avoid exposing service role and to satisfy RLS
+			try {
+				const resp = await fetch('/.netlify/functions/create-order', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						order: {
+							id: newOrder.id,
+							date: newOrder.date,
+							customer: newOrder.customer,
+							address: newOrder.address,
+							contact: newOrder.contact,
+							deliveryDateTime: newOrder.deliveryDateTime || null,
+							fulfillmentType: newOrder.fulfillmentType ?? 'Delivery',
+							status: newOrder.status,
+							total: newOrder.total,
+							downpayment: newOrder.downpayment,
+							balance: newOrder.balance,
+							deliveryFee: newOrder.deliveryFee ?? 0
+						},
+						items: newOrder.items
+					})
+				});
 
-			if (newOrder.items.length > 0) {
-				const { error: itemsErr } = await supabase.from('order_items').insert(
-					newOrder.items.map(it => ({
-						order_id: newOrder.id,
-						name: it.name,
-						quantity: it.quantity,
-						price: it.price,
-						total: it.total,
-						custom_inclusions: it.customInclusions ?? []
-					}))
-				);
-				if (itemsErr) console.error('Failed to save order items:', itemsErr.message);
+				const result = await resp.json().catch(() => ({}));
+				if (!resp.ok) {
+					console.error('Failed to save order (server):', result);
+					showToast('Failed to save order.');
+					return;
+				}
+			} catch (e) {
+				console.error('Failed to save order:', e);
+				showToast('Failed to save order.');
+				return;
 			}
 
 			orders.unshift(newOrder);
