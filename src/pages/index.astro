@@ -281,6 +281,81 @@ import OrderTable from '../components/OrderTable.astro';
 			</div>
 		</div>
 
+	<style>
+		/* Styles for confirmation modal buttons to match app theme */
+		#confirm-modal-overlay .btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 16px;
+			border-radius: 8px;
+			font-weight: 600;
+			cursor: pointer;
+			gap: 8px;
+		}
+		#confirm-modal-overlay .btn-secondary {
+			background: transparent;
+			border: 1px solid var(--border-color);
+			color: var(--text-secondary);
+		}
+		#confirm-modal-overlay .btn-secondary:hover { background: rgba(255,255,255,0.02); color: var(--text-primary); border-color: rgba(255,255,255,0.12); }
+		#confirm-modal-overlay .modal-header h3 { font-size: 1.15rem; margin: 0 0 6px 0; }
+		#confirm-modal-overlay #confirm-modal-message { font-size: 1rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+		#confirm-modal-overlay .close-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: var(--text-primary); width: 34px; height: 34px; }
+		#confirm-modal-overlay .btn-primary {
+			background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+			border: none;
+			color: white;
+			box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35);
+			min-width: 88px;
+			padding: 10px 18px;
+			border-radius: 8px;
+		}
+
+		#confirm-modal-overlay .actions { display:flex; gap:12px; justify-content:flex-end; align-items:center; }
+		#confirm-modal-overlay .btn-secondary { min-width: 88px; padding: 10px 18px; border-radius:8px; }
+	</style>
+
+	<style>
+		/* Center the confirmation modal and make it a compact dialog */
+		#confirm-modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(4, 7, 13, 0.6);
+			backdrop-filter: blur(6px);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 1200;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.2s ease, visibility 0.2s ease;
+		}
+
+		#confirm-modal-overlay.active {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		#confirm-modal-overlay .modal-container {
+			width: auto;
+			max-width: 420px;
+			height: auto;
+			border-radius: 12px;
+			padding: 18px 20px;
+			background: rgba(13,20,36,0.98);
+			box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+			transform: none !important;
+		}
+
+		#confirm-modal-overlay .modal-header { padding-bottom: 8px; margin-bottom: 8px; }
+
+		#confirm-modal-overlay .close-btn { width: 30px; height: 30px; }
+	</style>
+
 		<!-- Order Details Modal -->
 		<div class="modal-overlay" id="details-modal-overlay">
 			<div class="modal-container" style="max-width: 700px; width: 90%;">
@@ -295,6 +370,27 @@ import OrderTable from '../components/OrderTable.astro';
 				</div>
 				<div class="modal-body" id="details-modal-body">
 					<!-- Injected dynamically via JavaScript -->
+				</div>
+			</div>
+		</div>
+
+		<!-- Confirmation Modal (custom) -->
+		<div class="modal-overlay" id="confirm-modal-overlay" aria-hidden="true">
+			<div class="modal-container" style="max-width:420px; width:90%;">
+				<div class="modal-header">
+					<div class="modal-title-group">
+						<h3 style="margin:0; font-size:1.1rem; font-weight:800; color:var(--text-primary);">Confirm action</h3>
+					</div>
+					<button class="close-btn" id="close-confirm-modal-btn" aria-label="Close modal">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+					</button>
+				</div>
+				<div class="modal-body" style="padding:18px 20px;">
+					<p id="confirm-modal-message" style="margin:0 0 16px; color:var(--text-primary);">Are you sure?</p>
+					<div style="display:flex; gap:12px; justify-content:flex-end;">
+						<button class="btn btn-secondary" id="confirm-cancel-btn">Cancel</button>
+						<button class="btn btn-primary" id="confirm-ok-btn">OK</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -1434,6 +1530,47 @@ import OrderTable from '../components/OrderTable.astro';
 		import.meta.env.PUBLIC_SUPABASE_URL,
 		import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 	);
+
+// showConfirm: displays the custom confirmation modal and resolves true/false
+function showConfirm(message) {
+	return new Promise((resolve) => {
+		const overlay = document.getElementById('confirm-modal-overlay');
+		const msg = document.getElementById('confirm-modal-message');
+		const okBtn = document.getElementById('confirm-ok-btn');
+		const cancelBtn = document.getElementById('confirm-cancel-btn');
+		const closeBtn = document.getElementById('close-confirm-modal-btn');
+		if (!overlay || !msg || !okBtn || !cancelBtn) return resolve(false);
+		msg.textContent = message || 'Are you sure?';
+		overlay.classList.add('active');
+
+		// Accessibility: focus and keyboard handlers
+		const prevActive = document.activeElement;
+		okBtn.focus();
+
+		const onKey = (e) => {
+			if (e.key === 'Escape') { e.preventDefault(); doCancel(); }
+			if (e.key === 'Enter') { e.preventDefault(); doOk(); }
+		};
+
+		const cleanup = () => {
+			overlay.classList.remove('active');
+			okBtn.removeEventListener('click', doOk);
+			cancelBtn.removeEventListener('click', doCancel);
+			closeBtn?.removeEventListener('click', doCancel);
+			document.removeEventListener('keydown', onKey);
+			try { prevActive?.focus(); } catch (e) {}
+		};
+
+		const doOk = () => { cleanup(); resolve(true); };
+		const doCancel = () => { cleanup(); resolve(false); };
+
+		okBtn.addEventListener('click', doOk);
+		cancelBtn.addEventListener('click', doCancel);
+		closeBtn?.addEventListener('click', doCancel);
+		document.addEventListener('keydown', onKey);
+	});
+}
+
 	// Type definition for Order
 	interface OrderItem {
 		name: string;
@@ -2148,10 +2285,12 @@ import OrderTable from '../components/OrderTable.astro';
 
 		// Delete Button
 		modal.querySelectorAll('.btn-delete').forEach(btn => {
-			btn.addEventListener('click', (e) => {
+			btn.addEventListener('click', async (e) => {
 				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id');
-				if (id && confirm(`Are you sure you want to delete the record for Order #${id.replace('ORD-', '')}?`)) {
-					deleteOrder(id);
+				if (!id) return;
+				const confirmed = await showConfirm(`Are you sure you want to delete the record for Order #${id.replace('ORD-', '')}?`);
+				if (confirmed) {
+					await deleteOrder(id);
 					const detailsModalOverlay = document.getElementById('details-modal-overlay');
 					detailsModalOverlay?.classList.remove('active');
 				}
@@ -2284,10 +2423,21 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	async function deleteOrder(id: string) {
-		const { error } = await supabase.from('orders').delete().eq('id', id);
-		if (error) { console.error('Failed to delete order:', error.message); showToast('Failed to delete order.'); return; }
-		orders = orders.filter(o => o.id !== id);
-		updateDashboard();
+		try {
+			const resp = await fetch('/.netlify/functions/delete-order', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+			});
+			const body = await resp.json().catch(() => ({}));
+			if (!resp.ok) { console.error('Failed to delete order (server):', body); showToast('Failed to delete order.'); return; }
+			// remove from UI
+			orders = orders.filter(o => o.id !== id);
+			updateDashboard();
+		} catch (e) {
+			console.error('Failed to delete order:', e);
+			showToast('Failed to delete order.');
+		}
 	}
 
 	function openCustomerLinkModal(id: string) {
@@ -3965,7 +4115,7 @@ Christy Montejo
 		if (clearBtn && !clearBtn.dataset.bound) {
 			clearBtn.dataset.bound = '1';
 			clearBtn.addEventListener('click', async () => {
-				if (confirm('Clear ALL orders from the database? This cannot be undone.')) {
+				if (await showConfirm('Clear ALL orders from the database? This cannot be undone.')) {
 					const { error } = await supabase.from('orders').delete().neq('id', '');
 					if (error) { showToast('Failed to clear orders.'); return; }
 					orders = [];
