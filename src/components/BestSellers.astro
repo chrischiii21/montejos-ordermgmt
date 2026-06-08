@@ -1,0 +1,221 @@
+---
+---
+
+<div class="glass-panel best-sellers-container animate-fade-in">
+	<div class="panel-header">
+		<div>
+			<h3 class="panel-title">Best Selling Items</h3>
+			<span class="panel-subtitle">Calculated in real-time from orders</span>
+		</div>
+		<div class="header-badge">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trophy-icon"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"/><path d="M12 2a6 6 0 0 1 6 6c0 3.25-2.25 6.03-5.32 6.78a2 2 0 0 1-1.36 0C8.25 14.03 6 11.25 6 8a6 6 0 0 1 6-6Z"/></svg>
+			<span>Top Sellers</span>
+		</div>
+	</div>
+	
+	<div class="sellers-list" id="best-sellers-list">
+		<!-- Injected via client JS -->
+	<div class="empty-state">
+			<div class="empty-state-icon">🍖</div>
+			<p class="empty-state-title">No data yet</p>
+			<p class="empty-state-sub">Best sellers will appear here once orders are recorded.</p>
+		</div>
+	</div>
+</div>
+
+<style>
+	.best-sellers-container {
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		height: 100%;
+		min-height: 380px;
+	}
+
+	.panel-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 16px;
+	}
+
+	.panel-title {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+
+	.panel-subtitle {
+		font-size: 0.75rem;
+		color: var(--text-muted);
+	}
+
+	.header-badge {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		background: var(--accent-primary-light);
+		color: var(--accent-primary);
+		padding: 4px 10px;
+		border-radius: 20px;
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.trophy-icon {
+		animation: pulseGlow 2s infinite ease-in-out;
+	}
+
+	.sellers-list {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		flex-grow: 1;
+		justify-content: flex-start;
+	}
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		text-align: center;
+		flex-grow: 1;
+		padding: 40px 16px;
+	}
+
+	.empty-state-icon {
+		font-size: 2.5rem;
+		filter: drop-shadow(0 0 12px rgba(255, 94, 0, 0.35));
+		animation: pulseGlow 2.5s infinite ease-in-out;
+		line-height: 1;
+		margin-bottom: 4px;
+	}
+
+	.empty-state-title {
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: var(--text-secondary);
+	}
+
+	.empty-state-sub {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		max-width: 200px;
+		line-height: 1.5;
+	}
+
+	/* CSS for items injected via JS */
+	:global(.seller-item) {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.01);
+		border: 1px solid transparent;
+		transition: var(--transition-smooth);
+	}
+
+	:global(.seller-item:hover) {
+		background: rgba(255, 255, 255, 0.03);
+		border-color: var(--border-color);
+		transform: translateX(4px);
+	}
+
+	:global(.rank-badge) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		font-size: 0.75rem;
+		font-weight: 700;
+		flex-shrink: 0;
+	}
+
+	:global(.rank-1) {
+		background: rgba(245, 158, 11, 0.15);
+		color: #f59e0b;
+		border: 1px solid rgba(245, 158, 11, 0.3);
+		box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+	}
+
+	:global(.rank-2) {
+		background: rgba(148, 163, 184, 0.15);
+		color: #94a3b8;
+		border: 1px solid rgba(148, 163, 184, 0.3);
+	}
+
+	:global(.rank-3) {
+		background: rgba(180, 83, 9, 0.15);
+		color: #b45309;
+		border: 1px solid rgba(180, 83, 9, 0.3);
+	}
+
+	:global(.rank-other) {
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--text-secondary);
+		border: 1px solid var(--border-color);
+	}
+
+	:global(.seller-info) {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		flex-grow: 1;
+	}
+
+	:global(.seller-meta) {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.875rem;
+	}
+
+	:global(.seller-name) {
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+
+	:global(.seller-stats) {
+		display: flex;
+		gap: 12px;
+		font-size: 0.75rem;
+	}
+
+	:global(.sales-count) {
+		color: var(--text-secondary);
+		font-weight: 500;
+	}
+
+	:global(.sales-revenue) {
+		color: var(--status-completed);
+		font-weight: 600;
+	}
+
+	:global(.progress-track) {
+		height: 6px;
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 3px;
+		overflow: hidden;
+		position: relative;
+	}
+
+	:global(.progress-fill) {
+		height: 100%;
+		border-radius: 3px;
+		background: linear-gradient(90deg, var(--accent-primary) 0%, var(--status-preparing) 100%);
+		transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+		box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+	}
+
+	:global(.seller-item:nth-child(1) .progress-fill) {
+		background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+		box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+	}
+</style>

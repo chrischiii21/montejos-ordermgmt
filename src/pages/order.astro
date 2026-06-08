@@ -1,0 +1,1361 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+	<div class="customer-portal-container">
+		<header class="portal-header animate-fade-in">
+			<div class="logo-glow"></div>
+			<div class="logo-group" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+				<img src="/logo.jpg" alt="Montejo's Logo" class="logo-img" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.15);" />
+				<h2 style="font-size: 1.35rem; line-height: 1.2; font-weight: 800; background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">Montejo's Lechon & Food Trays - Argao</h2>
+			</div>
+			<p class="portal-subtitle" style="margin-top: 6px;">Customer Order Verification Portal</p>
+		</header>
+
+		<!-- Error Screens -->
+		<div id="error-screen" class="glass-panel error-panel animate-fade-in" style="display: none;">
+			<div class="error-icon-wrapper">
+				<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+			</div>
+			<h3 id="error-title">Order Link Expired</h3>
+			<p id="error-desc">This order link is no longer valid. The order may have already been completed, cancelled, or does not exist.</p>
+			<a href="/" class="btn btn-primary" style="text-decoration: none; margin-top: 16px; display: inline-flex; align-items: center; gap: 8px;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+				<span>Return to Dashboard</span>
+			</a>
+		</div>
+
+		<!-- Wizard Portal -->
+		<main id="portal-wizard" class="animate-fade-in" style="display: none;">
+			<!-- Step Indicator -->
+			<div class="step-indicator">
+				<div class="step active" id="step-1-indicator">
+					<span class="step-num">1</span>
+					<span class="step-text">Verify Items</span>
+				</div>
+				<div class="step-line" id="line-1-indicator"></div>
+				<div class="step" id="step-2-indicator">
+					<span class="step-num">2</span>
+					<span class="step-text">Delivery Info</span>
+				</div>
+				<div class="step-line" id="line-2-indicator"></div>
+				<div class="step" id="step-3-indicator">
+					<span class="step-num">3</span>
+					<span class="step-text">Secure Payment</span>
+				</div>
+			</div>
+
+			<!-- Step 1 Content: Order Verification -->
+			<section id="step-1-content" class="glass-panel step-content-card">
+				<div class="card-header-group">
+					<h3>Review Your Food Order</h3>
+					<p>Please review the list of dishes ordered by the organizer for accuracy.</p>
+				</div>
+
+				<div class="order-items-summary" id="customer-items-list">
+					<!-- Dynamic items list -->
+				</div>
+
+				<div class="order-totals-summary">
+					<div class="summary-row font-medium" id="cust-fulfillment-row" style="display: none; opacity: 0.85;">
+						<span>Fulfillment Method</span>
+						<span id="cust-fulfillment-type">-</span>
+					</div>
+					<div class="summary-row font-medium" id="cust-subtotal-row" style="display: none; opacity: 0.85;">
+						<span>Subtotal</span>
+						<span id="cust-subtotal">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium" id="cust-delivery-row" style="display: none; opacity: 0.85;">
+						<span>Delivery/Meetup Fee</span>
+						<span id="cust-delivery-fee">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium">
+						<span>Total Bill</span>
+						<span id="cust-total-bill">₱0.00</span>
+					</div>
+					<div class="summary-row accent">
+						<span>Required Downpayment (50%)</span>
+						<span id="cust-downpayment">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium">
+						<span id="cust-balance-label">Remaining Balance Upon Delivery</span>
+						<span id="cust-balance">₱0.00</span>
+					</div>
+				</div>
+
+				<div class="terms-note">
+					<p><strong>Note:</strong> To confirm your order, we request a 50% downpayment of the total bill. The rest will be paid upon pickup/delivery of orders.</p>
+				</div>
+
+				<div class="verification-agreement">
+					<label class="custom-checkbox-container">
+						<input type="checkbox" id="verify-order-checkbox" />
+						<span class="checkmark"></span>
+						<span class="checkbox-label">I verify that the food items and pricing listed above are correct.</span>
+					</label>
+				</div>
+
+				<div class="form-actions-right">
+					<button type="button" class="btn btn-primary" id="btn-goto-step-2" disabled>
+						<span>Verify & Continue</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					</button>
+				</div>
+			</section>
+
+			<!-- Step 2 Content: Customer Details -->
+			<section id="step-2-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="card-header-group">
+					<h3>Complete Contact & Delivery Details</h3>
+					<p>Please enter the delivery information so we can coordinate your food prep and drop-off.</p>
+				</div>
+
+				<form id="customer-info-form" novalidate style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+					<div class="form-row">
+						<div class="form-group flex-1">
+							<label for="cust-input-name">Receiver Name</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+								<input type="text" id="cust-input-name" placeholder="Name of receiver/s" required />
+							</div>
+							<span class="error-message">Name is required</span>
+						</div>
+
+						<div class="form-group flex-1">
+							<label for="cust-input-contact">Contact Number</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+								<input type="text" id="cust-input-contact" placeholder="Receiver contact number" required />
+							</div>
+							<span class="error-message">Contact number is required</span>
+						</div>
+					</div>
+
+					<div class="form-group" id="cust-address-group">
+						<label for="cust-input-address">Exact Address (for Delivery/Meetup)</label>
+						<div class="input-wrapper" style="align-items: flex-start; padding-top: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon" style="margin-top: 4px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+							<textarea id="cust-input-address" rows="3" placeholder="Enter complete address, landmark, block/lot, etc." style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; resize: vertical;" required></textarea>
+						</div>
+						<span class="error-message">Delivery address is required</span>
+					</div>
+
+					<div class="form-group">
+						<label for="cust-input-datetime" id="cust-datetime-label">Delivery/Meetup Date & Time</label>
+						<div class="input-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+							<input type="datetime-local" id="cust-input-datetime" required />
+						</div>
+						<span class="error-message">Delivery date and time are required</span>
+					</div>
+
+					<div class="form-actions-right" style="margin-top: 10px; display: flex; gap: 12px; justify-content: flex-end;">
+						<button type="button" class="btn btn-secondary" id="btn-backto-step-1">
+							Back
+						</button>
+						<button type="submit" class="btn btn-primary" id="btn-submit-step-2">
+							<span>Confirm & Next</span>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+						</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- Step 3 Content: Payment -->
+			<section id="step-3-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="success-header">
+					<div class="success-checkmark-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+					</div>
+					<h3>Details Submitted Successfully!</h3>
+					<p>To finalize your reservation, please send the 50% downpayment using GCash or Maribank. Send a screenshot of the receipt to our Facebook Messenger page.</p>
+				</div>
+
+				<div class="mode-of-payments-card">
+					<h4>M O D E   O F   P A Y M E N T S</h4>
+					
+					<div class="payment-methods-grid">
+						<div class="payment-box">
+							<div class="payment-box-header">
+								<span class="payment-brand">MARIBANK</span>
+								<button class="btn-copy-mini" data-copy="11953471393">Copy</button>
+							</div>
+							<div class="payment-box-body">
+								<span class="label">Account Name:</span>
+								<span class="val">Christy Montejo</span>
+								<span class="label">Account Number:</span>
+								<span class="val monospace">11953471393</span>
+							</div>
+						</div>
+
+						<div class="payment-box">
+							<div class="payment-box-header">
+								<span class="payment-brand font-gcash">GCASH</span>
+								<button class="btn-copy-mini" data-copy="09760721404">Copy</button>
+							</div>
+							<div class="payment-box-body">
+								<span class="label">Account Name:</span>
+								<span class="val">Christy Montejo</span>
+								<span class="label">Mobile Number:</span>
+								<span class="val monospace">09760721404</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="receipt-note">
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="note-icon"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+					<span>Please capture a screenshot of your payment transfer and message it directly to our FB Page. Mention Order ID: <strong id="cust-order-id-display">ORD-XXX</strong>.</span>
+				</div>
+
+				<div class="form-actions-center" style="margin-top: 16px;">
+					<a href="https://facebook.com" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 14px 28px; width: 100%; border-radius: 12px; font-size: 1rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+						<span>Send Receipt to Facebook Page</span>
+					</a>
+				</div>
+			</section>
+		</main>
+	</div>
+</Layout>
+
+<style is:global>
+	.customer-portal-container {
+		max-width: 680px;
+		margin: 0 auto;
+		padding: 40px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.portal-header {
+		text-align: center;
+		margin-bottom: 8px;
+		position: relative;
+	}
+
+	.logo-group {
+		display: inline-flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 8px;
+	}
+
+	.logo-icon {
+		color: var(--accent-primary);
+		filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+	}
+
+	.portal-header h2 {
+		font-size: 1.6rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	.portal-subtitle {
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+		font-weight: 600;
+	}
+
+	/* Errors */
+	.error-panel {
+		padding: 40px 24px;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+	}
+
+	.error-icon-wrapper {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		background: rgba(239, 68, 68, 0.08);
+		border: 2px dashed rgba(239, 68, 68, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--status-cancelled);
+	}
+
+	.error-panel h3 {
+		font-size: 1.4rem;
+		font-weight: 800;
+	}
+
+	.error-panel p {
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+		max-width: 400px;
+		line-height: 1.5;
+	}
+
+	/* Indicator */
+	.step-indicator {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 24px;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--border-color);
+		padding: 16px 20px;
+		border-radius: 12px;
+	}
+
+	.step {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		opacity: 0.5;
+		transition: var(--transition-smooth);
+	}
+
+	.step.active {
+		opacity: 1;
+		color: var(--accent-primary);
+	}
+
+	.step.completed {
+		opacity: 1;
+		color: #10b981;
+	}
+
+	.step-num {
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid var(--border-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		font-size: 0.8rem;
+	}
+
+	.step.active .step-num {
+		background: var(--accent-primary);
+		border-color: var(--accent-primary);
+		color: white;
+		box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+	}
+
+	.step.completed .step-num {
+		background: #10b981;
+		border-color: #10b981;
+		color: white;
+	}
+
+	.step-text {
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+
+	.step-line {
+		flex-grow: 1;
+		height: 1px;
+		background: var(--border-color);
+		margin: 0 12px;
+	}
+
+	.step-line.completed {
+		background: #10b981;
+	}
+
+	/* Cards */
+	.step-content-card {
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.card-header-group {
+		text-align: left;
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 16px;
+	}
+
+	.card-header-group h3 {
+		font-size: 1.25rem;
+		font-weight: 800;
+		margin-bottom: 4px;
+	}
+
+	.card-header-group p {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+	}
+
+	/* Summary Table */
+	.order-items-summary {
+		display: flex;
+		flex-direction: column;
+		background: rgba(20, 14, 12, 0.5);
+		border-radius: 12px;
+		overflow: hidden;
+		border: 1px solid var(--border-color);
+		margin-bottom: 8px;
+	}
+
+	.summary-item-row {
+		display: flex;
+		flex-direction: column;
+		font-size: 0.95rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	}
+
+	.summary-item-row:last-child {
+		border-bottom: none;
+	}
+
+	.summary-item-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px 20px;
+		width: 100%;
+	}
+
+	.item-inclusions {
+		padding: 0 20px 16px 54px;
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	.inclusions-title {
+		font-weight: 700;
+		text-transform: uppercase;
+		font-size: 0.7rem;
+		color: var(--accent-primary);
+		margin-bottom: 6px;
+		letter-spacing: 0.05em;
+	}
+
+	.inclusions-list {
+		margin: 0;
+		padding-left: 14px;
+		list-style-type: disc;
+		color: var(--text-secondary);
+	}
+
+	.inclusions-list li {
+		margin-bottom: 3px;
+	}
+
+	.summary-item-qty {
+		background: var(--accent-primary-light);
+		color: var(--accent-primary);
+		padding: 3px 8px;
+		border-radius: 6px;
+		font-weight: 700;
+		font-size: 0.8rem;
+		border: 1px solid rgba(255, 94, 0, 0.15);
+		margin-right: 12px;
+		display: inline-block;
+	}
+
+	.summary-item-name {
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+
+	.summary-item-right {
+		color: var(--text-primary);
+		font-weight: 700;
+	}
+
+	.order-totals-summary {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		background: rgba(255, 255, 255, 0.01);
+		border: 1px dashed var(--border-color);
+		border-radius: 10px;
+		padding: 16px;
+	}
+
+	.summary-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+	}
+
+	.summary-row.accent {
+		color: var(--accent-primary);
+		font-weight: 700;
+	}
+
+	.summary-row.font-medium {
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+
+	.terms-note {
+		font-size: 0.775rem;
+		color: var(--text-muted);
+		line-height: 1.4;
+		text-align: left;
+		background: rgba(99, 102, 241, 0.05);
+		border-left: 3px solid var(--accent-primary);
+		padding: 10px 12px;
+		border-radius: 0 8px 8px 0;
+	}
+
+	.verification-agreement {
+		text-align: left;
+		padding: 4px 0;
+	}
+
+	/* Custom Checkbox */
+	.custom-checkbox-container {
+		display: flex;
+		align-items: center;
+		position: relative;
+		padding-left: 28px;
+		cursor: pointer;
+		font-size: 0.825rem;
+		user-select: none;
+		color: var(--text-secondary);
+		line-height: 1.4;
+	}
+
+	.custom-checkbox-container input {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+		height: 0;
+		width: 0;
+	}
+
+	.checkmark {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		left: 0;
+		height: 18px;
+		width: 18px;
+		background-color: rgba(255, 255, 255, 0.04);
+		border: 1px solid var(--border-color);
+		border-radius: 4px;
+		transition: var(--transition-smooth);
+	}
+
+	.custom-checkbox-container:hover input ~ .checkmark {
+		background-color: rgba(255, 255, 255, 0.08);
+		border-color: var(--accent-primary);
+	}
+
+	.custom-checkbox-container input:checked ~ .checkmark {
+		background-color: var(--accent-primary);
+		border-color: var(--accent-primary);
+	}
+
+	.checkmark:after {
+		content: "";
+		position: absolute;
+		display: none;
+	}
+
+	.custom-checkbox-container input:checked ~ .checkmark:after {
+		display: block;
+	}
+
+	.custom-checkbox-container .checkmark:after {
+		left: 5px;
+		top: 2px;
+		width: 4px;
+		height: 8px;
+		border: solid white;
+		border-width: 0 2px 2px 0;
+		transform: rotate(45deg);
+	}
+
+	/* Inputs */
+	.form-row {
+		display: flex;
+		gap: 16px;
+		flex-direction: column;
+	}
+
+	@media (min-width: 640px) {
+		.form-row {
+			flex-direction: row;
+		}
+	}
+
+	.flex-1 {
+		flex: 1;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.form-group label {
+		font-size: 0.775rem;
+		font-weight: 700;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.input-wrapper {
+		display: flex;
+		align-items: center;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid var(--border-color);
+		border-radius: 10px;
+		padding: 12px 14px;
+		gap: 10px;
+		transition: var(--transition-smooth);
+	}
+
+	.input-wrapper:focus-within {
+		border-color: var(--accent-primary);
+		box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.input-icon {
+		color: var(--text-muted);
+		flex-shrink: 0;
+	}
+
+	.input-wrapper input {
+		background: transparent;
+		border: none;
+		outline: none;
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		width: 100%;
+	}
+
+	.error-message {
+		font-size: 0.75rem;
+		color: var(--status-cancelled);
+		display: none;
+		text-align: left;
+		margin-top: 2px;
+	}
+
+	.form-group.invalid .input-wrapper {
+		border-color: var(--status-cancelled);
+		background: rgba(239, 68, 68, 0.05);
+	}
+
+	.form-group.invalid .error-message {
+		display: block;
+	}
+
+	/* Buttons */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 10px 20px;
+		border-radius: 8px;
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+		border: none;
+		outline: none;
+	}
+
+	.btn-primary {
+		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+		color: white;
+		box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35);
+	}
+
+	.btn-primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 20px rgba(217, 43, 58, 0.45);
+	}
+
+	.btn-primary:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		transform: none !important;
+	}
+
+	.btn-secondary {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid var(--border-color);
+		color: var(--text-primary);
+	}
+
+	.btn-secondary:hover {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: var(--text-secondary);
+	}
+
+	.form-actions-right {
+		display: flex;
+		justify-content: flex-end;
+		gap: 12px;
+	}
+
+	/* Step 3 Styling */
+	.success-header {
+		text-align: center;
+		padding: 10px 0;
+	}
+
+	.success-checkmark-wrapper {
+		width: 72px;
+		height: 72px;
+		border-radius: 50%;
+		background: rgba(16, 185, 129, 0.08);
+		border: 2px solid rgba(16, 185, 129, 0.3);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 16px;
+	}
+
+	.success-header h3 {
+		font-size: 1.35rem;
+		font-weight: 800;
+		margin-bottom: 6px;
+	}
+
+	.success-header p {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+		line-height: 1.5;
+	}
+
+	.mode-of-payments-card {
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid var(--border-color);
+		border-radius: 14px;
+		padding: 20px;
+	}
+
+	.mode-of-payments-card h4 {
+		font-size: 0.775rem;
+		color: var(--accent-primary);
+		letter-spacing: 0.1em;
+		margin-bottom: 16px;
+		font-weight: 800;
+	}
+
+	.payment-methods-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+
+	@media (min-width: 580px) {
+		.payment-methods-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.payment-box {
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--border-color);
+		border-radius: 10px;
+		padding: 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		text-align: left;
+	}
+
+	.payment-box-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		padding-bottom: 8px;
+	}
+
+	.payment-brand {
+		font-weight: 800;
+		font-size: 0.85rem;
+		color: #ffffff;
+		letter-spacing: 0.05em;
+	}
+
+	.font-gcash {
+		color: #1e3a8a;
+		background: #3b82f6;
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: 0.725rem;
+	}
+
+	.btn-copy-mini {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid var(--border-color);
+		color: var(--text-secondary);
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-size: 0.7rem;
+		cursor: pointer;
+		font-weight: 700;
+		transition: var(--transition-smooth);
+	}
+
+	.btn-copy-mini:hover {
+		color: #ffffff;
+		background: var(--accent-primary);
+		border-color: var(--accent-primary);
+	}
+
+	.btn-copy-mini.copied {
+		color: #ffffff;
+		background: #10b981;
+		border-color: #10b981;
+	}
+
+	.payment-box-body {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.payment-box-body .label {
+		font-size: 0.7rem;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.payment-box-body .val {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--text-primary);
+		margin-bottom: 6px;
+	}
+
+	.payment-box-body .val:last-child {
+		margin-bottom: 0;
+	}
+
+	.payment-box-body .val.monospace {
+		font-family: monospace;
+		color: var(--accent-primary);
+		font-size: 0.9rem;
+	}
+
+	.receipt-note {
+		display: flex;
+		gap: 12px;
+		align-items: flex-start;
+		background: rgba(16, 185, 129, 0.04);
+		border: 1px solid rgba(16, 185, 129, 0.15);
+		padding: 12px 16px;
+		border-radius: 10px;
+		font-size: 0.8rem;
+		color: #10b981;
+		line-height: 1.5;
+		text-align: left;
+	}
+
+	.receipt-note .note-icon {
+		flex-shrink: 0;
+		margin-top: 2px;
+	}
+</style>
+
+<script>
+	import { createClient } from '@supabase/supabase-js';
+
+	const supabase = createClient(
+		import.meta.env.PUBLIC_SUPABASE_URL,
+		import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+	);
+
+	// 1. Script State
+	interface OrderItem {
+		name: string;
+		quantity: number;
+		price: number;
+		total: number;
+		customInclusions?: string[];
+	}
+
+	interface Order {
+		id: string;
+		date: string;
+		customer: string;
+		address: string;
+		contact: string;
+		deliveryDateTime: string;
+		items: OrderItem[];
+		total: number;
+		downpayment: number;
+		balance: number;
+		status: 'Pending' | 'Preparing' | 'Completed' | 'Cancelled';
+		fulfillmentType?: 'Pickup' | 'Meetup' | 'Delivery';
+		deliveryFee?: number;
+	}
+
+	let currentOrder: Order | null = null;
+	let currentStep = 1;
+
+	const PACKAGE_INCLUSIONS: Record<string, string[]> = {
+		"Set A Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"100 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken"
+		],
+		"Set B Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"150 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken",
+			"1 tray Calamares"
+		],
+		"Set C Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"200 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken",
+			"1 tray Calamares",
+			"1 tray Chicken Guisado"
+		],
+		"P1 Package": [
+			"1 whole Lechon Manok",
+			"30 pieces Pork Lumpia",
+			"10 pieces Battered Chicken",
+			"1/2 kilo Buttered Shrimps",
+			"25 pieces Calamares",
+			"Half tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P2 Package": [
+			"3 kilos Lechon Belly",
+			"30 pieces Pork Lumpia",
+			"10 pieces Battered Chicken",
+			"1/2 kilo Buttered Shrimps",
+			"25 pieces Calamares",
+			"Half tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P3 Package": [
+			"4 kilos Lechon Belly",
+			"40 pieces Pork Lumpia",
+			"15 pieces Battered Chicken",
+			"10 pieces Buffalo / Teriyaki Chicken",
+			"3/4 kilo Buttered Shrimps",
+			"40 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P4 Package": [
+			"5 kilos Lechon Belly",
+			"50 pieces Pork Lumpia",
+			"20 pieces Battered Chicken",
+			"15 pieces Buffalo / Teriyaki Chicken",
+			"3/4 kilo Buttered Shrimps",
+			"50 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P5 Package": [
+			"6 kilos Lechon Belly",
+			"70 pieces Pork Lumpia",
+			"25 pieces Battered Chicken",
+			"20 pieces Buffalo / Teriyaki Chicken",
+			"1 kilo Buttered Shrimps",
+			"60 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P6 Package": [
+			"7 kilos Lechon Belly",
+			"80 pieces Pork Lumpia",
+			"30 pieces Battered Chicken",
+			"25 pieces Buffalo / Teriyaki Chicken",
+			"1 kilo Buttered Shrimps",
+			"70 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		]
+	};
+
+	function getInclusions(it: OrderItem): string[] | null {
+		if (it.customInclusions && it.customInclusions.length > 0) {
+			return it.customInclusions;
+		}
+		for (const key in PACKAGE_INCLUSIONS) {
+			if (it.name.toLowerCase().includes(key.toLowerCase()) || 
+				(key.startsWith('P') && it.name.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
+				return PACKAGE_INCLUSIONS[key];
+			}
+		}
+		return null;
+	}
+
+	// Elements
+	const errorScreen = document.getElementById('error-screen');
+	const errorTitle = document.getElementById('error-title');
+	const errorDesc = document.getElementById('error-desc');
+	const portalWizard = document.getElementById('portal-wizard');
+
+	// Step elements
+	const step1Content = document.getElementById('step-1-content');
+	const step2Content = document.getElementById('step-content-card'); // wait let's use the actual step 2 id
+	const step2Section = document.getElementById('step-2-content');
+	const step3Section = document.getElementById('step-3-content');
+
+	// Indicator elements
+	const step1Indicator = document.getElementById('step-1-indicator');
+	const step2Indicator = document.getElementById('step-2-indicator');
+	const step3Indicator = document.getElementById('step-3-indicator');
+	const line1Indicator = document.getElementById('line-1-indicator');
+	const line2Indicator = document.getElementById('line-2-indicator');
+
+	// Checkbox & Navigation Step 1
+	const verifyCheckbox = document.getElementById('verify-order-checkbox') as HTMLInputElement;
+	const btnGotoStep2 = document.getElementById('btn-goto-step-2') as HTMLButtonElement;
+
+	// Form & Navigation Step 2
+	const customerInfoForm = document.getElementById('customer-info-form') as HTMLFormElement;
+	const btnBacktoStep1 = document.getElementById('btn-backto-step-1');
+	const custInputName = document.getElementById('cust-input-name') as HTMLInputElement;
+	const custInputContact = document.getElementById('cust-input-contact') as HTMLInputElement;
+	const custInputAddress = document.getElementById('cust-input-address') as HTMLTextAreaElement;
+	const custInputDatetime = document.getElementById('cust-input-datetime') as HTMLInputElement;
+
+	// Step 3 copy details
+	const custOrderIdDisplay = document.getElementById('cust-order-id-display');
+
+	// Load Order
+	document.addEventListener('DOMContentLoaded', async () => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const id = urlParams.get('id');
+
+		if (!id) {
+			showError('Invalid Link', 'No order identifier was found in the link. Please ask the food service owner for a correct link.');
+			return;
+		}
+
+		// Fetch order + items from Supabase
+		const { data, error } = await supabase
+			.from('orders')
+			.select('*, order_items(*)')
+			.eq('id', id)
+			.single();
+
+		if (error || !data) {
+			showError('Order Not Found', `We could not find any order ticket matching ID: #${id.replace('ORD-', '')}.`);
+			return;
+		}
+
+		// Validate if expired
+		if (data.status === 'Completed' || data.status === 'Cancelled') {
+			showError('Order Link Expired', `This link has expired because Order #${id.replace('ORD-', '')} has already been marked as ${data.status.toUpperCase()}.`);
+			return;
+		}
+
+		currentOrder = {
+			id: data.id,
+			date: data.date,
+			customer: data.customer,
+			address: data.address,
+			contact: data.contact,
+			deliveryDateTime: data.delivery_date_time ?? '',
+			fulfillmentType: data.fulfillment_type ?? 'Delivery',
+			status: data.status,
+			total: parseFloat(data.total),
+			downpayment: parseFloat(data.downpayment),
+			balance: parseFloat(data.balance),
+			deliveryFee: parseFloat(data.delivery_fee ?? 0),
+			items: (data.order_items ?? []).map((it: any) => ({
+				name: it.name,
+				quantity: it.quantity,
+				price: parseFloat(it.price),
+				total: parseFloat(it.total),
+				customInclusions: it.custom_inclusions ?? []
+			}))
+		};
+		initializeWizard();
+	});
+
+	function showError(title: string, description: string) {
+		if (errorScreen && errorTitle && errorDesc && portalWizard) {
+			errorTitle.textContent = title;
+			errorDesc.textContent = description;
+			errorScreen.style.display = 'flex';
+			portalWizard.style.display = 'none';
+		}
+	}
+
+	function initializeWizard() {
+		if (!currentOrder || !portalWizard) return;
+		portalWizard.style.display = 'block';
+
+		// Step 1: Render Items & Inclusions
+		const itemsContainer = document.getElementById('customer-items-list');
+		if (itemsContainer) {
+			itemsContainer.innerHTML = currentOrder.items.map(it => {
+				const inclusions = getInclusions(it);
+				const inclusionsHtml = inclusions ? `
+					<div class="item-inclusions">
+						<div class="inclusions-title">Inclusions:</div>
+						<ul class="inclusions-list">
+							${inclusions.map(inc => `<li>${inc}</li>`).join('')}
+						</ul>
+					</div>
+				` : '';
+				return `
+					<div class="summary-item-row">
+						<div class="summary-item-content">
+							<div style="display: flex; align-items: center; gap: 8px;">
+								<span class="summary-item-qty">${it.quantity}x</span>
+								<span class="summary-item-name">${it.name}</span>
+							</div>
+							<span class="summary-item-right">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+						</div>
+						${inclusionsHtml}
+					</div>
+				`;
+			}).join('');
+		}
+
+		// Render totals
+		const custFulfillmentRow = document.getElementById('cust-fulfillment-row');
+		const custFulfillmentType = document.getElementById('cust-fulfillment-type');
+		const custSubtotalRow = document.getElementById('cust-subtotal-row');
+		const custSubtotal = document.getElementById('cust-subtotal');
+		const custDeliveryRow = document.getElementById('cust-delivery-row');
+		const custDeliveryFee = document.getElementById('cust-delivery-fee');
+		const custTotalBill = document.getElementById('cust-total-bill');
+		const custDownpayment = document.getElementById('cust-downpayment');
+		const custBalanceLabel = document.getElementById('cust-balance-label');
+		const custBalance = document.getElementById('cust-balance');
+
+		const deliveryFee = currentOrder.deliveryFee || 0;
+		const subtotal = currentOrder.total - deliveryFee;
+		const fulfillmentType = currentOrder.fulfillmentType || 'Delivery';
+
+		if (custFulfillmentRow && custFulfillmentType) {
+			custFulfillmentRow.style.display = 'flex';
+			custFulfillmentType.textContent = fulfillmentType;
+		}
+
+		if (custSubtotalRow && custSubtotal) {
+			custSubtotalRow.style.display = 'flex';
+			custSubtotal.textContent = `₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
+		if (custDeliveryRow && custDeliveryFee) {
+			custDeliveryRow.style.display = 'flex';
+			custDeliveryFee.textContent = `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
+		if (custTotalBill) custTotalBill.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custDownpayment) custDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custBalance) custBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+		if (custBalanceLabel) {
+			const type = currentOrder.fulfillmentType || 'Delivery';
+			if (type === 'Pickup') {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Pickup';
+			} else if (type === 'Meetup') {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Meetup';
+			} else {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Delivery';
+			}
+		}
+
+		// Configure address/delivery fields based on fulfillment type
+		const addressGroup = document.getElementById('cust-address-group');
+		const datetimeLabel = document.getElementById('cust-datetime-label');
+		const isPickup = currentOrder.fulfillmentType === 'Pickup';
+
+		if (addressGroup) {
+			addressGroup.style.display = isPickup ? 'none' : 'block';
+		}
+		if (custInputAddress) {
+			if (isPickup) {
+				custInputAddress.removeAttribute('required');
+			} else {
+				custInputAddress.setAttribute('required', 'required');
+			}
+		}
+		if (datetimeLabel) {
+			datetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : 'Delivery/Meetup Date & Time';
+		}
+
+		// Checkbox controller
+		verifyCheckbox?.addEventListener('change', () => {
+			if (btnGotoStep2) {
+				btnGotoStep2.disabled = !verifyCheckbox.checked;
+			}
+		});
+
+		// Navigation Step 1 -> 2
+		btnGotoStep2?.addEventListener('click', () => {
+			goToStep(2);
+		});
+
+		// Navigation Step 2 -> 1
+		btnBacktoStep1?.addEventListener('click', () => {
+			goToStep(1);
+		});
+
+		// Form Step 2 Submission
+		customerInfoForm?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!validateStep2Form()) return;
+
+			// Save to currentOrder
+			if (currentOrder) {
+				currentOrder.customer = custInputName.value.trim();
+				currentOrder.contact = custInputContact.value.trim();
+				currentOrder.address = custInputAddress.value.trim();
+				
+				const rawDate = custInputDatetime.value;
+				currentOrder.deliveryDateTime = rawDate.replace('T', ' ');
+
+				// Save updated order to Supabase
+				const { error: updateErr } = await supabase
+					.from('orders')
+					.update({
+						customer: currentOrder.customer,
+						contact: currentOrder.contact,
+						address: currentOrder.address,
+						delivery_date_time: currentOrder.deliveryDateTime
+					})
+					.eq('id', currentOrder.id);
+				if (updateErr) {
+					console.error('Failed to save customer details:', updateErr.message);
+				}
+
+				if (custOrderIdDisplay) {
+					custOrderIdDisplay.textContent = currentOrder.id;
+				}
+
+				goToStep(3);
+			}
+		});
+
+		// Setup Click to Copy for MoPs
+		document.querySelectorAll('.btn-copy-mini').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const text = (e.currentTarget as HTMLButtonElement).getAttribute('data-copy');
+				if (text) {
+					navigator.clipboard.writeText(text).then(() => {
+						const oldText = btn.textContent;
+						btn.textContent = 'Copied!';
+						btn.classList.add('copied');
+						
+						// Trigger premium browser notification if function exists
+						setTimeout(() => {
+							btn.textContent = oldText;
+							btn.classList.remove('copied');
+						}, 2000);
+					});
+				}
+			});
+		});
+	}
+
+	function goToStep(step: number) {
+		currentStep = step;
+
+		// Toggle sections visibility
+		if (step1Content) step1Content.style.display = step === 1 ? 'flex' : 'none';
+		if (step2Section) step2Section.style.display = step === 2 ? 'flex' : 'none';
+		if (step3Section) step3Section.style.display = step === 3 ? 'flex' : 'none';
+
+		// Toggle indicators
+		if (step === 1) {
+			step1Indicator?.classList.add('active');
+			step1Indicator?.classList.remove('completed');
+			step2Indicator?.classList.remove('active', 'completed');
+			step3Indicator?.classList.remove('active', 'completed');
+			line1Indicator?.classList.remove('completed');
+			line2Indicator?.classList.remove('completed');
+		} else if (step === 2) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.add('active');
+			step2Indicator?.classList.remove('completed');
+			step3Indicator?.classList.remove('active', 'completed');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.remove('completed');
+		} else if (step === 3) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.remove('active');
+			step2Indicator?.classList.add('completed');
+			step3Indicator?.classList.add('active');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.add('completed');
+		}
+	}
+
+	function validateStep2Form(): boolean {
+		let isValid = true;
+
+		// Receiver Name
+		const nameGroup = custInputName.parentElement?.parentElement;
+		if (!custInputName.value.trim()) {
+			nameGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			nameGroup?.classList.remove('invalid');
+		}
+
+		// Contact Number
+		const contactGroup = custInputContact.parentElement?.parentElement;
+		if (!custInputContact.value.trim()) {
+			contactGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			contactGroup?.classList.remove('invalid');
+		}
+
+		// Address (Only validate if not Pickup)
+		const addressGroup = custInputAddress.parentElement?.parentElement;
+		const isPickup = currentOrder?.fulfillmentType === 'Pickup';
+		if (!isPickup && !custInputAddress.value.trim()) {
+			addressGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			addressGroup?.classList.remove('invalid');
+		}
+
+		// Datetime
+		const datetimeGroup = custInputDatetime.parentElement?.parentElement;
+		if (!custInputDatetime.value) {
+			datetimeGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			datetimeGroup?.classList.remove('invalid');
+		}
+
+		return isValid;
+	}
+</script>

@@ -3,21 +3,136 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" type="image/jpeg" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>Montejo's Lechon & Food Trays - Argao</title>
+		<!-- Google Fonts for premium typography -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	</head>
 	<body>
 		<slot />
 	</body>
 </html>
 
-<style>
+<style is:global>
+	:root {
+		/* Colors */
+		--bg-primary: #0a0706;
+		--bg-secondary: #120e0d;
+		--bg-card: rgba(24, 18, 16, 0.72);
+		--bg-card-hover: rgba(36, 27, 24, 0.88);
+		--border-color: rgba(255, 90, 0, 0.12);
+		--border-color-hover: rgba(255, 90, 0, 0.38);
+		
+		--text-primary: #ffffff;
+		--text-secondary: #ebdcd7;
+		--text-muted: #a6958e;
+		
+		--accent-primary: #ff5e00;
+		--accent-primary-hover: #e04d00;
+		--accent-primary-light: rgba(255, 94, 0, 0.15);
+		
+		--status-pending: #f59e0b;
+		--status-pending-light: rgba(245, 158, 11, 0.12);
+		--status-preparing: #ff8800;
+		--status-preparing-light: rgba(255, 136, 0, 0.12);
+		--status-completed: #10b981;
+		--status-completed-light: rgba(16, 185, 129, 0.12);
+		--status-cancelled: #ef4444;
+		--status-cancelled-light: rgba(239, 68, 68, 0.12);
+
+		/* Typography */
+		--font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		
+		/* Shadow & Glow */
+		--glow-effect: 0 0 20px rgba(255, 94, 0, 0.2);
+		--card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.75);
+		
+		/* Transitions */
+		--transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	*, *::before, *::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
 	html,
 	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
+		font-family: var(--font-family);
+		background-color: var(--bg-primary);
+		color: var(--text-primary);
+		min-height: 100vh;
+		overflow-x: hidden;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		/* Background ambient lights */
+		background-image: 
+			radial-gradient(circle at 10% 20%, rgba(255, 90, 0, 0.09) 0%, transparent 40%),
+			radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 40%);
+		background-attachment: fixed;
+	}
+
+	/* Scrollbars */
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: var(--bg-primary);
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 4px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.25);
+	}
+
+	/* Common glassmorphism class */
+	.glass-panel {
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: 16px;
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: var(--card-shadow);
+		transition: var(--transition-smooth);
+	}
+
+	.glass-panel:hover {
+		border-color: var(--border-color-hover);
+		box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.05);
+	}
+
+	/* Keyframe Animations */
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes pulseGlow {
+		0%, 100% {
+			opacity: 0.6;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	.animate-fade-in {
+		animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 	}
 </style>
