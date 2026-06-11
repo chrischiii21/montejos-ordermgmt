@@ -5,7 +5,7 @@
 	<div class="panel-header">
 		<div>
 			<h3 class="panel-title">Best Selling Items</h3>
-			<span class="panel-subtitle">Calculated in real-time from orders</span>
+			<span class="panel-subtitle">Best sellers per menu category</span>
 		</div>
 		<div class="header-badge">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trophy-icon"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"/><path d="M12 2a6 6 0 0 1 6 6c0 3.25-2.25 6.03-5.32 6.78a2 2 0 0 1-1.36 0C8.25 14.03 6 11.25 6 8a6 6 0 0 1 6-6Z"/></svg>
@@ -69,9 +69,9 @@
 	}
 
 	.sellers-list {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 10px;
 		flex-grow: 1;
 		justify-content: flex-start;
 	}
@@ -85,6 +85,7 @@
 		text-align: center;
 		flex-grow: 1;
 		padding: 40px 16px;
+		grid-column: span 2;
 	}
 
 	.empty-state-icon {
@@ -109,113 +110,74 @@
 	}
 
 	/* CSS for items injected via JS */
-	:global(.seller-item) {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 12px;
-		border-radius: 12px;
-		background: rgba(255, 255, 255, 0.01);
-		border: 1px solid transparent;
-		transition: var(--transition-smooth);
-	}
-
-	:global(.seller-item:hover) {
-		background: rgba(255, 255, 255, 0.03);
-		border-color: var(--border-color);
-		transform: translateX(4px);
-	}
-
-	:global(.rank-badge) {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 50%;
-		font-size: 0.75rem;
-		font-weight: 700;
-		flex-shrink: 0;
-	}
-
-	:global(.rank-1) {
-		background: rgba(245, 158, 11, 0.15);
-		color: #f59e0b;
-		border: 1px solid rgba(245, 158, 11, 0.3);
-		box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
-	}
-
-	:global(.rank-2) {
-		background: rgba(148, 163, 184, 0.15);
-		color: #94a3b8;
-		border: 1px solid rgba(148, 163, 184, 0.3);
-	}
-
-	:global(.rank-3) {
-		background: rgba(180, 83, 9, 0.15);
-		color: #b45309;
-		border: 1px solid rgba(180, 83, 9, 0.3);
-	}
-
-	:global(.rank-other) {
-		background: rgba(255, 255, 255, 0.05);
-		color: var(--text-secondary);
-		border: 1px solid var(--border-color);
-	}
-
-	:global(.seller-info) {
+	:global(.category-seller-card) {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
-		flex-grow: 1;
+		gap: 4px;
+		padding: 10px 12px;
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.01);
+		border: 1px solid var(--border-color);
+		transition: var(--transition-smooth);
+		min-width: 0; /* allows text truncation */
 	}
 
-	:global(.seller-meta) {
+	:global(.category-seller-card:hover) {
+		background: rgba(255, 255, 255, 0.03);
+		border-color: rgba(255, 255, 255, 0.1);
+		transform: translateY(-1px);
+	}
+
+	:global(.category-header) {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		font-size: 0.875rem;
+		min-width: 0;
+	}
+
+	:global(.category-label) {
+		font-size: 0.65rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--accent-primary);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		width: 100%;
 	}
 
 	:global(.seller-name) {
+		font-size: 0.78rem;
 		font-weight: 600;
 		color: var(--text-primary);
-	}
-
-	:global(.seller-stats) {
-		display: flex;
-		gap: 12px;
-		font-size: 0.75rem;
-	}
-
-	:global(.sales-count) {
-		color: var(--text-secondary);
-		font-weight: 500;
-	}
-
-	:global(.sales-revenue) {
-		color: var(--status-completed);
-		font-weight: 600;
-	}
-
-	:global(.progress-track) {
-		height: 6px;
-		background: rgba(255, 255, 255, 0.05);
-		border-radius: 3px;
+		white-space: nowrap;
 		overflow: hidden;
-		position: relative;
+		text-overflow: ellipsis;
+		margin-top: 1px;
 	}
 
-	:global(.progress-fill) {
-		height: 100%;
-		border-radius: 3px;
-		background: linear-gradient(90deg, var(--accent-primary) 0%, var(--status-preparing) 100%);
-		transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-		box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+	:global(.seller-details) {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 2px;
+		gap: 6px;
+		min-width: 0;
 	}
 
-	:global(.seller-item:nth-child(1) .progress-fill) {
-		background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-		box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+	:global(.seller-qty) {
+		font-size: 0.68rem;
+		color: var(--text-muted);
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	:global(.seller-revenue) {
+		font-size: 0.74rem;
+		font-weight: 700;
+		color: var(--status-completed);
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 </style>

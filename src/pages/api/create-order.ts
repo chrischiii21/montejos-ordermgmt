@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
@@ -23,6 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
       customer: order.customer,
       address: order.address,
       contact: order.contact,
+      note: order.note ?? null,
       delivery_date_time: order.delivery_date_time ?? order.deliveryDateTime ?? null,
       fulfillment_type: order.fulfillment_type ?? order.fulfillmentType ?? 'Delivery',
       status: order.status,

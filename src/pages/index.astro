@@ -7,6 +7,9 @@ import OrderTable from '../components/OrderTable.astro';
 ---
 
 <Layout>
+	<!-- html2canvas CDN for downloading receipt images -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
 	<div class="dashboard-layout">
 		<!-- Sidebar Navigation -->
 		<aside class="sidebar">
@@ -130,6 +133,7 @@ import OrderTable from '../components/OrderTable.astro';
 				<div class="history-tabs" id="history-tabs">
 					<button class="filter-tab active" data-status="All">All <span class="tab-count" id="hcount-all">0</span></button>
 					<button class="filter-tab" data-status="Pending">Pending <span class="tab-count" id="hcount-pending">0</span></button>
+					<button class="filter-tab" data-status="PendingCustomer">Pending (Customer) <span class="tab-count" id="hcount-pending-customer">0</span></button>
 					<button class="filter-tab" data-status="Preparing">Preparing <span class="tab-count" id="hcount-preparing">0</span></button>
 					<button class="filter-tab" data-status="Completed">Completed <span class="tab-count" id="hcount-completed">0</span></button>
 					<button class="filter-tab" data-status="Cancelled">Cancelled <span class="tab-count" id="hcount-cancelled">0</span></button>
@@ -137,7 +141,7 @@ import OrderTable from '../components/OrderTable.astro';
 				<div class="glass-panel history-table-wrap">
 					<table class="history-table">
 						<thead><tr>
-							<th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Downpayment</th><th>Balance</th><th>Delivery Date</th><th>Status</th><th></th>
+							<th>Order #</th><th>Customer</th><th>Total</th><th>Downpayment</th><th>Balance</th><th>Delivery Date</th><th>Status</th><th></th>
 						</tr></thead>
 						<tbody id="history-body"></tbody>
 					</table>
@@ -153,7 +157,7 @@ import OrderTable from '../components/OrderTable.astro';
 				<div class="analytics-summary" id="analytics-summary"></div>
 				<div class="analytics-charts-row">
 					<div class="glass-panel chart-card">
-						<div class="chart-label">Revenue per Order</div>
+						<div class="chart-label">Daily Revenue Trend</div>
 						<div id="revenue-bar-chart" class="bar-chart-container"></div>
 					</div>
 					<div class="glass-panel chart-card chart-card-sm">
@@ -687,7 +691,7 @@ import OrderTable from '../components/OrderTable.astro';
 	/* Main Content Styles */
 	.main-content {
 		flex-grow: 1;
-		padding: 24px;
+		padding: 24px 32px;
 		display: flex;
 		flex-direction: column;
 		gap: 24px;
@@ -697,7 +701,7 @@ import OrderTable from '../components/OrderTable.astro';
 
 	@media (min-width: 768px) {
 		.main-content {
-			padding: 40px;
+			padding: 40px 56px;
 		}
 	}
 
@@ -1055,9 +1059,7 @@ import OrderTable from '../components/OrderTable.astro';
 	@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 	/* Upcoming order row — subtle left accent */
-	tr.row-upcoming td:first-child { border-left: 3px solid var(--accent-primary); }
-	tr.row-upcoming { background: var(--accent-primary-light) !important; }
-
+	/* Upcoming orders styled globally in <style is:global> */
 
 	/* ===== ORDER HISTORY ===== */
 	.view-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -1070,16 +1072,8 @@ import OrderTable from '../components/OrderTable.astro';
 	.btn-export { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; font-family: var(--font-family); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
 	.btn-export:hover { background: var(--bg-card-hover); color: var(--text-primary); }
 	.history-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-	.history-table-wrap { padding: 0; overflow-x: auto; }
-	.history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-	.history-table thead tr { border-bottom: 1px solid var(--border-color); }
-	.history-table th { padding: 12px 16px; text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); white-space: nowrap; }
-	.history-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; }
-	.history-table tr:last-child td { border-bottom: none; }
-	.history-table tr:hover td { background: var(--bg-card-hover); }
-	.table-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 48px; color: var(--text-muted); font-size: 0.875rem; }
-	.history-items-list { display: flex; flex-direction: column; gap: 2px; max-width: 200px; }
-	.history-item-pill { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+	/* Order history table styles moved to <style is:global> to support dynamic rows. */
 
 	/* ===== ANALYTICS ===== */
 	.analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; }
@@ -1092,9 +1086,9 @@ import OrderTable from '../components/OrderTable.astro';
 	.chart-card { padding: 24px; }
 	.chart-card-sm { padding: 20px; }
 	.chart-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-primary); margin-bottom: 16px; }
-	.bar-chart-container { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-top: 8px; overflow-x: auto; }
+	.bar-chart-container { display: flex; align-items: flex-end; gap: 12px; height: 160px; padding-top: 8px; overflow-x: auto; }
 	.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-	.bar-fill { width: 28px; border-radius: 4px 4px 0 0; transition: height 0.4s ease; cursor: pointer; }
+	.bar-fill { width: 36px; border-radius: 4px 4px 0 0; transition: height 0.4s ease; cursor: pointer; }
 	.bar-fill:hover { filter: brightness(1.2); }
 	.bar-id { font-size: 0.6rem; color: var(--text-muted); }
 	.donut-container { display: flex; justify-content: center; align-items: center; margin: 8px 0; }
@@ -1126,6 +1120,59 @@ import OrderTable from '../components/OrderTable.astro';
 </style>
 
 <style is:global>
+	/* === Order History Table (Global to support dynamic rows) === */
+	tr.row-upcoming td:first-child { border-left: 3px solid var(--accent-primary); }
+	tr.row-upcoming { background: var(--accent-primary-light) !important; }
+
+	.history-table-wrap { padding: 8px 0; overflow-x: auto; }
+	.history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+	.history-table thead tr { border-bottom: 1px solid var(--border-color); }
+	.history-table th { padding: 16px 20px; text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); white-space: nowrap; }
+	.history-table td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; }
+
+	/* Customer cell layout: put name and small badge on same baseline */
+	.history-table td.customer-cell {
+		/* keep table-cell display to preserve table layout; use inner wrapper for flex behavior */
+	}
+	.history-table .customer-cell-inner {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		min-width: 0; /* allow child to shrink */
+	}
+	.history-table .customer-cell-inner .customer-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	
+	/* Pushing boundary cells away from container border */
+	.history-table th:first-child,
+	.history-table td:first-child {
+		padding-left: 36px !important;
+	}
+	.history-table th:last-child,
+	.history-table td:last-child {
+		padding-right: 36px !important;
+	}
+
+	.history-table tr:last-child td { border-bottom: none; }
+	.history-table tr:hover td { background: var(--bg-card-hover); }
+	.table-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 48px; color: var(--text-muted); font-size: 0.875rem; }
+	.table-item-entry-more {
+		font-size: 0.7rem;
+		font-weight: 700;
+		color: var(--accent-primary);
+		background: var(--accent-primary-light);
+		padding: 2px 6px;
+		border-radius: 4px;
+		border: 1px solid rgba(255, 94, 0, 0.2);
+		margin-top: 4px;
+		display: inline-block;
+	}
+
 	/* === Filter Tabs (Order History) === */
 	.history-tabs {
 		display: flex;
@@ -1217,7 +1264,7 @@ import OrderTable from '../components/OrderTable.astro';
 		flex-shrink: 0;
 	}
 	.bar-fill {
-		width: 28px;
+		width: 36px;
 		border-radius: 4px 4px 0 0;
 		transition: height 0.4s ease, filter 0.15s;
 		cursor: pointer;
@@ -1349,6 +1396,19 @@ import OrderTable from '../components/OrderTable.astro';
 		background: rgba(14, 165, 233, 0.15);
 		color: #0ea5e9;
 		border: 1px solid rgba(14, 165, 233, 0.3);
+	}
+
+	/* Small awaiting badge for orders missing customer details */
+	.awaiting-badge {
+		padding: 4px 8px;
+		border-radius: 8px;
+		font-size: 0.7rem;
+		font-weight: 800;
+		color: #f59e0b;
+		background: rgba(245, 158, 11, 0.08);
+		border: 1px solid rgba(245, 158, 11, 0.18);
+		margin-left: 10px;
+		display: inline-block;
 	}
 
 	.btn-refresh {
@@ -2002,7 +2062,215 @@ function showConfirm(message) {
 		return null;
 	}
 
+	function isPackageOrTrayOrLechon(name: string): boolean {
+		const n = name.toLowerCase();
+		
+		// 1. Packages & Combos
+		if (
+			n.includes('package') || 
+			n.includes('set ') || 
+			n.includes('combo') || 
+			n.includes('meal') || 
+			n.includes('bilao') || 
+			n.startsWith('p1') || 
+			n.startsWith('p2') || 
+			n.startsWith('p3') || 
+			n.startsWith('p4') || 
+			n.startsWith('p5') || 
+			n.startsWith('p6') ||
+			n.includes('seapork') ||
+			n.includes('all-in-one') ||
+			n.includes('bam-i + lumpia')
+		) {
+			return true;
+		}
+		
+		// 2. Trays
+		if (n.includes('tray')) {
+			return true;
+		}
+		
+		// 3. Whole Lechon or Lechon Belly
+		if (
+			n.includes('whole lechon') || 
+			n.includes('lechon belly') || 
+			n.includes('lechon baboy') ||
+			n.includes('family lechon') ||
+			n.includes('barkada lechon') ||
+			n.includes('jumbo lechon') ||
+			n.includes('fiesta lechon') ||
+			n.includes('grande lechon')
+		) {
+			return true;
+		}
+		
+		return false;
+	}
 
+	function normalizeItemName(name: string): string {
+		let n = name.trim();
+		// Replace multiple spaces
+		n = n.replace(/\s+/g, ' ');
+		// Convert "Kilos" to "kilos", etc.
+		n = n.replace(/\bKilos\b/gi, 'kilos');
+		n = n.replace(/\bKls\b/gi, 'kilos');
+		n = n.replace(/\bKilo\b/gi, 'kilo');
+		
+		// Normalize casing of words
+		n = n.split(' ').map(w => {
+			const lower = w.toLowerCase();
+			if (lower === 'kilos' || lower === 'kilo') {
+				return 'kilos'; // unify to "kilos"
+			}
+			return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+		}).join(' ');
+		
+		// Fix minor differences like "Lechonbelly" to "Lechon Belly"
+		n = n.replace(/Lechonbelly/gi, 'Lechon Belly');
+		n = n.replace(/Lechon Belly (\d+) kilos/gi, 'Lechon Belly ($1 kilos)');
+		n = n.replace(/Lechon Belly (\d+) Kilos/gi, 'Lechon Belly ($1 kilos)');
+		
+		return n;
+	}
+
+	function getItemCategory(name: string): string | null {
+		const n = name.toLowerCase();
+		
+		// 1. Lechon Packages
+		if (n.includes('1 whole lechon baboy') || (n.includes('set ') && n.includes('package'))) {
+			return 'Lechon Packages';
+		}
+		
+		// 2. Lechon Belly Packages
+		if (
+			(n.startsWith('p1') || n.startsWith('p2') || n.startsWith('p3') || n.startsWith('p4') || n.startsWith('p5') || n.startsWith('p6')) && 
+			(n.includes('package') || n.includes('bilao'))
+		) {
+			return 'Lechon Belly Packages';
+		}
+		
+		// 3. Combo Meals
+		if (
+			n.includes('seapork') || 
+			n.includes('chixseapork') || 
+			n.includes('bam-i + lumpia') || 
+			n.includes('all-in-one') || 
+			n.includes('family meal')
+		) {
+			return 'Combo Meals';
+		}
+
+		// 4. Whole Lechon alone
+		if (
+			n.includes('whole lechon') || 
+			n.includes('lechon baboy') ||
+			n.includes('family lechon') ||
+			n.includes('barkada lechon') ||
+			n.includes('jumbo lechon') ||
+			n.includes('fiesta lechon') ||
+			n.includes('grande lechon') ||
+			n.includes('el\' grande lechon')
+		) {
+			return 'Whole Lechon';
+		}
+		
+		// 5. Lechon Belly alone
+		if (n.includes('lechon belly')) {
+			return 'Lechon Belly';
+		}
+		
+		// 6. Food Trays
+		// A. Chicken
+		if (
+			n.includes('chicken') || 
+			n.includes('cordon') || 
+			n.includes('teriyaki') || 
+			n.includes('buffalo') || 
+			n.includes('adobo') || 
+			n.includes('ala king')
+		) {
+			return 'Food Trays (Chicken)';
+		}
+		
+		// B. Seafood
+		if (
+			n.includes('shrimp') || 
+			n.includes('calamares') || 
+			n.includes('tempura') || 
+			n.includes('escabeche') || 
+			n.includes('fish fillet')
+		) {
+			return 'Food Trays (Seafood)';
+		}
+		
+		// C. Pork
+		if (
+			n.includes('lumpia') || 
+			n.includes('shanghai') || 
+			n.includes('pork chop') || 
+			n.includes('tonkatsu') || 
+			n.includes('menudo') || 
+			n.includes('sweet & sour pork') ||
+			n.includes('sweet and sour pork')
+		) {
+			return 'Food Trays (Pork)';
+		}
+		
+		// D. Pasta/Noodles
+		if (n.includes('bam-i') || n.includes('bam-e') || n.includes('spaghetti') || n.includes('carbonara')) {
+			return 'Food Trays (Noodles/Pasta)';
+		}
+		
+		// E. Veggie/Dessert
+		if (
+			n.includes('salad') || 
+			n.includes('pandan') || 
+			n.includes('float') || 
+			n.includes('maja') || 
+			n.includes('jelly') || 
+			n.includes('fruta') || 
+			n.includes('chopseuy')
+		) {
+			return 'Food Trays (Veggie/Desserts)';
+		}
+		
+		return null;
+	}
+
+	function formatDateTime12h(dateTimeStr: string): string {
+		if (!dateTimeStr) return '';
+		const d = new Date(dateTimeStr.replace(' ', 'T'));
+		if (isNaN(d.getTime())) return dateTimeStr;
+		return d.toLocaleString('en-US', {
+			year: 'numeric',
+			month: 'numeric',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
+		});
+	}
+
+	function escapeHtml(unsafe: string) {
+		if (!unsafe) return '';
+		return unsafe
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function formatTime12h(dateTimeStr: string): string {
+		if (!dateTimeStr) return '';
+		const d = new Date(dateTimeStr.replace(' ', 'T'));
+		if (isNaN(d.getTime())) return dateTimeStr;
+		return d.toLocaleString('en-US', {
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
+		});
+	}
 
 	// Application State
 	let orders: Order[] = [];
@@ -2018,6 +2286,7 @@ function showConfirm(message) {
 			id: row.id,
 			date: row.date,
 			customer: row.customer,
+			note: row.note ?? '',
 			address: row.address,
 			contact: row.contact,
 			deliveryDateTime: row.delivery_date_time ?? '',
@@ -2134,6 +2403,15 @@ function showConfirm(message) {
 				});
 			});
 		}
+
+		// Initial view routing based on URL hash to preserve view state on refresh
+		const initialView = window.location.hash.slice(1) || 'dashboard';
+		const validViews = ['dashboard', 'order-history', 'analytics', 'live-kitchen', 'calendar', 'settings'];
+		if (validViews.includes(initialView)) {
+			navigateTo(initialView);
+		} else {
+			navigateTo('dashboard');
+		}
 	});
 
 	function updateDateDisplay() {
@@ -2166,8 +2444,8 @@ function showConfirm(message) {
 			.filter(o => o.status === 'Completed' || o.status === 'Preparing')
 			.reduce((sum, o) => sum + o.total, 0);
 		
-		// Active Orders (Pending + Preparing)
-		const activeCount = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing').length;
+		// Active Orders (Pending + Preparing) but exclude orders missing customer details
+		const activeCount = getActiveOrders().length;
 		
 		// Total Items Sold
 		const itemsSold = validOrders.reduce((sum, o) => sum + o.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
@@ -2187,6 +2465,11 @@ function showConfirm(message) {
 		updateTrendBadge('active-trend', activeCount > 2 ? '+25%' : '+0%', activeCount > 2);
 		updateTrendBadge('avg-trend', avgOrderVal > 300 ? '+4.8%' : '+0%', avgOrderVal > 300);
 		updateTrendBadge('items-trend', itemsSold > 5 ? '+18%' : '+0%', itemsSold > 5);
+	}
+
+	// Helper: return active orders excluding placeholder customer rows
+	function getActiveOrders() {
+		return orders.filter(o => (o.status === 'Pending' || o.status === 'Preparing') && ((o.customer || '').toString().trim() !== 'Pending Customer Details' && (o.customer || '').toString().trim() !== ''));
 	}
 
 	function updateVal(id: string, value: string) {
@@ -2218,71 +2501,118 @@ function showConfirm(message) {
 		// Filter out cancelled orders for analytics
 		const activeSales = orders.filter(o => o.status !== 'Cancelled');
 
-		// Aggregate sales by item
-		const itemAggregation: { [name: string]: { quantity: number; revenue: number } } = {};
+		const categories = [
+			{ label: 'Whole Lechon' },
+			{ label: 'Lechon Belly' },
+			{ label: 'Lechon Packages' },
+			{ label: 'Lechon Belly Packages' },
+			{ label: 'Food Trays (Pork)' },
+			{ label: 'Food Trays (Chicken)' },
+			{ label: 'Food Trays (Seafood)' },
+			{ label: 'Combo Meals' }
+		];
+
+		const categoryAggregation: { [catName: string]: { [itemName: string]: { quantity: number; revenue: number } } } = {};
+		categories.forEach(cat => {
+			categoryAggregation[cat.label] = {};
+		});
+
 		activeSales.forEach(order => {
 			order.items.forEach(item => {
-				const name = item.name;
-				if (!itemAggregation[name]) {
-					itemAggregation[name] = { quantity: 0, revenue: 0 };
+				if (item.price > 0) {
+					const cat = getItemCategory(item.name);
+					if (cat && categoryAggregation[cat]) {
+						let name = normalizeItemName(item.name);
+						if (name === '1 Whole Lechon Baboy') {
+							if (item.price === 15999) {
+								name = 'Set A Lechon Package';
+							} else if (item.price === 18675) {
+								name = 'Set B Lechon Package';
+							} else if (item.price === 19999) {
+								name = 'Set C Lechon Package';
+							}
+						}
+						if (!categoryAggregation[cat][name]) {
+							categoryAggregation[cat][name] = { quantity: 0, revenue: 0 };
+						}
+						categoryAggregation[cat][name].quantity += item.quantity;
+						categoryAggregation[cat][name].revenue += item.total;
+					}
 				}
-				itemAggregation[name].quantity += item.quantity;
-				itemAggregation[name].revenue += item.total;
 			});
 		});
 
-		// Convert to array
-		const sellers = Object.keys(itemAggregation).map(name => ({
-			name,
-			quantity: itemAggregation[name].quantity,
-			revenue: itemAggregation[name].revenue
-		}));
+		const categoryBestSellers = categories.map(cat => {
+			const items = categoryAggregation[cat.label];
+			const sortedItems = Object.keys(items).map(name => ({
+				name,
+				quantity: items[name].quantity,
+				revenue: items[name].revenue
+			})).sort((a, b) => b.quantity - a.quantity);
+			
+			const topSeller = sortedItems[0] || null;
+			return {
+				categoryLabel: cat.label,
+				bestSeller: topSeller
+			};
+		});
 
-		// Sort by quantity sold descending
-		sellers.sort((a, b) => b.quantity - a.quantity);
+		// Check if we have any sales at all
+		const hasAnySales = categoryBestSellers.some(c => c.bestSeller !== null);
 
-		// If no items, show empty state
-		if (sellers.length === 0) {
+		if (!hasAnySales) {
 			listContainer.innerHTML = `
 				<div class="empty-state">
-					<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-					<p>No orders recorded yet to calculate sales.</p>
+					<div class="empty-state-icon">🍖</div>
+					<p class="empty-state-title">No data yet</p>
+					<p class="empty-state-sub">Best sellers will appear here once orders are recorded.</p>
 				</div>
 			`;
 			return;
 		}
 
-		// Find maximum quantity to calculate proportional progress bar width
-		const maxQty = sellers[0].quantity;
+		const formatCompactRevenue = (val: number) => {
+			if (val >= 1000000) {
+				return (val / 1000000).toFixed(1).replace('.0', '') + 'M';
+			}
+			if (val >= 1000) {
+				return (val / 1000).toFixed(1).replace('.0', '') + 'k';
+			}
+			return val.toString();
+		};
 
-		// Slice top 4 items and render
-		const topSellers = sellers.slice(0, 4);
-		listContainer.innerHTML = topSellers.map((item, index) => {
-			const rank = index + 1;
-			const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
-			const progressPercent = maxQty > 0 ? (item.quantity / maxQty) * 100 : 0;
+		listContainer.innerHTML = categoryBestSellers.map(cat => {
+			if (!cat.bestSeller) {
+				return `
+					<div class="category-seller-card" style="opacity: 0.5">
+						<div class="category-header">
+							<span class="category-label" title="${cat.categoryLabel}">${cat.categoryLabel}</span>
+						</div>
+						<div class="seller-name" style="color:var(--text-muted); font-size:0.75rem; font-style:italic;">No sales</div>
+						<div class="seller-details">
+							<span class="seller-qty">-</span>
+							<span class="seller-revenue">-</span>
+						</div>
+					</div>
+				`;
+			}
 			
 			return `
-				<div class="seller-item">
-					<div class="rank-badge ${rankClass}">#${rank}</div>
-					<div class="seller-info">
-						<div class="seller-meta">
-							<span class="seller-name">${item.name}</span>
-							<div class="seller-stats">
-								<span class="sales-count">${item.quantity} sold</span>
-								<span class="sales-revenue">₱${item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-							</div>
-						</div>
-						<div class="progress-track">
-							<div class="progress-fill" style="width: ${progressPercent}%"></div>
-						</div>
+				<div class="category-seller-card">
+					<div class="category-header">
+						<span class="category-label" title="${cat.categoryLabel}">${cat.categoryLabel}</span>
+					</div>
+					<div class="seller-name" title="${cat.bestSeller.name}">${cat.bestSeller.name}</div>
+					<div class="seller-details">
+						<span class="seller-qty">${cat.bestSeller.quantity} sold</span>
+						<span class="seller-revenue">₱${formatCompactRevenue(cat.bestSeller.revenue)}</span>
 					</div>
 				</div>
 			`;
 		}).join('');
 	}
 
-	// 3. Render Orders Table
+	// 3. Render Orders Table (dashboard preview)
 	function renderOrdersTable() {
 		const tableBody = document.getElementById('order-table-body');
 		const emptyState = document.getElementById('table-empty-state');
@@ -2293,18 +2623,32 @@ function showConfirm(message) {
 
 		// 1. Status Filter
 		if (currentFilter !== 'All') {
-			filteredOrders = filteredOrders.filter(o => o.status === currentFilter);
+			if (currentFilter === 'PendingCustomer') {
+				// show orders that still have placeholder customer details
+				filteredOrders = filteredOrders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === ''));
+			} else if (currentFilter === 'Pending') {
+				// Pending tab should only show pending orders that already have customer details
+				filteredOrders = filteredOrders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== ''));
+			} else {
+				filteredOrders = filteredOrders.filter(o => o.status === currentFilter);
+			}
 		}
 
 		// 2. Search query filter
 		const isSearching = searchQuery.trim() !== '';
 		if (isSearching) {
 			const query = searchQuery.toLowerCase().trim();
-			filteredOrders = filteredOrders.filter(o =>
-				o.id.toLowerCase().includes(query) ||
-				o.customer.toLowerCase().includes(query) ||
-				o.items.some(item => item.name.toLowerCase().includes(query))
-			);
+			filteredOrders = filteredOrders.filter(o => {
+				try {
+					const idMatch = (o.id || '').toString().toLowerCase().includes(query);
+					const custMatch = ((o.customer || '')).toString().toLowerCase().includes(query);
+					const itemsMatch = Array.isArray(o.items) && o.items.some(item => ((item.name || '')).toString().toLowerCase().includes(query));
+					return idMatch || custMatch || itemsMatch;
+				} catch (e) {
+					console.error('Search filter error for order', o && o.id, e);
+					return false;
+				}
+			});
 		}
 
 		// 3. Sort: upcoming (future delivery) first by soonest, then past orders newest-first
@@ -2339,16 +2683,28 @@ function showConfirm(message) {
 		const displayed = isLimited ? sorted.slice(0, PREVIEW_LIMIT) : sorted;
 
 		// Show/hide empty state
-		if (displayed.length === 0) {
-			tableBody.innerHTML = '';
-			emptyState.style.display = 'flex';
-			return;
-		} else {
-			emptyState.style.display = 'none';
+		try {
+			if (displayed.length === 0) {
+				tableBody.innerHTML = '';
+				emptyState.style.display = 'flex';
+				return;
+			} else {
+				emptyState.style.display = 'none';
+			}
+		} catch (err) {
+			console.error('Error rendering orders table empty state:', err);
 		}
 
 		// Render rows
 		tableBody.innerHTML = displayed.map(order => {
+			// owner note for pending-customer orders (from DB `note` field)
+			let noteHtml = '';
+			try {
+				const note = (order.note || '').toString();
+				if (note && (order.customer === 'Pending Customer Details' || (order.customer || '').trim() === '')) {
+					noteHtml = `<div class="owner-note" style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">FB: ${escapeHtml(note)}</div>`;
+				}
+			} catch (e) { }
 			const statusClass = `badge-${order.status.toLowerCase()}`;
 			const isUpcoming = upcoming.includes(order);
 
@@ -2360,8 +2716,8 @@ function showConfirm(message) {
 						</button>
 					</td>
 					<td class="order-id-cell">#${order.id.replace('ORD-', '')}</td>
-					<td class="customer-cell">${order.customer}</td>
-					<td class="date-cell">${order.deliveryDateTime || '<span class="text-muted">Pending Customer Input</span>'}</td>
+					<td class="customer-cell"><div class="customer-cell-inner"><span class="customer-name">${((order.customer || '').trim()) ? escapeHtml(order.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>${((order.customer || '').trim() === 'Pending Customer Details' || (order.customer || '').trim() === '') ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}</div>${noteHtml}</td>
+					<td class="date-cell">${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : '<span class="text-muted">Pending Customer Input</span>'}</td>
 					<td><span class="status-badge ${statusClass}">${order.status}</span></td>
 				</tr>
 			`;
@@ -2373,17 +2729,32 @@ function showConfirm(message) {
 
 	// 4. Counts in Tabs
 	function updateTabCounts() {
-		const countAll = document.getElementById('count-all');
-		const countPending = document.getElementById('count-pending');
-		const countPreparing = document.getElementById('count-preparing');
-		const countCompleted = document.getElementById('count-completed');
-		const countCancelled = document.getElementById('count-cancelled');
+		const countAll = document.getElementById('hcount-all');
+		const countPending = document.getElementById('hcount-pending');
+		const countPendingCustomer = document.getElementById('hcount-pending-customer');
+		const countPreparing = document.getElementById('hcount-preparing');
+		const countCompleted = document.getElementById('hcount-completed');
+		const countCancelled = document.getElementById('hcount-cancelled');
 
 		if (countAll) countAll.textContent = orders.length.toString();
-		if (countPending) countPending.textContent = orders.filter(o => o.status === 'Pending').length.toString();
+		if (countPending) countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
+		if (countPendingCustomer) countPendingCustomer.textContent = orders.filter(o => (o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '').length.toString();
 		if (countPreparing) countPreparing.textContent = orders.filter(o => o.status === 'Preparing').length.toString();
 		if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'Completed').length.toString();
 		if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'Cancelled').length.toString();
+
+		// Dashboard OrderTable counts (IDs used in the dashboard component)
+		const d_countAll = document.getElementById('count-all');
+		const d_countPending = document.getElementById('count-pending');
+		const d_countPreparing = document.getElementById('count-preparing');
+		const d_countCompleted = document.getElementById('count-completed');
+		const d_countCancelled = document.getElementById('count-cancelled');
+
+		if (d_countAll) d_countAll.textContent = orders.length.toString();
+		if (d_countPending) d_countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
+		if (d_countPreparing) d_countPreparing.textContent = orders.filter(o => o.status === 'Preparing').length.toString();
+		if (d_countCompleted) d_countCompleted.textContent = orders.filter(o => o.status === 'Completed').length.toString();
+		if (d_countCancelled) d_countCancelled.textContent = orders.filter(o => o.status === 'Cancelled').length.toString();
 	}
 
 	// 5. Actions / Event Listeners
@@ -2468,6 +2839,24 @@ function showConfirm(message) {
 					showToast('Shareable link copied to clipboard!');
 					const oldText = copyShareableLinkBtn.textContent;
 					copyShareableLinkBtn.textContent = 'Copied!';
+					// persist copied state for this order and update table button if present
+					try {
+						const u = new URL(shareableLinkInput.value);
+						const id = u.searchParams.get('id');
+						if (id) {
+							localStorage.setItem('copied_link_' + id, '1');
+							const tableBtn = document.querySelector('.btn-get-link[data-id="' + id + '"]') as HTMLButtonElement;
+							if (tableBtn) {
+								const old = tableBtn.innerHTML;
+								tableBtn.classList.add('copied');
+								tableBtn.innerHTML = `\n\t\t\t\t<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>\n\t\t\t\t<span>Copied!</span>\n\t\t\t`;
+								setTimeout(() => {
+									tableBtn.classList.remove('copied');
+									tableBtn.innerHTML = old;
+								}, 2000);
+							}
+						}
+					} catch (e) {}
 					setTimeout(() => {
 						copyShareableLinkBtn.textContent = oldText;
 					}, 2000);
@@ -2484,6 +2873,36 @@ function showConfirm(message) {
 				if (id) {
 					openDetailsModal(id);
 				}
+			});
+		});
+
+		// Table Copy Link Button (same behavior as copy-slip)
+		document.querySelectorAll('.btn-get-link').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id');
+				if (!id) return;
+				// Embed current admin settings into the shareable link so the customer view matches
+				const settingsParam = (() => {
+					try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; }
+				})();
+				const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
+				navigator.clipboard.writeText(uniqueLink).then(() => {
+					const target = e.currentTarget as HTMLButtonElement;
+					target.classList.add('copied');
+					const oldHTML = target.innerHTML;
+					target.innerHTML = `
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+						<span>Copied!</span>
+					`;
+					try { localStorage.setItem('copied_link_' + id, '1'); } catch (e) {}
+					showToast('Customer share link copied to clipboard!');
+					setTimeout(() => {
+						target.classList.remove('copied');
+						target.innerHTML = oldHTML;
+					}, 2000);
+				}).catch(err => {
+					console.error('Could not copy link to clipboard: ', err);
+				});
 			});
 		});
 	}
@@ -2509,6 +2928,8 @@ function showConfirm(message) {
 
 		const detailsTitle = document.getElementById('details-title');
 		if (detailsTitle) detailsTitle.textContent = `Order #${id.replace('ORD-', '')}`;
+
+		const existingOwnerNote = (() => { try { const o = orders.find(x => x.id === id); return (o && o.note) ? o.note : ''; } catch (e) { return ''; } })();
 
 		// 1. ITEMS BREAKDOWN SECTION
 		let itemsHTML = '';
@@ -2680,7 +3101,7 @@ function showConfirm(message) {
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Order Created:</span>
-						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${order.date}</span>
+						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${formatDateTime12h(order.date)}</span>
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Exact Address:</span>
@@ -2692,8 +3113,18 @@ function showConfirm(message) {
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Delivery Date & Time:</span>
-						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${order.deliveryDateTime || 'N/A'}</span>
+						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : 'N/A'}</span>
 					</div>
+
+					${((order.customer || '').trim() === 'Pending Customer Details' || (order.customer || '').trim() === '') ? `
+						<div class="detail-field" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+							<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Owner Note (FB Name) — visible only to owner</span>
+							<textarea id="owner-note" style="width:100%;min-height:70px;background: rgba(0,0,0,0.03);border:1px solid var(--border-color);color:var(--text-primary);padding:8px;border-radius:6px;">${escapeHtml(existingOwnerNote)}</textarea>
+							<div style="display:flex;justify-content:flex-end;">
+								<button id="save-note-btn" data-id="${id}" class="btn btn-primary" style="padding:6px 12px;margin-top:6px;">Save Note</button>
+							</div>
+						</div>
+					` : ''}
 				</div>
 			`;
 		}
@@ -3107,7 +3538,10 @@ function showConfirm(message) {
 			btn.addEventListener('click', (e) => {
 				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id');
 				if (id) {
-					const uniqueLink = window.location.origin + '/order?id=' + id;
+										const settingsParam = (() => {
+											try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; }
+										})();
+										const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
 					navigator.clipboard.writeText(uniqueLink).then(() => {
 						const target = e.currentTarget as HTMLButtonElement;
 						target.classList.add('copied');
@@ -3117,6 +3551,19 @@ function showConfirm(message) {
 							<span>Copied!</span>
 						`;
 						showToast('Customer share link copied to clipboard!');
+						// persist copied state
+						try { localStorage.setItem('copied_link_' + id, '1'); } catch (e) {}
+						// also update the table action button if present
+						const tableBtn = document.querySelector('.btn-get-link[data-id="' + id + '"]') as HTMLButtonElement;
+						if (tableBtn) {
+							const old = tableBtn.innerHTML;
+							tableBtn.classList.add('copied');
+							tableBtn.innerHTML = `\n\t\t\t\t<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>\n\t\t\t\t<span>Copied!</span>\n\t\t\t`;
+							setTimeout(() => {
+								tableBtn.classList.remove('copied');
+								tableBtn.innerHTML = old;
+							}, 2000);
+						}
 						setTimeout(() => {
 							target.classList.remove('copied');
 							target.innerHTML = oldHTML;
@@ -3137,6 +3584,36 @@ function showConfirm(message) {
 				}
 			});
 		});
+
+		// Save Owner Note (localStorage) - visible only to owner/admin in UI
+		const saveNoteBtn = modal.querySelector('#save-note-btn') as HTMLButtonElement | null;
+		if (saveNoteBtn) {
+			saveNoteBtn.addEventListener('click', async (e) => {
+				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id') || currentEditingOrderId;
+				if (!id) return;
+				const ta = modal.querySelector('#owner-note') as HTMLTextAreaElement | null;
+				if (!ta) return;
+				const val = ta.value.trim();
+				// Persist to backend via existing update-order API
+				try {
+					const resp = await fetch('/api/update-order', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ id, orderUpdates: { note: val } })
+					});
+					if (!resp.ok) { showToast('Failed to save note.'); return; }
+					// Update local state
+					const ord = orders.find(o => o.id === id);
+					if (ord) ord.note = val;
+					showToast('Note saved (owner only).');
+					updateDashboard();
+					renderDetailsModalContent();
+				} catch (err) {
+					console.error('Failed to save note:', err);
+					showToast('Failed to save note.');
+				}
+			});
+		}
 	}
 
 	function getActionButtonsHTML(order: Order) {
@@ -3179,12 +3656,23 @@ function showConfirm(message) {
 
 		// Prepend Get Link button if details are pending from customer
 		if (order.customer === 'Pending Customer Details') {
-			actionButtons = `
-				<button class="action-btn btn-get-link" data-id="${order.id}" title="Copy Customer Share Link">
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-					<span>Copy Link</span>
-				</button>
-			` + actionButtons;
+			let copied = false;
+			try { copied = !!localStorage.getItem('copied_link_' + order.id); } catch (e) {}
+			if (copied) {
+				actionButtons = `
+					<button class="action-btn btn-get-link copied" data-id="${order.id}" title="Customer Share Link (copied)">
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+						<span>Copied!</span>
+					</button>
+				` + actionButtons;
+			} else {
+				actionButtons = `
+					<button class="action-btn btn-get-link" data-id="${order.id}" title="Copy Customer Share Link">
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+						<span>Copy Link</span>
+					</button>
+				` + actionButtons;
+			}
 		}
 
 		// Prepend Copy Confirmation Slip button to all action buttons
@@ -3230,6 +3718,7 @@ function showConfirm(message) {
 			// remove from UI
 			orders = orders.filter(o => o.id !== id);
 			updateDashboard();
+			showToast('Order deleted successfully!');
 		} catch (e) {
 			console.error('Failed to delete order:', e);
 			showToast('Failed to delete order.');
@@ -3241,7 +3730,8 @@ function showConfirm(message) {
 		const shareableLinkInput = document.getElementById('shareable-link-input') as HTMLInputElement;
 		const openShareableLinkBtn = document.getElementById('open-shareable-link-btn') as HTMLAnchorElement;
 		
-		const uniqueLink = window.location.origin + '/order?id=' + id;
+				const settingsParam = (() => { try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; } })();
+				const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
 		if (shareableLinkInput) shareableLinkInput.value = uniqueLink;
 		if (openShareableLinkBtn) openShareableLinkBtn.href = uniqueLink;
 		
@@ -3270,7 +3760,7 @@ Name: ${order.customer}
 Fulfillment: ${order.fulfillmentType || 'Delivery'}
 Exact Address: ${order.address}
 Contact Number of the Receiver/s: ${order.contact}
-Time & Date: ${order.deliveryDateTime}
+Time & Date: ${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : 'Pending Customer Input'}
 List of Order/s:
 ${itemsText}
 
@@ -3316,12 +3806,6 @@ Christy Montejo
 		const deliveryFee = order.deliveryFee || 0;
 		const subtotal = order.total - deliveryFee;
 
-		const printWindow = window.open('', '_blank');
-		if (!printWindow) {
-			showToast('Please allow popups to download/print receipts.');
-			return;
-		}
-
 		let paymentStatusText = 'UNPAID';
 		let paymentStatusClass = 'status-unpaid';
 		let paymentNote = 'Please make a downpayment to confirm your order.';
@@ -3336,386 +3820,368 @@ Christy Montejo
 			paymentNote = 'Downpayment received. Remaining balance to be settled upon pickup/delivery.';
 		}
 
-		const receiptHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Receipt ${order.id}</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-	<style>
-		:root {
-			--primary: #0f172a;
-			--accent: #f97316;
-			--text-main: #334155;
-			--text-muted: #64748b;
-			--border: #e2e8f0;
-			--bg-light: #f8fafc;
-		}
-		* {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-		}
-		body {
-			font-family: 'Plus Jakarta Sans', sans-serif;
-			color: var(--text-main);
-			background-color: #f1f5f9;
-			padding: 40px 20px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
-		.receipt-container {
-			background: #ffffff;
-			width: 100%;
-			max-width: 800px;
-			padding: 48px;
-			border-radius: 16px;
-			box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-			position: relative;
-			border: 1px solid var(--border);
-		}
-		.header {
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-start;
-			border-bottom: 2px solid var(--border);
-			padding-bottom: 24px;
-			margin-bottom: 32px;
-		}
-		.company-title {
-			font-size: 24px;
-			font-weight: 800;
-			color: var(--primary);
-			letter-spacing: -0.02em;
-			text-transform: uppercase;
-		}
-		.company-sub {
-			font-size: 13px;
-			color: var(--text-muted);
-			margin-top: 4px;
-			font-weight: 500;
-		}
-		.receipt-meta {
-			text-align: right;
-		}
-		.meta-label {
-			font-size: 11px;
-			font-weight: 800;
-			text-transform: uppercase;
-			color: var(--text-muted);
-			letter-spacing: 0.05em;
-		}
-		.meta-value {
-			font-size: 15px;
-			font-weight: 700;
-			color: var(--primary);
-			margin-bottom: 8px;
-		}
-		.meta-date {
-			font-size: 12px;
-			color: var(--text-muted);
-		}
-		.details-row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 40px;
-			margin-bottom: 32px;
-		}
-		.details-column h3 {
-			font-size: 12px;
-			font-weight: 800;
-			text-transform: uppercase;
-			color: var(--text-muted);
-			letter-spacing: 0.05em;
-			margin-bottom: 12px;
-			border-bottom: 1px solid var(--border);
-			padding-bottom: 6px;
-		}
-		.details-text {
-			font-size: 14px;
-			line-height: 1.6;
-			color: var(--primary);
-			font-weight: 500;
-		}
-		.items-table {
-			width: 100%;
-			border-collapse: collapse;
-			margin-bottom: 32px;
-		}
-		.items-table th {
-			background: var(--bg-light);
-			color: var(--text-muted);
-			font-size: 11px;
-			font-weight: 800;
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			padding: 12px 16px;
-			text-align: left;
-			border-bottom: 2px solid var(--border);
-		}
-		.items-table td {
-			padding: 14px 16px;
-			border-bottom: 1px solid var(--border);
-			font-size: 14px;
-			color: var(--primary);
-			font-weight: 500;
-		}
-		.items-table .text-right {
-			text-align: right;
-		}
-		.summary-section {
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-start;
-			border-top: 2px solid var(--border);
-			padding-top: 24px;
-			margin-bottom: 40px;
-		}
-		.payment-summary {
-			max-width: 400px;
-		}
-		.payment-summary h4 {
-			font-size: 12px;
-			font-weight: 800;
-			text-transform: uppercase;
-			color: var(--text-muted);
-			letter-spacing: 0.05em;
-			margin-bottom: 12px;
-		}
-		.payment-field {
-			display: flex;
-			gap: 12px;
-			font-size: 14px;
-			margin-bottom: 6px;
-			font-weight: 600;
-		}
-		.payment-field-label {
-			color: var(--text-muted);
-			width: 120px;
-		}
-		.payment-status-badge {
-			display: inline-block;
-			font-weight: 800;
-			font-size: 12px;
-			letter-spacing: 0.05em;
-			margin-top: 8px;
-			text-transform: uppercase;
-		}
-		.status-paid { color: #10b981; }
-		.status-partial { color: #f97316; }
-		.status-unpaid { color: #ef4444; }
-		.payment-note {
-			font-size: 12px;
-			color: var(--text-muted);
-			margin-top: 8px;
-			line-height: 1.4;
-			font-style: italic;
-		}
-		.financials-summary {
-			width: 280px;
-		}
-		.financial-row {
-			display: flex;
-			justify-content: space-between;
-			font-size: 14px;
-			margin-bottom: 8px;
-			font-weight: 600;
-		}
-		.financial-row.grand-total {
-			font-size: 18px;
-			font-weight: 800;
-			color: var(--primary);
-			border-top: 1px solid var(--border);
-			padding-top: 12px;
-			margin-top: 8px;
-		}
-		.financial-row.grand-total .val {
-			color: var(--accent);
-		}
-		.footer {
-			border-top: 1px dashed var(--border);
-			padding-top: 24px;
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-end;
-		}
-		.footer-left {
-			font-size: 11px;
-			color: var(--text-muted);
-			line-height: 1.5;
-		}
-		.footer-right {
-			text-align: right;
-		}
-		.auth-label {
-			font-size: 10px;
-			font-weight: 700;
-			color: var(--text-muted);
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-		}
-		.auth-name {
-			font-size: 13px;
-			font-weight: 800;
-			color: var(--primary);
-			margin-top: 4px;
-		}
-		.system-note {
-			text-align: center;
-			font-size: 11px;
-			color: var(--text-muted);
-			margin-top: 32px;
-			border-top: 1px solid var(--border);
-			padding-top: 16px;
-		}
-		@media print {
-			body {
-				background-color: #ffffff;
-				padding: 0;
-			}
-			.receipt-container {
-				border: none;
-				box-shadow: none;
-				padding: 0;
-				max-width: 100%;
-			}
-			* {
-				-webkit-print-color-adjust: exact;
-				print-color-adjust: exact;
-			}
-		}
-	</style>
-</head>
-<body>
-	<div class="receipt-container">
-		<div class="header">
-			<div>
-				<h1 class="company-title">Montejo's Lechon & Food Trays</h1>
-				<p class="company-sub">Argao, Cebu • Cel. No. 09763146889 / 09760721404</p>
-			</div>
-			<div class="receipt-meta">
-				<div class="meta-label">Receipt No.</div>
-				<div class="meta-value">${order.id.replace('ORD-', '20260608-')}</div>
-				<div class="meta-label">Issued</div>
-				<div class="meta-date">${order.date}</div>
-			</div>
-		</div>
+		// Create a temporary off-screen div to render the receipt
+		const tempDiv = document.createElement('div');
+		tempDiv.style.position = 'absolute';
+		tempDiv.style.left = '-9999px';
+		tempDiv.style.top = '-9999px';
+		tempDiv.style.width = '800px';
+		document.body.appendChild(tempDiv);
 
-		<div class="details-row">
-			<div class="details-column">
-				<h3>Billed To</h3>
-				<div class="details-text">
-					<p>${order.customer}</p>
-					<p>${order.address || 'N/A'}</p>
-					<p>${order.contact || 'N/A'}</p>
-				</div>
-			</div>
-			<div class="details-column">
-				<h3>Order Details</h3>
-				<div class="details-text">
-					<p><strong>Fulfillment:</strong> ${order.fulfillmentType || 'Delivery'}</p>
-					<p><strong>Delivery Date:</strong> ${order.deliveryDateTime || 'N/A'}</p>
-					<p><strong>Status:</strong> ${order.status}</p>
-				</div>
-			</div>
-		</div>
+		// Render the receipt HTML structure inside tempDiv
+		tempDiv.innerHTML = `
+			<div class="receipt-container" style="background: #ffffff; padding: 48px; border-radius: 16px; font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; border: 1px solid #e2e8f0; width: 800px; box-sizing: border-box;">
+				<style>
+					.receipt-container * {
+						box-sizing: border-box;
+						margin: 0;
+						padding: 0;
+						color: #334155 !important;
+					}
+					.receipt-container .header {
+						display: flex;
+						justify-content: space-between;
+						align-items: flex-start;
+						border-bottom: 2px solid #e2e8f0;
+						padding-bottom: 24px;
+						margin-bottom: 32px;
+					}
+					.receipt-container .company-title {
+						font-size: 24px;
+						font-weight: 800;
+						text-transform: uppercase;
+						color: #0f172a !important;
+					}
+					.receipt-container .company-sub {
+						font-size: 13px;
+						color: #64748b !important;
+						margin-top: 4px;
+						font-weight: 500;
+					}
+					.receipt-container .receipt-meta {
+						text-align: right;
+					}
+					.receipt-container .meta-label {
+						font-size: 11px;
+						font-weight: 800;
+						text-transform: uppercase;
+						color: #64748b !important;
+						letter-spacing: 0.05em;
+					}
+					.receipt-container .meta-value {
+						font-size: 15px;
+						font-weight: 700;
+						color: #0f172a !important;
+						margin-bottom: 8px;
+					}
+					.receipt-container .meta-date {
+						font-size: 12px;
+						color: #64748b !important;
+					}
+					.receipt-container .details-row {
+						display: grid;
+						grid-template-columns: 1fr 1fr;
+						gap: 40px;
+						margin-bottom: 32px;
+					}
+					.receipt-container .details-column h3 {
+						font-size: 12px;
+						font-weight: 800;
+						text-transform: uppercase;
+						color: #64748b !important;
+						letter-spacing: 0.05em;
+						margin-bottom: 12px;
+						border-bottom: 1px solid #e2e8f0;
+						padding-bottom: 6px;
+					}
+					.receipt-container .details-text {
+						font-size: 14px;
+						line-height: 1.6;
+						font-weight: 500;
+					}
+					.receipt-container .items-table {
+						width: 100%;
+						border-collapse: collapse;
+						margin-bottom: 32px;
+					}
+					.receipt-container .items-table th {
+						background: #f8fafc;
+						color: #64748b !important;
+						font-size: 11px;
+						font-weight: 800;
+						text-transform: uppercase;
+						letter-spacing: 0.05em;
+						padding: 12px 16px;
+						text-align: left;
+						border-bottom: 2px solid #e2e8f0;
+					}
+					.receipt-container .items-table td {
+						padding: 14px 16px;
+						border-bottom: 1px solid #e2e8f0;
+						font-size: 14px;
+						font-weight: 500;
+					}
+					.receipt-container .text-right {
+						text-align: right;
+					}
+					.receipt-container .summary-section {
+						display: flex;
+						justify-content: space-between;
+						align-items: flex-start;
+						border-top: 2px solid #e2e8f0;
+						padding-top: 24px;
+						margin-bottom: 40px;
+					}
+					.receipt-container .payment-summary {
+						max-width: 400px;
+					}
+					.receipt-container .payment-summary h4 {
+						font-size: 12px;
+						font-weight: 800;
+						text-transform: uppercase;
+						color: #64748b !important;
+						letter-spacing: 0.05em;
+						margin-bottom: 12px;
+					}
+					.receipt-container .payment-field {
+						display: flex;
+						gap: 12px;
+						font-size: 14px;
+						margin-bottom: 6px;
+						font-weight: 600;
+					}
+					.receipt-container .payment-field-label {
+						color: #64748b !important;
+						width: 120px;
+					}
+					.receipt-container .payment-status-badge {
+						display: inline-block;
+						font-weight: 800;
+						font-size: 12px;
+						letter-spacing: 0.05em;
+						margin-top: 8px;
+						text-transform: uppercase;
+					}
+					.receipt-container .status-paid { color: #10b981 !important; }
+					.receipt-container .status-partial { color: #f97316 !important; }
+					.receipt-container .status-unpaid { color: #ef4444 !important; }
+					.receipt-container .payment-note {
+						font-size: 12px;
+						color: #64748b !important;
+						margin-top: 8px;
+						line-height: 1.4;
+						font-style: italic;
+					}
+					.receipt-container .financials-summary {
+						width: 280px;
+					}
+					.receipt-container .financial-row {
+						display: flex;
+						justify-content: space-between;
+						font-size: 14px;
+						margin-bottom: 8px;
+						font-weight: 600;
+					}
+					.receipt-container .financial-row.grand-total {
+						font-size: 18px;
+						font-weight: 800;
+						border-top: 1px solid #e2e8f0;
+						padding-top: 12px;
+						margin-top: 8px;
+					}
+					.receipt-container .financial-row.grand-total .val {
+						color: #f97316 !important;
+					}
+					.receipt-container .footer {
+						border-top: 1px dashed #e2e8f0;
+						padding-top: 24px;
+						display: flex;
+						justify-content: space-between;
+						align-items: flex-end;
+					}
+					.receipt-container .footer-left {
+						font-size: 11px;
+						color: #64748b !important;
+						line-height: 1.5;
+					}
+					.receipt-container .footer-right {
+						text-align: right;
+					}
+					.receipt-container .auth-label {
+						font-size: 10px;
+						font-weight: 700;
+						color: #64748b !important;
+						text-transform: uppercase;
+						letter-spacing: 0.05em;
+					}
+					.receipt-container .auth-name {
+						font-size: 13px;
+						font-weight: 800;
+						margin-top: 4px;
+					}
+					.receipt-container .system-note {
+						text-align: center;
+						font-size: 11px;
+						color: #64748b !important;
+						margin-top: 32px;
+						border-top: 1px solid #e2e8f0;
+						padding-top: 16px;
+					}
+				</style>
 
-		<table class="items-table">
-			<thead>
-				<tr>
-					<th>Item Description</th>
-					<th class="text-right" style="width: 80px;">Qty</th>
-					<th class="text-right" style="width: 120px;">Price</th>
-					<th class="text-right" style="width: 150px;">Total</th>
-				</tr>
-			</thead>
-			<tbody>
-				${order.items.map(it => {
-					const inclusionsHtml = (it.customInclusions && it.customInclusions.length > 0) ? `
-						<div style="margin-top: 4px; font-size: 11px; color: var(--text-muted); font-style: italic; line-height: 1.4;">
-							<strong>Custom Inclusions:</strong> ${it.customInclusions.join(', ')}
+				<div class="header">
+					<div>
+						<h1 class="company-title">Montejo's Lechon & Food Trays</h1>
+						<p class="company-sub">Argao, Cebu • Cel. No. 09763146889 / 09760721404</p>
+					</div>
+					<div class="receipt-meta">
+						<div class="meta-label">Receipt No.</div>
+						<div class="meta-value">${order.id.replace('ORD-', '20260608-')}</div>
+						<div class="meta-label">Issued</div>
+						<div class="meta-date">${formatDateTime12h(order.date)}</div>
+					</div>
+				</div>
+
+				<div class="details-row">
+					<div class="details-column">
+						<h3>Billed To</h3>
+						<div class="details-text">
+							<p>${order.customer}</p>
+							<p>${order.address || 'N/A'}</p>
+							<p>${order.contact || 'N/A'}</p>
 						</div>
-					` : '';
-					return `
+					</div>
+					<div class="details-column">
+						<h3>Order Details</h3>
+						<div class="details-text">
+							<p><strong>Fulfillment:</strong> ${order.fulfillmentType || 'Delivery'}</p>
+							<p><strong>Delivery Date:</strong> ${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : 'N/A'}</p>
+							<p><strong>Status:</strong> ${order.status}</p>
+						</div>
+					</div>
+				</div>
+
+				<table class="items-table">
+					<thead>
 						<tr>
-							<td>
-								<div style="font-weight: 600;">${it.name}</div>
-								${inclusionsHtml}
-							</td>
-							<td class="text-right">${it.quantity}</td>
-							<td class="text-right">₱${it.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-							<td class="text-right">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+							<th>Item Description</th>
+							<th class="text-right" style="width: 80px;">Qty</th>
+							<th class="text-right" style="width: 120px;">Price</th>
+							<th class="text-right" style="width: 150px;">Total</th>
 						</tr>
-					`;
-				}).join('')}
-			</tbody>
-		</table>
+					</thead>
+					<tbody>
+						${order.items.map(it => {
+							const inclusionsHtml = (it.customInclusions && it.customInclusions.length > 0) ? `
+								<div style="margin-top: 4px; font-size: 11px; color: #64748b !important; font-style: italic; line-height: 1.4;">
+									<strong>Custom Inclusions:</strong> ${it.customInclusions.join(', ')}
+								</div>
+							` : '';
+							return `
+								<tr>
+									<td>
+										<div style="font-weight: 600;">${it.name}</div>
+										${inclusionsHtml}
+									</td>
+									<td class="text-right">${it.quantity}</td>
+									<td class="text-right">₱${it.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+									<td class="text-right">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+								</tr>
+							`;
+						}).join('')}
+					</tbody>
+				</table>
 
-		<div class="summary-section">
-			<div class="payment-summary">
-				<h4>Payment Summary</h4>
-				<div class="payment-field">
-					<span class="payment-field-label">Downpayment:</span>
-					<span>₱${order.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-				</div>
-				<div class="payment-field">
-					<span class="payment-field-label">Balance:</span>
-					<span style="color: ${order.balance > 0 ? '#f97316' : 'inherit'}">₱${order.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
-				</div>
-				<div class="payment-status-badge ${paymentStatusClass}">
-					${paymentStatusText}
-				</div>
-				<p class="payment-note">${paymentNote}</p>
-			</div>
+				<div class="summary-section">
+					<div class="payment-summary">
+						<h4>Payment Summary</h4>
+						<div class="payment-field">
+							<span class="payment-field-label">Downpayment:</span>
+							<span>₱${order.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+						</div>
+						<div class="payment-field">
+							<span class="payment-field-label">Balance:</span>
+							<span style="color: ${order.balance > 0 ? '#f97316' : 'inherit'}">₱${order.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
+						</div>
+						<div class="payment-status-badge ${paymentStatusClass}">
+							${paymentStatusText}
+						</div>
+						<p class="payment-note">${paymentNote}</p>
+					</div>
 
-			<div class="financials-summary">
-				<div class="financial-row">
-					<span class="label">Subtotal:</span>
-					<span class="val">₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+					<div class="financials-summary">
+						<div class="financial-row">
+							<span class="label">Subtotal:</span>
+							<span class="val">₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+						</div>
+						<div class="financial-row">
+							<span class="label">Delivery/Meetup Fee:</span>
+							<span class="val">₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+						</div>
+						<div class="financial-row grand-total">
+							<span class="label">Total Amount:</span>
+							<span class="val">₱${order.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+						</div>
+					</div>
 				</div>
-				<div class="financial-row">
-					<span class="label">Delivery/Meetup Fee:</span>
-					<span class="val">₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-				</div>
-				<div class="financial-row grand-total">
-					<span class="label">Total Amount:</span>
-					<span class="val">₱${order.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-				</div>
-			</div>
-		</div>
 
-		<div class="footer">
-			<div class="footer-left">
-				<p>For inquiries, please contact the numbers above.</p>
-				<p>Thank you for choosing Montejo's!</p>
-			</div>
-			<div class="footer-right">
-				<div class="auth-label">Authorized by</div>
-				<div class="auth-name">MONTEJO'S LECHON & FOOD TRAYS</div>
-			</div>
-		</div>
+				<div class="footer">
+					<div class="footer-left">
+						<p>For inquiries, please contact the numbers above.</p>
+						<p>Thank you for choosing Montejo's!</p>
+					</div>
+					<div class="footer-right">
+						<div class="auth-label">Authorized by</div>
+						<div class="auth-name">MONTEJO'S LECHON & FOOD TRAYS</div>
+					</div>
+				</div>
 
-		<div class="system-note">
-			This is a system-generated e-receipt. No physical signature is required.
-		</div>
-	</div>
-	<script>
-		window.onload = function() {
-			setTimeout(() => {
-				window.print();
-			}, 300);
-		}
-	<\/script>
-</body>
-</html>
+				<div class="system-note">
+					This is a system-generated e-receipt. No physical signature is required.
+				</div>
+			</div>
 		`;
 
-		printWindow.document.open();
-		printWindow.document.write(receiptHtml);
-		printWindow.document.close();
+		// Wait a tiny moment to ensure fonts load, then capture with html2canvas
+		setTimeout(() => {
+			// @ts-ignore
+			if (typeof html2canvas !== 'undefined') {
+				// @ts-ignore
+				html2canvas(tempDiv.querySelector('.receipt-container'), {
+					scale: 2,
+					backgroundColor: '#ffffff',
+					useCORS: true
+				}).then(canvas => {
+					canvas.toBlob(blob => {
+						if (!blob) {
+							console.error('Failed to create blob from canvas');
+							document.body.removeChild(tempDiv);
+							showToast('Failed to download receipt as image.');
+							return;
+						}
+						const url = URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.download = `Receipt-${order.id}.png`;
+						link.href = url;
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+						URL.revokeObjectURL(url);
+						
+						// Clean up off-screen div
+						document.body.removeChild(tempDiv);
+						showToast(`Receipt for Order #${order.id.replace('ORD-', '')} downloaded!`);
+					}, 'image/png');
+				}).catch(err => {
+					console.error('Error rendering receipt image:', err);
+					document.body.removeChild(tempDiv);
+					showToast('Failed to download receipt as image.');
+				});
+			} else {
+				document.body.removeChild(tempDiv);
+				showToast('Receipt library is still loading. Please try again.');
+			}
+		}, 100);
 	}
 
 	// Premium Custom Toast Notification System
@@ -4506,6 +4972,11 @@ Christy Montejo
 	let kitchenRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
 	function navigateTo(view: string) {
+		// Update hash to preserve view state on refresh
+		if (window.location.hash.slice(1) !== view) {
+			window.location.hash = view;
+		}
+
 		// Hide all views
 		document.querySelectorAll<HTMLElement>('.view-container').forEach(v => v.style.display = 'none');
 		const target = document.getElementById(`view-${view}`);
@@ -4548,6 +5019,17 @@ Christy Montejo
 				navigateTo(view);
 			});
 		});
+
+		// Listen for browser back/forward buttons (hash changes)
+		window.addEventListener('hashchange', () => {
+			const view = window.location.hash.slice(1) || 'dashboard';
+			const validViews = ['dashboard', 'order-history', 'analytics', 'live-kitchen', 'calendar', 'settings'];
+			if (validViews.includes(view)) {
+				navigateTo(view);
+			} else {
+				navigateTo('dashboard');
+			}
+		});
 	}
 
 	// ===== ORDER HISTORY VIEW =====
@@ -4561,20 +5043,48 @@ Christy Montejo
 		const statuses = ['All','Pending','Preparing','Completed','Cancelled'] as const;
 		statuses.forEach(s => {
 			const el = document.getElementById(`hcount-${s.toLowerCase()}`);
-			if (el) el.textContent = s === 'All' ? orders.length.toString() : orders.filter(o => o.status === s).length.toString();
+			if (el) {
+				if (s === 'All') el.textContent = orders.length.toString();
+				else if (s === 'Pending') el.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
+				else el.textContent = orders.filter(o => o.status === s).length.toString();
+			}
 		});
+		// Pending (Customer) special count
+		const elPendingCust = document.getElementById('hcount-pending-customer');
+		if (elPendingCust) elPendingCust.textContent = orders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '')).length.toString();
 
 		// Filter
 		let filtered = [...orders];
-		if (historyFilter !== 'All') filtered = filtered.filter(o => o.status === historyFilter);
+		if (historyFilter !== 'All') {
+			if (historyFilter === 'PendingCustomer') {
+				filtered = filtered.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === ''));
+			} else if (historyFilter === 'Pending') {
+				filtered = filtered.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== ''));
+			} else {
+				filtered = filtered.filter(o => o.status === historyFilter);
+			}
+		}
 		if (historySearch.trim()) {
 			const q = historySearch.toLowerCase();
-			filtered = filtered.filter(o => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+			filtered = filtered.filter(o => {
+				try {
+					const idMatch = (o.id || '').toString().toLowerCase().includes(q);
+					const custMatch = ((o.customer || '')).toString().toLowerCase().includes(q);
+					return idMatch || custMatch;
+				} catch (e) {
+					console.error('History search filter error for order', o && o.id, e);
+					return false;
+				}
+			});
 		}
 		if (historyFrom) filtered = filtered.filter(o => (o.deliveryDateTime || o.date) >= historyFrom);
 		if (historyTo) filtered = filtered.filter(o => (o.deliveryDateTime || o.date) <= historyTo + 'T23:59');
 
-		filtered.sort((a, b) => b.date.localeCompare(a.date));
+		filtered.sort((a, b) => {
+			const da = new Date((a.deliveryDateTime || a.date).replace(' ', 'T')).getTime() || 0;
+			const db = new Date((b.deliveryDateTime || b.date).replace(' ', 'T')).getTime() || 0;
+			return db - da; // Latest delivery/order date first
+		});
 
 		const tbody = document.getElementById('history-body');
 		const empty = document.getElementById('history-empty');
@@ -4586,16 +5096,14 @@ Christy Montejo
 		} else {
 			empty.style.display = 'none';
 			tbody.innerHTML = filtered.map(o => {
-				const itemSummary = o.items.map(it => `<div class="history-item-pill">${it.quantity}x ${it.name}</div>`).join('');
 				const sc = `badge-${o.status.toLowerCase()}`;
 				return `<tr>
 					<td style="font-weight:700;color:var(--accent-primary)">#${o.id.replace('ORD-','')}</td>
-					<td>${o.customer}</td>
-					<td><div class="history-items-list">${itemSummary}</div></td>
+					<td class="customer-cell"><div class="customer-cell-inner"><span class="customer-name">${((o.customer || '').trim()) ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>${((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '') ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}</div></td>
 					<td style="font-weight:700">₱${o.total.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
 					<td style="color:var(--status-preparing)">₱${o.downpayment.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
 					<td style="color:var(--accent-primary)">₱${o.balance.toLocaleString('en-US',{minimumFractionDigits:2})}${o.status === 'Completed' ? ' <span style="font-size:0.7rem;color:#10b981;font-weight:800;display:block;">Settled</span>' : ''}</td>
-					<td style="color:var(--text-secondary);font-size:0.8rem">${o.deliveryDateTime || o.date}</td>
+					<td style="color:var(--text-secondary);font-size:0.8rem">${o.deliveryDateTime ? formatDateTime12h(o.deliveryDateTime) : formatDateTime12h(o.date)}</td>
 					<td><span class="status-badge ${sc}">${o.status}</span></td>
 					<td><button class="action-btn btn-view-details" data-id="${o.id}" title="View Details" style="padding:6px">
 						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -4675,26 +5183,42 @@ Christy Montejo
 		const summaryEl = document.getElementById('analytics-summary');
 		if (summaryEl) {
 			summaryEl.innerHTML = [
-				{ label: 'Total Revenue', value: `₱${revenue.toLocaleString('en-US',{minimumFractionDigits:2})}`, sub: 'from completed orders' },
+				{ label: 'Total Revenue', value: `₱${revenue.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}`, sub: 'from completed orders' },
 				{ label: 'Completion Rate', value: `${completionRate}%`, sub: `${completed.length} of ${orders.length} orders` },
-				{ label: 'Avg Order Value', value: `₱${avg.toLocaleString('en-US',{minimumFractionDigits:2})}`, sub: 'completed orders' },
-				{ label: 'Highest Order', value: `₱${topOrder.toLocaleString('en-US',{minimumFractionDigits:2})}`, sub: 'single order' },
+				{ label: 'Avg Order Value', value: `₱${avg.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}`, sub: 'completed orders' },
+				{ label: 'Highest Order', value: `₱${topOrder.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}`, sub: 'single order' },
 			].map(c => `<div class="analytic-card"><span class="a-label">${c.label}</span><span class="a-value">${c.value}</span><span class="a-sub">${c.sub}</span></div>`).join('');
 		}
 
-		// Bar chart
+		// Bar chart (Daily Revenue Trend)
 		const barEl = document.getElementById('revenue-bar-chart');
 		if (barEl) {
-			const maxTotal = valid.length ? Math.max(...valid.map(o => o.total)) : 1;
-			const statusColors: Record<string, string> = { Pending: '#f59e0b', Preparing: '#f97316', Completed: '#10b981', Cancelled: '#ef4444' };
-			barEl.innerHTML = valid.slice(-20).map(o => {
-				const pct = Math.max(4, Math.round((o.total / maxTotal) * 140));
-				const color = statusColors[o.status] || '#d92b3a';
-				return `<div class="bar-wrap" title="${o.id}: ₱${o.total.toLocaleString()}">
-					<div class="bar-fill" style="height:${pct}px;background:${color}"></div>
-					<span class="bar-id">${o.id.replace('ORD-','')}</span>
+			const dailyRevenue: Record<string, number> = {};
+			completed.forEach(o => {
+				const dateKey = (o.deliveryDateTime || o.date).substring(0, 10);
+				if (dateKey) {
+					dailyRevenue[dateKey] = (dailyRevenue[dateKey] || 0) + o.total;
+				}
+			});
+
+			const sortedDates = Object.keys(dailyRevenue).sort();
+			const recentDates = sortedDates.slice(-12); // Last 12 days of revenue
+			const maxRevenue = recentDates.length ? Math.max(...recentDates.map(d => dailyRevenue[d])) : 1;
+
+			const formatShortDate = (dateStr: string) => {
+				const d = new Date(dateStr + 'T00:00:00');
+				if (isNaN(d.getTime())) return dateStr;
+				return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+			};
+
+			barEl.innerHTML = recentDates.map(dateKey => {
+				const rev = dailyRevenue[dateKey];
+				const pct = Math.max(4, Math.round((rev / maxRevenue) * 140)); // 140px max height
+				return `<div class="bar-wrap" title="${dateKey}: ₱${rev.toLocaleString('en-US', { minimumFractionDigits: 2 })}">
+					<div class="bar-fill" style="height:${pct}px;background:#10b981"></div>
+					<span class="bar-id">${formatShortDate(dateKey)}</span>
 				</div>`;
-			}).join('') || '<span style="color:var(--text-muted);font-size:0.8rem;padding:16px">No orders yet.</span>';
+			}).join('') || '<span style="color:var(--text-muted);font-size:0.8rem;padding:16px">No completed orders yet.</span>';
 		}
 
 		// Donut chart
@@ -4727,9 +5251,21 @@ Christy Montejo
 		if (topEl) {
 			const agg: Record<string, { qty: number; rev: number }> = {};
 			valid.forEach(o => o.items.forEach(it => {
-				if (!agg[it.name]) agg[it.name] = { qty: 0, rev: 0 };
-				agg[it.name].qty += it.quantity;
-				agg[it.name].rev += it.total;
+				if (it.price > 0 && isPackageOrTrayOrLechon(it.name)) {
+					let normName = normalizeItemName(it.name);
+					if (normName === '1 Whole Lechon Baboy') {
+						if (it.price === 15999) {
+							normName = 'Set A Lechon Package';
+						} else if (it.price === 18675) {
+							normName = 'Set B Lechon Package';
+						} else if (it.price === 19999) {
+							normName = 'Set C Lechon Package';
+						}
+					}
+					if (!agg[normName]) agg[normName] = { qty: 0, rev: 0 };
+					agg[normName].qty += it.quantity;
+					agg[normName].rev += it.total;
+				}
 			}));
 			const sorted = Object.entries(agg).sort((a,b) => b[1].qty - a[1].qty).slice(0, 6);
 			topEl.innerHTML = sorted.map(([name, d], i) => `<div class="analytics-top-item">
@@ -4743,8 +5279,7 @@ Christy Montejo
 
 	// ===== LIVE KITCHEN VIEW =====
 	function renderKitchenView() {
-		const active = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing')
-			.sort((a,b) => a.date.localeCompare(b.date));
+		const active = getActiveOrders().sort((a,b) => a.date.localeCompare(b.date));
 
 		const pendingCount = document.getElementById('kitchen-pending-count');
 		const preparingCount = document.getElementById('kitchen-preparing-count');
@@ -5105,7 +5640,7 @@ Christy Montejo
 				<div class="cal-order-items">${o.items.map(it => `<span class="cal-order-item-pill">${it.quantity}× ${it.name}</span>`).join('')}</div>
 				<div class="cal-order-footer">
 					<span class="cal-order-total">₱${o.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-					${o.deliveryDateTime ? `<span class="cal-order-time">${o.deliveryDateTime.replace('T', ' ')}</span>` : ''}
+					${o.deliveryDateTime ? `<span class="cal-order-time">${formatTime12h(o.deliveryDateTime)}</span>` : ''}
 				</div>
 			</div>`).join('');
 	}

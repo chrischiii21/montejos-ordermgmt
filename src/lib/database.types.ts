@@ -18,6 +18,7 @@ export type Database = {
           total: number;
           downpayment: number;
           balance: number;
+          note: string | null;
           delivery_fee: number;
         };
         Insert: Omit<Database['public']['Tables']['orders']['Row'], 'created_at'>;

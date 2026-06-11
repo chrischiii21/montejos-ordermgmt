@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
