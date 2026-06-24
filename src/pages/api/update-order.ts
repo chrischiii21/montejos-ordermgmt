@@ -2,6 +2,14 @@ import 'dotenv/config';
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function formatDateTime12h(dateTimeStr: string | null | undefined): string {
   if (!dateTimeStr) return '';
   const d = new Date(dateTimeStr.replace(' ', 'T'));
@@ -55,10 +63,10 @@ export const POST: APIRoute = async ({ request }) => {
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
           try {
             const itemsText = (orderData.order_items || []).map((it: any) => {
-              let text = `${it.quantity}x ${it.name}`;
+              let text = `<b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
               const inclusions = it.custom_inclusions ?? it.customInclusions ?? [];
               if (Array.isArray(inclusions) && inclusions.length > 0) {
-                text += `\n  (Custom Inclusions:\n` + inclusions.map((inc: any) => `   - ${inc}`).join('\n') + `)`;
+                text += `\n  (Custom Inclusions:\n` + inclusions.map((inc: any) => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
               }
               return text;
             }).join('\n');
@@ -78,22 +86,22 @@ export const POST: APIRoute = async ({ request }) => {
             const formattedBalance = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             const fbName = orderData.facebook_name ?? orderData.facebookName;
-            const fbSuffix = fbName ? ` (FB: ${fbName})` : '';
+            const fbSuffix = fbName ? ` (FB: <b>${escapeHtml(fbName)}</b>)` : '';
 
-            const message = `🎉 Order ID - ${idNumber} link is successfully fulfilled.\n\n` +
-              `📋 C O N F I R M A T I O N   S L I P\n\n` +
-              `👤 Name: ${orderData.customer || ''}${fbSuffix}\n` +
-              `📦 Fulfillment: ${orderData.fulfillment_type || 'Delivery'}\n` +
-              `📍 Exact Address: ${orderData.address || ''}\n` +
-              `📞 Contact Number of the Receiver/s: ${orderData.contact || ''}\n` +
-              `⏰ Time & Date: ${formattedDateTime}\n` +
+            const message = `🎉 <b>Order ID - ${idNumber} link is successfully fulfilled.</b>\n\n` +
+              `📋 <b>C O N F I R M A T I O N   S L I P</b>\n\n` +
+              `👤 Name: <b>${escapeHtml(orderData.customer || '')}</b>${fbSuffix}\n` +
+              `📦 Fulfillment: <b>${escapeHtml(orderData.fulfillment_type || 'Delivery')}</b>\n` +
+              `📍 Exact Address: ${escapeHtml(orderData.address || '')}\n` +
+              `📞 Contact Number of the Receiver/s: ${escapeHtml(orderData.contact || '')}\n` +
+              `⏰ Time & Date: <b>${escapeHtml(formattedDateTime)}</b>\n` +
               `🛒 List of Order/s:\n` +
               `${itemsText || 'No items'}\n\n` +
-              `💰 Subtotal: ₱${formattedSubtotal}\n` +
-              `🛵 Delivery/Meetup Fee: ₱${formattedDeliveryFee}\n` +
-              `💵 TOTAL: ₱${formattedTotal}\n` +
-              `💳 DOWNPAYMENT: ₱${formattedDownpayment}\n` +
-              `⚖️ BALANCE: ₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}`;
+              `💰 Subtotal: <b>₱${formattedSubtotal}</b>\n` +
+              `🛵 Delivery/Meetup Fee: <b>₱${formattedDeliveryFee}</b>\n` +
+              `💵 TOTAL: <b>₱${formattedTotal}</b>\n` +
+              `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
+              `⚖️ BALANCE: <b>₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}</b>`;
 
             const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             const chatIds = TELEGRAM_CHAT_ID.split(',').map(id => id.trim()).filter(id => id !== '');
@@ -104,7 +112,8 @@ export const POST: APIRoute = async ({ request }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   chat_id: chatId,
-                  text: message
+                  text: message,
+                  parse_mode: 'HTML'
                 })
               }).then(async (teleResp) => {
                 if (!teleResp.ok) {

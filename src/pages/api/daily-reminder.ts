@@ -2,6 +2,14 @@ import 'dotenv/config';
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function formatTime12h(timeStr: string | null | undefined): string {
   if (!timeStr || timeStr === 'N/A') return 'N/A';
   const match = timeStr.match(/^(\d{2}):(\d{2})$/);
@@ -54,27 +62,27 @@ export const GET: APIRoute = async ({ request }) => {
 
     const formattedDate = phtTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    let message = `🌅 Montejo's Lechon & Food Trays - Daily Reminder\n`;
-    message += `📅 Date: ${formattedDate}\n\n`;
+    let message = `🌅 <b>Montejo's Lechon & Food Trays - Daily Reminder</b>\n`;
+    message += `📅 Date: <b>${formattedDate}</b>\n\n`;
 
     if (!orders || orders.length === 0) {
       message += `✨ No orders are scheduled for today! Have a wonderful day ahead!`;
     } else {
-      message += `🛒 You have ${orders.length} order(s) scheduled for today:\n\n`;
+      message += `🛒 You have <b>${orders.length} order(s)</b> scheduled for today:\n\n`;
       
       orders.forEach((o: any, index: number) => {
         const timePart = o.delivery_date_time ? o.delivery_date_time.split(' ')[1] || 'N/A' : 'N/A';
         const formattedTime = formatTime12h(timePart);
-        const fbSuffix = o.facebook_name ? ` (FB: ${o.facebook_name})` : '';
+        const fbSuffix = o.facebook_name ? ` (FB: ${escapeHtml(o.facebook_name)})` : '';
 
         // Build items details list
         let itemsText = '';
         if (Array.isArray(o.order_items) && o.order_items.length > 0) {
           itemsText = o.order_items.map((it: any) => {
-            let txt = `     - ${it.quantity}x ${it.name}`;
+            let txt = `     - <b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
             const inclusions = it.custom_inclusions ?? it.customInclusions ?? [];
             if (Array.isArray(inclusions) && inclusions.length > 0) {
-              txt += `\n       (Custom Inclusions:\n` + inclusions.map((inc: any) => `        * ${inc}`).join('\n') + `)`;
+              txt += `\n       (Custom Inclusions:\n` + inclusions.map((inc: any) => `        * ${escapeHtml(inc)}`).join('\n') + `)`;
             }
             return txt;
           }).join('\n');
@@ -82,13 +90,13 @@ export const GET: APIRoute = async ({ request }) => {
           itemsText = '     - No items listed';
         }
 
-        message += `${index + 1}. ORD-${o.id.replace('ORD-', '')} - ${o.customer || 'N/A'}${fbSuffix}\n`;
-        message += `   📦 Fulfillment: ${o.fulfillment_type || 'Delivery'} @ ${formattedTime}\n`;
-        message += `   📍 Address: ${o.address || 'N/A'}\n`;
-        message += `   📞 Contact: ${o.contact || 'N/A'}\n`;
+        message += `${index + 1}. <b>ORD-${o.id.replace('ORD-', '')}</b> - <b>${escapeHtml(o.customer || 'N/A')}</b>${fbSuffix}\n`;
+        message += `   📦 Fulfillment: <b>${escapeHtml(o.fulfillment_type || 'Delivery')} @ ${formattedTime}</b>\n`;
+        message += `   📍 Address: ${escapeHtml(o.address || 'N/A')}\n`;
+        message += `   📞 Contact: ${escapeHtml(o.contact || 'N/A')}\n`;
         message += `   🛒 Items:\n${itemsText}\n`;
-        message += `   💵 Total: ₱${parseFloat(o.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
-        message += `   ⚖️ Balance: ₱${parseFloat(o.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n\n`;
+        message += `   💵 Total: <b>₱${parseFloat(o.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</b>\n`;
+        message += `   ⚖️ Balance: <b>₱${parseFloat(o.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</b>\n\n`;
       });
     }
 
@@ -102,7 +110,8 @@ export const GET: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: message
+          text: message,
+          parse_mode: 'HTML'
         })
       });
       if (!resp.ok) {

@@ -36,17 +36,17 @@ if (!token || !chatIdStr) {
 const chatIds = chatIdStr.split(',').map(id => id.trim()).filter(id => id !== '');
 const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
 
-const sampleReminder = `🌅 Montejo's Lechon & Food Trays - Daily Reminder
-📅 Date: Thursday, June 25, 2026
+const sampleReminder = `🌅 <b>Montejo's Lechon & Food Trays - Daily Reminder</b>
+📅 Date: <b>Thursday, June 25, 2026</b>
 
-🛒 You have 2 order(s) scheduled for today:
+🛒 You have <b>2 order(s)</b> scheduled for today:
 
-1. ORD-021 - Christy Montejo (FB: ChristyMontejoOfficial)
-   📦 Fulfillment: Pickup @ 4:30 PM
+1. <b>ORD-021</b> - <b>Christy Montejo</b> (FB: <b>ChristyMontejoOfficial</b>)
+   📦 Fulfillment: <b>Pickup @ 4:30 PM</b>
    📍 Address: N/A (Customer Pickup)
    📞 Contact: 09760721404
    🛒 Items:
-     - 1x Set A Lechon Package
+     - <b>1x Set A Lechon Package</b>
        (Custom Inclusions:
         * 1 whole Lechon Baboy
         * 1 tray Buttered Shrimps
@@ -55,39 +55,35 @@ const sampleReminder = `🌅 Montejo's Lechon & Food Trays - Daily Reminder
         * 1 tray Special Bam-e
         * 1 tray Diniguan
         * 1 tray Spicy Buffalo Chicken)
-   💵 Total: ₱1,275.00
-   ⚖️ Balance: ₱637.50
+   💵 Total: <b>₱1,275.00</b>
+   ⚖️ Balance: <b>₱637.50</b>
 
-2. ORD-022 - John Doe
-   📦 Fulfillment: Delivery @ 6:00 PM
+2. <b>ORD-022</b> - <b>John Doe</b>
+   📦 Fulfillment: <b>Delivery @ 6:00 PM</b>
    📍 Address: 123 Orchid Street, Barangay Tisa, Cebu City
    📞 Contact: 09123456789
    🛒 Items:
-     - 2x Lechon Baboy (Kilo)
-   💵 Total: ₱2,500.00
-   ⚖️ Balance: ₱1,250.00`;
+     - <b>2x Lechon Baboy (Kilo)</b>
+   💵 Total: <b>₱2,500.00</b>
+   ⚖️ Balance: <b>₱1,250.00</b>`;
 
-const sampleSummary = `🌃 Montejo's Lechon & Food Trays - Daily EOD Summary
-📅 Date: Thursday, June 25, 2026
-
-📋 Today's Orders & Statuses:
-
-1. ORD-021 - Christy Montejo (FB: ChristyMontejoOfficial)
-   Revenue: ₱1,275.00
-
-2. ORD-022 - John Doe
-   Revenue: ₱1,250.00
-
-📈 EOD Summary Tally:
-- Total Scheduled Orders: 2
-- Completed Orders: 1
-- Preparing Orders: 1
-- Pending Details Orders: 0
-- Cancelled Orders: 0
-
-💰 Revenue Details:
-- Total Non-Cancelled Value: ₱3,775.00
-- Payments Collected Today (Est.): ₱2,525.00`;
+const sampleSummary = `` +
+  `🌃 <b>Montejo's Lechon & Food Trays - Daily EOD Summary</b>\n` +
+  `📅 Date: <b>Thursday, June 25, 2026</b>\n\n` +
+  `📋 Today's Orders & Statuses:\n\n` +
+  `1. <b>ORD-021</b> - <b>Christy Montejo</b> (FB: <b>ChristyMontejoOfficial</b>)\n` +
+  `   Revenue: <b>₱1,275.00</b>\n\n` +
+  `2. <b>ORD-022</b> - <b>John Doe</b>\n` +
+  `   Revenue: <b>₱1,250.00</b>\n\n` +
+  `📈 <b>EOD Summary Tally:</b>\n` +
+  `- Total Scheduled Orders: <b>2</b>\n` +
+  `- Completed Orders: <b>1</b>\n` +
+  `- Preparing Orders: <b>1</b>\n` +
+  `- Pending Details Orders: <b>0</b>\n` +
+  `- Cancelled Orders: <b>0</b>\n\n` +
+  `💰 <b>Revenue Details:</b>\n` +
+  `- Total Non-Cancelled Value: <b>₱3,775.00</b>\n` +
+  `- Payments Collected Today (Est.): <b>₱2,525.00</b>`;
 
 async function run() {
   for (const chatId of chatIds) {
@@ -96,7 +92,7 @@ async function run() {
       let resp = await fetch(telegramUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: sampleReminder })
+        body: JSON.stringify({ chat_id: chatId, text: sampleReminder, parse_mode: 'HTML' })
       });
       if (resp.ok) console.log('🎉 Reminder sample delivered!');
       
@@ -106,7 +102,7 @@ async function run() {
       resp = await fetch(telegramUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: sampleSummary })
+        body: JSON.stringify({ chat_id: chatId, text: sampleSummary, parse_mode: 'HTML' })
       });
       if (resp.ok) console.log('🎉 Summary sample delivered!');
     } catch (err) {

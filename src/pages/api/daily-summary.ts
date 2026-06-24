@@ -14,6 +14,14 @@ function formatTime12h(timeStr: string | null | undefined): string {
   return `${hour}:${minute} ${ampm}`;
 }
 
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export const GET: APIRoute = async ({ request }) => {
   const CRON_SECRET = process.env.CRON_SECRET;
   const authHeader = request.headers.get('Authorization');
@@ -53,8 +61,8 @@ export const GET: APIRoute = async ({ request }) => {
 
     const formattedDate = phtTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    let message = `🌃 Montejo's Lechon & Food Trays - Daily EOD Summary\n`;
-    message += `📅 Date: ${formattedDate}\n\n`;
+    let message = `🌃 <b>Montejo's Lechon & Food Trays - Daily EOD Summary</b>\n`;
+    message += `📅 Date: <b>${formattedDate}</b>\n\n`;
 
     if (!orders || orders.length === 0) {
       message += `✨ No orders were scheduled for today.`;
@@ -69,7 +77,7 @@ export const GET: APIRoute = async ({ request }) => {
       message += `📋 Today's Orders & Statuses:\n\n`;
 
       orders.forEach((o: any, index: number) => {
-        const fbSuffix = o.facebook_name ? ` (FB: ${o.facebook_name})` : '';
+        const fbSuffix = o.facebook_name ? ` (FB: ${escapeHtml(o.facebook_name)})` : '';
         const total = parseFloat(o.total || 0);
         const balance = parseFloat(o.balance || 0);
         
@@ -94,19 +102,19 @@ export const GET: APIRoute = async ({ request }) => {
 
         totalPaymentsReceived += orderRevenue;
 
-        message += `${index + 1}. ORD-${o.id.replace('ORD-', '')} - ${o.customer || 'N/A'}${fbSuffix}\n`;
-        message += `   Revenue: ₱${orderRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n\n`;
+        message += `${index + 1}. <b>ORD-${o.id.replace('ORD-', '')}</b> - <b>${escapeHtml(o.customer || 'N/A')}</b>${fbSuffix}\n`;
+        message += `   Revenue: <b>₱${orderRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</b>\n\n`;
       });
 
-      message += `📈 EOD Summary Tally:\n`;
-      message += `- Total Scheduled Orders: ${orders.length}\n`;
-      message += `- Completed Orders: ${completedCount}\n`;
-      message += `- Preparing Orders: ${preparingCount}\n`;
-      message += `- Pending Details Orders: ${pendingCount}\n`;
-      message += `- Cancelled Orders: ${cancelledCount}\n\n`;
-      message += `💰 Revenue Details:\n`;
-      message += `- Total Non-Cancelled Value: ₱${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
-      message += `- Payments Collected Today (Est.): ₱${totalPaymentsReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
+      message += `📈 <b>EOD Summary Tally:</b>\n`;
+      message += `- Total Scheduled Orders: <b>${orders.length}</b>\n`;
+      message += `- Completed Orders: <b>${completedCount}</b>\n`;
+      message += `- Preparing Orders: <b>${preparingCount}</b>\n`;
+      message += `- Pending Details Orders: <b>${pendingCount}</b>\n`;
+      message += `- Cancelled Orders: <b>${cancelledCount}</b>\n\n`;
+      message += `💰 <b>Revenue Details:</b>\n`;
+      message += `- Total Non-Cancelled Value: <b>₱${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}</b>\n`;
+      message += `- Payments Collected Today (Est.): <b>₱${totalPaymentsReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}</b>\n`;
     }
 
     // Dispatch message to Telegram
@@ -119,7 +127,8 @@ export const GET: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: message
+          text: message,
+          parse_mode: 'HTML'
         })
       });
       if (!resp.ok) {
