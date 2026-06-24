@@ -1957,6 +1957,7 @@ function showConfirm(message) {
 		status: 'Pending' | 'Preparing' | 'Completed' | 'Cancelled';
 		fulfillmentType?: 'Pickup' | 'Meetup' | 'Delivery';
 		deliveryFee?: number;
+		facebookName?: string;
 	}
 
 	// Constants (Settings still use localStorage — it's UI config only)
@@ -2296,6 +2297,7 @@ function showConfirm(message) {
 			downpayment: parseFloat(row.downpayment),
 			balance: parseFloat(row.balance),
 			deliveryFee: parseFloat(row.delivery_fee ?? 0),
+			facebookName: row.facebook_name ?? '',
 			items: (row.order_items ?? []).map((it: any) => ({
 				name: it.name,
 				quantity: it.quantity,
@@ -2368,6 +2370,9 @@ function showConfirm(message) {
 	document.addEventListener('DOMContentLoaded', async () => {
 		// Set current date
 		updateDateDisplay();
+
+		// Set default payment and downpayment details in the order form from settings
+		updateFormPaymentDetails();
 
 		// Load orders from Supabase
 		await loadOrders();
@@ -2469,7 +2474,7 @@ function showConfirm(message) {
 
 	// Helper: return active orders excluding placeholder customer rows
 	function getActiveOrders() {
-		return orders.filter(o => (o.status === 'Pending' || o.status === 'Preparing') && ((o.customer || '').toString().trim() !== 'Pending Customer Details' && (o.customer || '').toString().trim() !== ''));
+		return orders.filter(o => (o.status === 'Pending' || o.status === 'Preparing') && ((o.customer || '').toString().trim() !== 'Pending Customer Details' && (o.customer || '').toString().trim() !== '' && !!o.deliveryDateTime));
 	}
 
 	function updateVal(id: string, value: string) {
@@ -2624,11 +2629,11 @@ function showConfirm(message) {
 		// 1. Status Filter
 		if (currentFilter !== 'All') {
 			if (currentFilter === 'PendingCustomer') {
-				// show orders that still have placeholder customer details
-				filteredOrders = filteredOrders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === ''));
+				// show orders that still have placeholder customer details or no delivery details
+				filteredOrders = filteredOrders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '' || !o.deliveryDateTime) && o.status !== 'Completed' && o.status !== 'Cancelled');
 			} else if (currentFilter === 'Pending') {
-				// Pending tab should only show pending orders that already have customer details
-				filteredOrders = filteredOrders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== ''));
+				// Pending tab should only show pending orders that already have customer details and delivery details
+				filteredOrders = filteredOrders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '' && !!o.deliveryDateTime));
 			} else {
 				filteredOrders = filteredOrders.filter(o => o.status === currentFilter);
 			}
@@ -2716,7 +2721,14 @@ function showConfirm(message) {
 						</button>
 					</td>
 					<td class="order-id-cell">#${order.id.replace('ORD-', '')}</td>
-					<td class="customer-cell"><div class="customer-cell-inner"><span class="customer-name">${((order.customer || '').trim()) ? escapeHtml(order.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>${((order.customer || '').trim() === 'Pending Customer Details' || (order.customer || '').trim() === '') ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}</div>${noteHtml}</td>
+					<td class="customer-cell">
+						<div class="customer-cell-inner">
+							<span class="customer-name">${(order.customer && order.customer !== 'Pending Customer Details') ? escapeHtml(order.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
+							${(order.customer === 'Pending Customer Details' || !order.customer || !order.deliveryDateTime) ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+						</div>
+						${(order.contact && order.contact.trim()) ? `<div class="customer-contact" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(order.contact)}</div>` : ''}
+						${noteHtml}
+					</td>
 					<td class="date-cell">${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : '<span class="text-muted">Pending Customer Input</span>'}</td>
 					<td><span class="status-badge ${statusClass}">${order.status}</span></td>
 				</tr>
@@ -2737,8 +2749,8 @@ function showConfirm(message) {
 		const countCancelled = document.getElementById('hcount-cancelled');
 
 		if (countAll) countAll.textContent = orders.length.toString();
-		if (countPending) countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
-		if (countPendingCustomer) countPendingCustomer.textContent = orders.filter(o => (o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '').length.toString();
+		if (countPending) countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '' && !!o.deliveryDateTime)).length.toString();
+		if (countPendingCustomer) countPendingCustomer.textContent = orders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '' || !o.deliveryDateTime) && o.status !== 'Completed' && o.status !== 'Cancelled').length.toString();
 		if (countPreparing) countPreparing.textContent = orders.filter(o => o.status === 'Preparing').length.toString();
 		if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'Completed').length.toString();
 		if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'Cancelled').length.toString();
@@ -2751,7 +2763,7 @@ function showConfirm(message) {
 		const d_countCancelled = document.getElementById('count-cancelled');
 
 		if (d_countAll) d_countAll.textContent = orders.length.toString();
-		if (d_countPending) d_countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
+		if (d_countPending) d_countPending.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '' && !!o.deliveryDateTime)).length.toString();
 		if (d_countPreparing) d_countPreparing.textContent = orders.filter(o => o.status === 'Preparing').length.toString();
 		if (d_countCompleted) d_countCompleted.textContent = orders.filter(o => o.status === 'Completed').length.toString();
 		if (d_countCancelled) d_countCancelled.textContent = orders.filter(o => o.status === 'Cancelled').length.toString();
@@ -2765,7 +2777,10 @@ function showConfirm(message) {
 		const cancelBtn = document.getElementById('cancel-order-btn');
 		const overlay = document.getElementById('order-modal-overlay');
 
-		const openModal = () => overlay?.classList.add('active');
+		const openModal = () => {
+			overlay?.classList.add('active');
+			populatePastCustomersDatalists();
+		};
 		const closeModal = () => {
 			overlay?.classList.remove('active');
 			resetForm();
@@ -2882,10 +2897,9 @@ function showConfirm(message) {
 				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id');
 				if (!id) return;
 				// Embed current admin settings into the shareable link so the customer view matches
-				const settingsParam = (() => {
-					try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; }
-				})();
-				const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
+				const sig = getOrderSignature(id);
+				const settingsParam = getSettingsParam();
+				const uniqueLink = window.location.origin + '/order?id=' + id + '&t=' + sig + settingsParam;
 				navigator.clipboard.writeText(uniqueLink).then(() => {
 					const target = e.currentTarget as HTMLButtonElement;
 					target.classList.add('copied');
@@ -3075,6 +3089,10 @@ function showConfirm(message) {
 						<input type="text" id="edit-customer-contact" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.contact || ''}" />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Facebook Name</label>
+						<input type="text" id="edit-facebook-name" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.facebookName || ''}" />
+					</div>
+					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Delivery Date & Time</label>
 						<input type="datetime-local" id="edit-delivery-datetime" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem; color-scheme: dark;" value="${(order.deliveryDateTime || '').replace(' ', 'T')}" />
 					</div>
@@ -3090,6 +3108,10 @@ function showConfirm(message) {
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Customer Name:</span>
 						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${order.customer}</span>
+					</div>
+					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
+						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Facebook Name:</span>
+						<span class="field-value" style="color: var(--text-primary); font-weight: 500;">${order.facebookName || 'N/A'}</span>
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Fulfillment Type:</span>
@@ -3244,6 +3266,7 @@ function showConfirm(message) {
 			const status = (document.getElementById('edit-order-status') as HTMLSelectElement).value;
 			const address = (document.getElementById('edit-customer-address') as HTMLInputElement).value.trim();
 			const contact = (document.getElementById('edit-customer-contact') as HTMLInputElement).value.trim();
+			const facebookName = (document.getElementById('edit-facebook-name') as HTMLInputElement).value.trim();
 			const deliveryDateTime = (document.getElementById('edit-delivery-datetime') as HTMLInputElement).value;
 			const formattedDelivery = deliveryDateTime ? deliveryDateTime.replace('T', ' ') : '';
 
@@ -3253,6 +3276,7 @@ function showConfirm(message) {
 				status: status,
 				address: address,
 				contact: contact,
+				facebook_name: facebookName || null,
 				delivery_date_time: formattedDelivery || null
 			};
 
@@ -3272,6 +3296,7 @@ function showConfirm(message) {
 				order.status = status as any;
 				order.address = address;
 				order.contact = contact;
+				order.facebookName = facebookName;
 				order.deliveryDateTime = formattedDelivery;
 
 				activeEditSection = null;
@@ -3538,10 +3563,9 @@ function showConfirm(message) {
 			btn.addEventListener('click', (e) => {
 				const id = (e.currentTarget as HTMLButtonElement).getAttribute('data-id');
 				if (id) {
-										const settingsParam = (() => {
-											try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; }
-										})();
-										const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
+					const sig = getOrderSignature(id);
+					const settingsParam = getSettingsParam();
+					const uniqueLink = window.location.origin + '/order?id=' + id + '&t=' + sig + settingsParam;
 					navigator.clipboard.writeText(uniqueLink).then(() => {
 						const target = e.currentTarget as HTMLButtonElement;
 						target.classList.add('copied');
@@ -3654,8 +3678,8 @@ function showConfirm(message) {
 			</button>
 		`;
 
-		// Prepend Get Link button if details are pending from customer
-		if (order.customer === 'Pending Customer Details') {
+		// Prepend Get Link button if details are pending from customer or delivery date-time is missing
+		if (order.customer === 'Pending Customer Details' || !order.deliveryDateTime) {
 			let copied = false;
 			try { copied = !!localStorage.getItem('copied_link_' + order.id); } catch (e) {}
 			if (copied) {
@@ -3729,9 +3753,9 @@ function showConfirm(message) {
 		const linkModalOverlay = document.getElementById('link-modal-overlay');
 		const shareableLinkInput = document.getElementById('shareable-link-input') as HTMLInputElement;
 		const openShareableLinkBtn = document.getElementById('open-shareable-link-btn') as HTMLAnchorElement;
-		
-				const settingsParam = (() => { try { return '&s=' + encodeURIComponent(btoa(JSON.stringify(loadSettings()))); } catch (e) { return ''; } })();
-				const uniqueLink = window.location.origin + '/order?id=' + id + settingsParam;
+		const sig = getOrderSignature(id);
+		const settingsParam = getSettingsParam();
+		const uniqueLink = window.location.origin + '/order?id=' + id + '&t=' + sig + settingsParam;
 		if (shareableLinkInput) shareableLinkInput.value = uniqueLink;
 		if (openShareableLinkBtn) openShareableLinkBtn.href = uniqueLink;
 		
@@ -4244,6 +4268,10 @@ Christy Montejo
 		const priceInput = document.getElementById('item-price') as HTMLInputElement;
 		const addToTicketBtn = document.getElementById('add-to-ticket-btn');
 		const orderDownpayment = document.getElementById('order-downpayment') as HTMLInputElement;
+		const customerName = document.getElementById('customer-name') as HTMLInputElement;
+		const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
+		const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
+		const deliveryDateTime = document.getElementById('delivery-date-time') as HTMLInputElement;
 
 		// Item Customization DOM Elements
 		const customizeItemToggleGroup = document.getElementById('customize-item-toggle-group') as HTMLDivElement;
@@ -4341,38 +4369,44 @@ Christy Montejo
 		// Slip filler toggles
 		const toggleOwnerLabel = document.getElementById('toggle-owner-label');
 		const toggleCustomerLabel = document.getElementById('toggle-customer-label');
-		const customerDetailsSection = document.getElementById('customer-details-section');
-		const submitBtnText = document.getElementById('submit-btn-text');
-		const customerName = document.getElementById('customer-name') as HTMLInputElement;
-		const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
-		const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
-		const deliveryDateTime = document.getElementById('delivery-date-time') as HTMLInputElement;
+		const prefillCustomerCheckbox = document.getElementById('prefill-customer-checkbox') as HTMLInputElement;
 
 		const setSlipFiller = (val: 'Owner' | 'Customer') => {
 			slipFiller = val;
-			if (val === 'Owner') {
-				toggleOwnerLabel?.classList.add('active');
-				toggleCustomerLabel?.classList.remove('active');
-				if (customerDetailsSection) customerDetailsSection.style.display = 'block';
-				if (submitBtnText) submitBtnText.textContent = 'Submit Order';
-				customerName?.setAttribute('required', 'required');
-				customerContact?.setAttribute('required', 'required');
-				customerAddress?.setAttribute('required', 'required');
-				deliveryDateTime?.setAttribute('required', 'required');
-			} else {
-				toggleOwnerLabel?.classList.remove('active');
-				toggleCustomerLabel?.classList.add('active');
-				if (customerDetailsSection) customerDetailsSection.style.display = 'none';
-				if (submitBtnText) submitBtnText.textContent = 'Generate Customer Link';
-				customerName?.removeAttribute('required');
-				customerContact?.removeAttribute('required');
-				customerAddress?.removeAttribute('required');
-				deliveryDateTime?.removeAttribute('required');
-			}
+			updateSlipFillerUI();
 		};
 
 		toggleOwnerLabel?.addEventListener('click', () => setSlipFiller('Owner'));
 		toggleCustomerLabel?.addEventListener('click', () => setSlipFiller('Customer'));
+		prefillCustomerCheckbox?.addEventListener('change', () => {
+			updateSlipFillerUI();
+		});
+
+		customerName?.addEventListener('input', () => {
+			const val = customerName.value.trim().toLowerCase();
+			if (!val) return;
+			// Find unique customer matching name from orders array
+			const match = orders.find(o => {
+				const name = (o.customer || '').trim();
+				return name.toLowerCase() === val && name !== 'Pending Customer Details';
+			});
+			if (match && customerContact) {
+				customerContact.value = (match.contact || '').trim();
+			}
+		});
+
+		customerContact?.addEventListener('input', () => {
+			const val = customerContact.value.trim().toLowerCase();
+			if (!val) return;
+			// Find unique customer matching contact from orders array
+			const match = orders.find(o => {
+				const contact = (o.contact || '').trim();
+				return contact.toLowerCase() === val;
+			});
+			if (match && customerName && match.customer && match.customer !== 'Pending Customer Details') {
+				customerName.value = (match.customer || '').trim();
+			}
+		});
 
 		// Fulfillment Type Toggles
 		const togglePickupLabel = document.getElementById('toggle-pickup-label');
@@ -4587,9 +4621,18 @@ Christy Montejo
 
 			// Setup values based on filler mode
 			const isCustomerFill = slipFiller === 'Customer';
-			const customerVal = isCustomerFill ? "Pending Customer Details" : customerName.value.trim();
+			const prefillCustomerCheckbox = document.getElementById('prefill-customer-checkbox') as HTMLInputElement;
+			const isPrefillChecked = isCustomerFill && prefillCustomerCheckbox ? prefillCustomerCheckbox.checked : false;
+
+			const customerVal = isCustomerFill 
+				? (isPrefillChecked ? (customerName.value.trim() || "Pending Customer Details") : "Pending Customer Details") 
+				: customerName.value.trim();
+			const contactVal = isCustomerFill
+				? (isPrefillChecked ? customerContact.value.trim() : "")
+				: customerContact.value.trim();
+			const customerFb = document.getElementById('customer-fb') as HTMLInputElement;
+			const fbNameVal = isCustomerFill ? "" : (customerFb ? customerFb.value.trim() : "");
 			const addressVal = isCustomerFill ? "" : customerAddress.value.trim();
-			const contactVal = isCustomerFill ? "" : customerContact.value.trim();
 			const deliveryVal = isCustomerFill ? "" : deliveryDateTime.value;
 			const formattedDelivery = deliveryVal ? deliveryVal.replace('T', ' ') : "";
 
@@ -4604,6 +4647,7 @@ Christy Montejo
 				customer: customerVal,
 				address: addressVal,
 				contact: contactVal,
+				facebookName: fbNameVal,
 				deliveryDateTime: formattedDelivery,
 				items: [...tempOrderItems],
 				total: parseFloat(total.toFixed(2)),
@@ -4626,6 +4670,7 @@ Christy Montejo
 							customer: newOrder.customer,
 							address: newOrder.address,
 							contact: newOrder.contact,
+							facebook_name: newOrder.facebookName || null,
 							deliveryDateTime: newOrder.deliveryDateTime || null,
 							fulfillmentType: newOrder.fulfillmentType ?? 'Delivery',
 							status: newOrder.status,
@@ -4634,7 +4679,8 @@ Christy Montejo
 							balance: newOrder.balance,
 							deliveryFee: newOrder.deliveryFee ?? 0
 						},
-						items: newOrder.items
+						items: newOrder.items,
+						isOwnerFill: !isCustomerFill
 					})
 				});
 
@@ -4785,7 +4831,9 @@ Christy Montejo
 		const total = itemsTotal + deliveryFee;
 		
 		if (autoSetDownpayment) {
-			orderDownpayment.value = (total * 0.5).toFixed(2);
+			const s = loadSettings();
+			const factor = (s.dpPct !== undefined ? s.dpPct : 50) / 100;
+			orderDownpayment.value = (total * factor).toFixed(2);
 		}
 
 		const downpayment = parseFloat(orderDownpayment.value) || 0;
@@ -4798,8 +4846,11 @@ Christy Montejo
 
 	function validateForm(): boolean {
 		let isValid = true;
+		const isOwner = slipFiller === 'Owner';
+		const prefillCustomerCheckbox = document.getElementById('prefill-customer-checkbox') as HTMLInputElement;
+		const isPrefillChecked = !isOwner && prefillCustomerCheckbox ? prefillCustomerCheckbox.checked : false;
 		
-		if (slipFiller === 'Owner') {
+		if (isOwner || isPrefillChecked) {
 			// 1. Customer Name
 			const customerName = document.getElementById('customer-name') as HTMLInputElement;
 			const nameGroup = customerName?.parentElement?.parentElement;
@@ -4819,7 +4870,9 @@ Christy Montejo
 			} else {
 				contactGroup?.classList.remove('invalid');
 			}
+		}
 
+		if (isOwner) {
 			// 3. Customer Address (only required for Meetup or Delivery)
 			const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
 			const addressGroup = customerAddress?.parentElement?.parentElement;
@@ -4913,23 +4966,9 @@ Christy Montejo
 
 		// Reset slip filler UI
 		slipFiller = 'Owner';
-		const toggleOwnerLabel = document.getElementById('toggle-owner-label');
-		const toggleCustomerLabel = document.getElementById('toggle-customer-label');
-		const customerDetailsSection = document.getElementById('customer-details-section');
-		const submitBtnText = document.getElementById('submit-btn-text');
-		const customerName = document.getElementById('customer-name') as HTMLInputElement;
-		const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
-		const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
-		const deliveryDateTime = document.getElementById('delivery-date-time') as HTMLInputElement;
-
-		toggleOwnerLabel?.classList.add('active');
-		toggleCustomerLabel?.classList.remove('active');
-		if (customerDetailsSection) customerDetailsSection.style.display = 'block';
-		if (submitBtnText) submitBtnText.textContent = 'Submit Order';
-		customerName?.setAttribute('required', 'required');
-		customerContact?.setAttribute('required', 'required');
-		customerAddress?.setAttribute('required', 'required');
-		deliveryDateTime?.setAttribute('required', 'required');
+		const prefillCustomerCheckbox = document.getElementById('prefill-customer-checkbox') as HTMLInputElement;
+		if (prefillCustomerCheckbox) prefillCustomerCheckbox.checked = false;
+		updateSlipFillerUI();
 
 		// Reset validation styling
 		document.querySelectorAll('.form-group').forEach(group => {
@@ -5045,21 +5084,21 @@ Christy Montejo
 			const el = document.getElementById(`hcount-${s.toLowerCase()}`);
 			if (el) {
 				if (s === 'All') el.textContent = orders.length.toString();
-				else if (s === 'Pending') el.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '')).length.toString();
+				else if (s === 'Pending') el.textContent = orders.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '' && !!o.deliveryDateTime)).length.toString();
 				else el.textContent = orders.filter(o => o.status === s).length.toString();
 			}
 		});
 		// Pending (Customer) special count
 		const elPendingCust = document.getElementById('hcount-pending-customer');
-		if (elPendingCust) elPendingCust.textContent = orders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '')).length.toString();
+		if (elPendingCust) elPendingCust.textContent = orders.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '' || !o.deliveryDateTime) && o.status !== 'Completed' && o.status !== 'Cancelled').length.toString();
 
 		// Filter
 		let filtered = [...orders];
 		if (historyFilter !== 'All') {
 			if (historyFilter === 'PendingCustomer') {
-				filtered = filtered.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === ''));
+				filtered = filtered.filter(o => ((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '' || !o.deliveryDateTime) && o.status !== 'Completed' && o.status !== 'Cancelled');
 			} else if (historyFilter === 'Pending') {
-				filtered = filtered.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== ''));
+				filtered = filtered.filter(o => o.status === 'Pending' && ((o.customer || '').trim() !== 'Pending Customer Details' && (o.customer || '').trim() !== '' && !!o.deliveryDateTime));
 			} else {
 				filtered = filtered.filter(o => o.status === historyFilter);
 			}
@@ -5099,7 +5138,13 @@ Christy Montejo
 				const sc = `badge-${o.status.toLowerCase()}`;
 				return `<tr>
 					<td style="font-weight:700;color:var(--accent-primary)">#${o.id.replace('ORD-','')}</td>
-					<td class="customer-cell"><div class="customer-cell-inner"><span class="customer-name">${((o.customer || '').trim()) ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>${((o.customer || '').trim() === 'Pending Customer Details' || (o.customer || '').trim() === '') ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}</div></td>
+					<td class="customer-cell">
+						<div class="customer-cell-inner">
+							<span class="customer-name">${(o.customer && o.customer !== 'Pending Customer Details') ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
+							${(o.customer === 'Pending Customer Details' || !o.customer || !o.deliveryDateTime) ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+						</div>
+						${(o.contact && o.contact.trim()) ? `<div class="customer-contact" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(o.contact)}</div>` : ''}
+					</td>
 					<td style="font-weight:700">₱${o.total.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
 					<td style="color:var(--status-preparing)">₱${o.downpayment.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
 					<td style="color:var(--accent-primary)">₱${o.balance.toLocaleString('en-US',{minimumFractionDigits:2})}${o.status === 'Completed' ? ' <span style="font-size:0.7rem;color:#10b981;font-weight:800;display:block;">Settled</span>' : ''}</td>
@@ -5411,6 +5456,180 @@ Christy Montejo
 	}
 	function saveSettings(s: AppSettings) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 
+	function getSettingsParam(): string {
+		try {
+			const s = loadSettings();
+			if (
+				s.maribankName === DEFAULT_SETTINGS.maribankName &&
+				s.maribankNum === DEFAULT_SETTINGS.maribankNum &&
+				s.gcashName === DEFAULT_SETTINGS.gcashName &&
+				s.gcashNum === DEFAULT_SETTINGS.gcashNum &&
+				s.dpPct === DEFAULT_SETTINGS.dpPct
+			) {
+				return '';
+			}
+			const parts = [
+				s.maribankName || '',
+				s.maribankNum || '',
+				s.gcashName || '',
+				s.gcashNum || '',
+				s.dpPct !== undefined ? String(s.dpPct) : '50'
+			];
+			const rawStr = parts.join('|');
+			const b64 = btoa(unescape(encodeURIComponent(rawStr)));
+			return '&s=' + encodeURIComponent(b64);
+		} catch (e) {
+			return '';
+		}
+	}
+
+	function getOrderSignature(orderId: string): string {
+		const salt = 'montejo_order_security_salt_2026'; 
+		let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+		const str = orderId + salt;
+		for (let i = 0, ch; i < str.length; i++) {
+			ch = str.charCodeAt(i);
+			h1 = Math.imul(h1 ^ ch, 2654435761);
+			h2 = Math.imul(h2 ^ ch, 1597334903);
+		}
+		h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+		h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+		h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+		h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+		return ((h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0')).slice(0, 10);
+	}
+
+	function populatePastCustomersDatalists() {
+		const namesDatalist = document.getElementById('past-customers-names');
+		const contactsDatalist = document.getElementById('past-customers-contacts');
+		if (!namesDatalist || !contactsDatalist) return;
+
+		namesDatalist.innerHTML = '';
+		contactsDatalist.innerHTML = '';
+
+		const uniqueCustomersMap = new Map<string, {name: string, contact: string}>();
+		orders.forEach(o => {
+			const name = (o.customer || '').trim();
+			const contact = (o.contact || '').trim();
+			if (name && name !== 'Pending Customer Details' && contact) {
+				const key = `${name.toLowerCase()}|||${contact.toLowerCase()}`;
+				if (!uniqueCustomersMap.has(key)) {
+					uniqueCustomersMap.set(key, { name, contact });
+				}
+			}
+		});
+
+		const uniqueCustomers = Array.from(uniqueCustomersMap.values());
+
+		// Populate names datalist
+		const uniqueNames = new Set(uniqueCustomers.map(c => c.name));
+		uniqueNames.forEach(name => {
+			const option = document.createElement('option');
+			option.value = name;
+			namesDatalist.appendChild(option);
+		});
+
+		// Populate contacts datalist
+		const uniqueContacts = new Set(uniqueCustomers.map(c => c.contact));
+		uniqueContacts.forEach(contact => {
+			const option = document.createElement('option');
+			option.value = contact;
+			contactsDatalist.appendChild(option);
+		});
+	}
+
+	function updateSlipFillerUI() {
+		const toggleOwnerLabel = document.getElementById('toggle-owner-label');
+		const toggleCustomerLabel = document.getElementById('toggle-customer-label');
+		const prefillToggleGroup = document.getElementById('prefill-toggle-group');
+		const prefillCustomerCheckbox = document.getElementById('prefill-customer-checkbox') as HTMLInputElement;
+		const customerDetailsSection = document.getElementById('customer-details-section');
+		const submitBtnText = document.getElementById('submit-btn-text');
+		const customerName = document.getElementById('customer-name') as HTMLInputElement;
+		const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
+		const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
+		const deliveryDateTime = document.getElementById('delivery-date-time') as HTMLInputElement;
+
+		const isOwner = slipFiller === 'Owner';
+		const isPrefillChecked = prefillCustomerCheckbox ? prefillCustomerCheckbox.checked : false;
+
+		if (isOwner) {
+			toggleOwnerLabel?.classList.add('active');
+			toggleCustomerLabel?.classList.remove('active');
+			if (prefillToggleGroup) prefillToggleGroup.style.display = 'none';
+			
+			// Show all customer details fields
+			if (customerDetailsSection) customerDetailsSection.style.display = 'block';
+			
+			const nameGroup = customerName?.closest('.form-group');
+			const contactGroup = customerContact?.closest('.form-group');
+			const addressGroup = customerAddress?.closest('.form-group');
+			const datetimeGroup = deliveryDateTime?.closest('.form-group');
+			
+			if (nameGroup) (nameGroup as HTMLElement).style.display = 'flex';
+			if (contactGroup) (contactGroup as HTMLElement).style.display = 'flex';
+			if (addressGroup) (addressGroup as HTMLElement).style.display = 'flex';
+			if (datetimeGroup) (datetimeGroup as HTMLElement).style.display = 'flex';
+
+			if (submitBtnText) submitBtnText.textContent = 'Submit Order';
+			customerName?.setAttribute('required', 'required');
+			customerContact?.setAttribute('required', 'required');
+			customerAddress?.setAttribute('required', 'required');
+			deliveryDateTime?.setAttribute('required', 'required');
+		} else {
+			toggleOwnerLabel?.classList.remove('active');
+			toggleCustomerLabel?.classList.add('active');
+			if (prefillToggleGroup) prefillToggleGroup.style.display = 'flex';
+
+			if (submitBtnText) submitBtnText.textContent = 'Generate Customer Link';
+			
+			// Hide address and delivery date-time (never pre-filled by owner in customer mode)
+			const addressGroup = customerAddress?.closest('.form-group');
+			const datetimeGroup = deliveryDateTime?.closest('.form-group');
+			if (addressGroup) (addressGroup as HTMLElement).style.display = 'none';
+			if (datetimeGroup) (datetimeGroup as HTMLElement).style.display = 'none';
+			customerAddress?.removeAttribute('required');
+			deliveryDateTime?.removeAttribute('required');
+
+			if (isPrefillChecked) {
+				// Show customer details container, but only show name and contact inputs
+				if (customerDetailsSection) customerDetailsSection.style.display = 'block';
+				
+				const nameGroup = customerName?.closest('.form-group');
+				const contactGroup = customerContact?.closest('.form-group');
+				if (nameGroup) (nameGroup as HTMLElement).style.display = 'flex';
+				if (contactGroup) (contactGroup as HTMLElement).style.display = 'flex';
+
+				customerName?.setAttribute('required', 'required');
+				customerContact?.setAttribute('required', 'required');
+			} else {
+				// Hide everything
+				if (customerDetailsSection) customerDetailsSection.style.display = 'none';
+				
+				customerName?.removeAttribute('required');
+				customerContact?.removeAttribute('required');
+			}
+		}
+	}
+
+	function updateFormPaymentDetails() {
+		try {
+			const s = loadSettings();
+			document.querySelectorAll('.form-maribank-name').forEach(el => el.textContent = s.maribankName || '');
+			document.querySelectorAll('.form-maribank-num').forEach(el => el.textContent = s.maribankNum || '');
+			document.querySelectorAll('.form-gcash-name').forEach(el => el.textContent = s.gcashName || '');
+			document.querySelectorAll('.form-gcash-num').forEach(el => el.textContent = s.gcashNum || '');
+			
+			const pct = s.dpPct !== undefined ? s.dpPct : 50;
+			const noteEl = document.getElementById('form-payment-note');
+			if (noteEl) {
+				noteEl.textContent = `Note: To confirm your order, we are requesting ${pct}% downpayment of the total bill, then the rest will be paid upon pickup/delivery of orders.`;
+			}
+		} catch (e) {
+			// ignore
+		}
+	}
+
 	function renderSettingsView() {
 		const s = loadSettings();
 		const fields: [string, keyof AppSettings][] = [
@@ -5432,6 +5651,7 @@ Christy Montejo
 				cur.gcashName = (document.getElementById('s-gcash-name') as HTMLInputElement)?.value || cur.gcashName;
 				cur.gcashNum = (document.getElementById('s-gcash-num') as HTMLInputElement)?.value || cur.gcashNum;
 				saveSettings(cur);
+				updateFormPaymentDetails();
 				showToast('Payment info saved!');
 			});
 		}
@@ -5442,7 +5662,12 @@ Christy Montejo
 			saveDpBtn.addEventListener('click', () => {
 				const cur = loadSettings();
 				const pct = parseFloat((document.getElementById('s-dp-pct') as HTMLInputElement)?.value);
-				if (!isNaN(pct) && pct >= 0 && pct <= 100) { cur.dpPct = pct; saveSettings(cur); showToast(`Default downpayment set to ${pct}%`); }
+				if (!isNaN(pct) && pct >= 0 && pct <= 100) { 
+					cur.dpPct = pct; 
+					saveSettings(cur); 
+					updateFormPaymentDetails();
+					showToast(`Default downpayment set to ${pct}%`); 
+				}
 				else showToast('Enter a valid percentage (0–100)');
 			});
 		}

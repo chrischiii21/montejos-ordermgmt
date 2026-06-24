@@ -2,6 +2,20 @@ import 'dotenv/config';
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
+function formatDateTime12h(dateTimeStr: string | null | undefined): string {
+  if (!dateTimeStr) return '';
+  const d = new Date(dateTimeStr.replace(' ', 'T'));
+  if (isNaN(d.getTime())) return dateTimeStr;
+  return d.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
 export const POST: APIRoute = async ({ request }) => {
   const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -14,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const payload = await request.json().catch(() => ({}));
-    const { id, orderUpdates, items } = payload as any;
+    const { id, orderUpdates, items, isCustomerVerification } = payload as any;
 
     if (!id) return new Response(JSON.stringify({ error: 'Missing order ID' }), { status: 400 });
 
@@ -23,6 +37,92 @@ export const POST: APIRoute = async ({ request }) => {
       if (orderErr) {
         console.error('Order update error', orderErr);
         return new Response(JSON.stringify({ error: orderErr.message || orderErr }), { status: 500 });
+      }
+    }
+
+    if (isCustomerVerification) {
+      // Fetch full order + items from Supabase
+      const { data: orderData, error: fetchErr } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('id', id)
+        .single();
+
+      if (!fetchErr && orderData) {
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+        if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+          try {
+            const itemsText = (orderData.order_items || []).map((it: any) => {
+              let text = `${it.quantity}x ${it.name}`;
+              const inclusions = it.custom_inclusions ?? it.customInclusions ?? [];
+              if (Array.isArray(inclusions) && inclusions.length > 0) {
+                text += `\n  (Custom Inclusions:\n` + inclusions.map((inc: any) => `   - ${inc}`).join('\n') + `)`;
+              }
+              return text;
+            }).join('\n');
+
+            const idNumber = orderData.id.replace('ORD-', '');
+            const formattedDateTime = formatDateTime12h(orderData.delivery_date_time);
+            const deliveryFee = parseFloat(orderData.delivery_fee ?? 0);
+            const total = parseFloat(orderData.total ?? 0);
+            const downpayment = parseFloat(orderData.downpayment ?? 0);
+            const balance = parseFloat(orderData.balance ?? 0);
+            const subtotal = total - deliveryFee;
+
+            const formattedSubtotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formattedDeliveryFee = deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formattedTotal = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formattedDownpayment = downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formattedBalance = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const fbName = orderData.facebook_name ?? orderData.facebookName;
+            const fbSuffix = fbName ? ` (FB: ${fbName})` : '';
+
+            const message = `🎉 Order ID - ${idNumber} link is successfully fulfilled.\n\n` +
+              `📋 C O N F I R M A T I O N   S L I P\n\n` +
+              `👤 Name: ${orderData.customer || ''}${fbSuffix}\n` +
+              `📦 Fulfillment: ${orderData.fulfillment_type || 'Delivery'}\n` +
+              `📍 Exact Address: ${orderData.address || ''}\n` +
+              `📞 Contact Number of the Receiver/s: ${orderData.contact || ''}\n` +
+              `⏰ Time & Date: ${formattedDateTime}\n` +
+              `🛒 List of Order/s:\n` +
+              `${itemsText || 'No items'}\n\n` +
+              `💰 Subtotal: ₱${formattedSubtotal}\n` +
+              `🛵 Delivery/Meetup Fee: ₱${formattedDeliveryFee}\n` +
+              `💵 TOTAL: ₱${formattedTotal}\n` +
+              `💳 DOWNPAYMENT: ₱${formattedDownpayment}\n` +
+              `⚖️ BALANCE: ₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}`;
+
+            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const chatIds = TELEGRAM_CHAT_ID.split(',').map(id => id.trim()).filter(id => id !== '');
+
+            for (const chatId of chatIds) {
+              await fetch(telegramUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: chatId,
+                  text: message
+                })
+              }).then(async (teleResp) => {
+                if (!teleResp.ok) {
+                  const errBody = await teleResp.text();
+                  console.error(`Telegram bot API error for chat ID ${chatId}:`, errBody);
+                } else {
+                  console.log(`Telegram notification sent successfully to chat ID ${chatId} for order ${id}.`);
+                }
+              });
+            }
+          } catch (teleErr) {
+            console.error('Failed to send Telegram notification:', teleErr);
+          }
+        } else {
+          console.log('Telegram Bot Token or Chat ID not configured. Notification skipped.');
+        }
+      } else {
+        console.error(`Failed to fetch order details for Telegram notification:`, fetchErr?.message);
       }
     }
 

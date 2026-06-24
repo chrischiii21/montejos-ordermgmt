@@ -20,6 +20,7 @@ export type Database = {
           balance: number;
           note: string | null;
           delivery_fee: number;
+          facebook_name: string | null;
         };
         Insert: Omit<Database['public']['Tables']['orders']['Row'], 'created_at'>;
         Update: Partial<Database['public']['Tables']['orders']['Insert']>;
