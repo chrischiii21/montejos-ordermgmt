@@ -111,7 +111,8 @@ export const POST: APIRoute = async ({ request }) => {
           const fbName = order.facebook_name ?? order.facebookName;
           const fbSuffix = fbName ? ` (FB: <b>${escapeHtml(fbName)}</b>)` : '';
 
-          const message = `🎉 <b>Order ID - ${idNumber} successfully added.</b>\n\n` +
+          const message = `🔔 <b>NEW ORDER ALERT</b>\n\n` +
+            `🎉 <b>Order ID - ${idNumber} successfully added.</b>\n\n` +
             `📋 <b>C O N F I R M A T I O N   S L I P</b>\n\n` +
             `👤 Name: <b>${escapeHtml(order.customer || '')}</b>${fbSuffix}\n` +
             `📦 Fulfillment: <b>${escapeHtml(order.fulfillmentType ?? order.fulfillment_type ?? 'Delivery')}</b>\n` +

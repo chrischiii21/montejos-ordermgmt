@@ -47,29 +47,36 @@ console.log(`✅ Loaded Telegram Config:`);
 console.log(`   - Bot Token: ${token.substring(0, 10)}... (hidden for security)`);
 console.log(`   - Chat IDs to notify: ${chatIds.join(', ')}`);
 
-// Mock confirmation slip body details
-const slipBody = `📋 C O N F I R M A T I O N   S L I P
+// Mock confirmation slip body — HTML formatted
+const slipBody = `` +
+  `📋 <b>C O N F I R M A T I O N   S L I P</b>\n\n` +
+  `👤 Name: <b>Test Customer</b> (FB: <b>TestCustomerFB</b>)\n` +
+  `📦 Fulfillment: <b>Delivery</b>\n` +
+  `📍 Exact Address: 123 Sample Street, Barangay Test, Cebu City\n` +
+  `📞 Contact Number of the Receiver/s: 09123456789\n` +
+  `⏰ Time &amp; Date: <b>12/25/2026, 4:30 PM</b>\n` +
+  `🛒 List of Order/s:\n` +
+  `<b>2x Chocolate Fudge Cake</b>\n` +
+  `  (Custom Inclusions:\n` +
+  `   - Extra fudge topping\n` +
+  `   - Happy Birthday topper)\n` +
+  `<b>1x Vanilla Caramel Slice</b>\n\n` +
+  `💰 Subtotal: <b>₱1,350.00</b>\n` +
+  `🛵 Delivery/Meetup Fee: <b>₱150.00</b>\n` +
+  `💵 TOTAL: <b>₱1,500.00</b>\n` +
+  `💳 DOWNPAYMENT: <b>₱750.00</b>\n` +
+  `⚖️ BALANCE: <b>₱750.00</b>`;
 
-👤 Name: Test Customer (Telegram Check)
-📦 Fulfillment: Delivery
-📍 Exact Address: 123 Sample Street, Barangay Test, Cebu City
-📞 Contact Number of the Receiver/s: 09123456789
-⏰ Time & Date: 12/25/2026, 4:30 PM
-🛒 List of Order/s:
-2x Chocolate Fudge Cake
-  (Custom Inclusions:
-   - Extra fudge topping
-   - Happy Birthday topper)
-1x Vanilla Caramel Slice
+// Context 1: Customer fulfilled via shared link (no NEW ORDER ALERT)
+const mockSlip1 = `` +
+  `🎉 <b>Order ID - 999 link is successfully fulfilled.</b>\n\n` +
+  slipBody;
 
-💰 Subtotal: ₱1,350.00
-🛵 Delivery/Meetup Fee: ₱150.00
-💵 TOTAL: ₱1,500.00
-💳 DOWNPAYMENT: ₱750.00
-⚖️ BALANCE: ₱750.00`;
-
-const mockSlip1 = `🎉 Order ID - 999 link is successfully fulfilled.\n\n${slipBody}`;
-const mockSlip2 = `🎉 Order ID - 999 successfully added.\n\n${slipBody}`;
+// Context 2: Owner added a new order — includes NEW ORDER ALERT
+const mockSlip2 = `` +
+  `🔔 <b>NEW ORDER ALERT</b>\n\n` +
+  `🎉 <b>Order ID - 999 successfully added.</b>\n\n` +
+  slipBody;
 
 const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
 
@@ -83,7 +90,8 @@ async function run() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: mockSlip1
+          text: mockSlip1,
+          parse_mode: 'HTML'
         })
       });
 
@@ -102,20 +110,21 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Send Context 2
-    console.log(`⏳ Dispatching Context 2 (Owner Added) to Chat ID: ${chatId}...`);
+    console.log(`⏳ Dispatching Context 2 (Owner Added — NEW ORDER ALERT) to Chat ID: ${chatId}...`);
     try {
       const resp = await fetch(telegramUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: mockSlip2
+          text: mockSlip2,
+          parse_mode: 'HTML'
         })
       });
 
       const body = await resp.json();
       if (resp.ok && body.ok) {
-        console.log(`🎉 Success! Owner Added sample delivered to Chat ID: ${chatId}.`);
+        console.log(`🎉 Success! Owner Added (NEW ORDER ALERT) sample delivered to Chat ID: ${chatId}.`);
       } else {
         console.error(`❌ Failed to send to Chat ID: ${chatId}.`);
         console.error(`   Telegram API response:`, JSON.stringify(body, null, 2));
