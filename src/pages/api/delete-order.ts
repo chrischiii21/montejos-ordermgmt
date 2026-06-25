@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return new Response(JSON.stringify({ error: 'Missing Supabase service env vars' }), { status: 500 });

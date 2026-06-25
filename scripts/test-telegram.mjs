@@ -54,7 +54,7 @@ const slipBody = `` +
   `📦 Fulfillment: <b>Delivery</b>\n` +
   `📍 Exact Address: 123 Sample Street, Barangay Test, Cebu City\n` +
   `📞 Contact Number of the Receiver/s: 09123456789\n` +
-  `⏰ Time &amp; Date: <b>12/25/2026, 4:30 PM</b>\n` +
+  `⏰ Time &amp; Date: <b>December 25, 2026 at 4:30 PM</b>\n` +
   `🛒 List of Order/s:\n` +
   `<b>2x Chocolate Fudge Cake</b>\n` +
   `  (Custom Inclusions:\n` +

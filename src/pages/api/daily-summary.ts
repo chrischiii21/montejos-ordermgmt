@@ -22,7 +22,7 @@ function escapeHtml(text: string | null | undefined): string {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  const CRON_SECRET = process.env.CRON_SECRET;
+  const CRON_SECRET = process.env.CRON_SECRET || import.meta.env.CRON_SECRET;
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
 
   // Verify cron secret if configured
@@ -30,10 +30,10 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-  const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
+  const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
     return new Response(JSON.stringify({ error: 'Missing configuration variables', debug: { hasSupabaseUrl: !!SUPABASE_URL, hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY, hasTelegramToken: !!TELEGRAM_BOT_TOKEN, hasTelegramChatId: !!TELEGRAM_CHAT_ID } }), { status: 500 });

@@ -15,7 +15,7 @@ function formatDateTime12h(dateTimeStr: string | null | undefined): string {
   if (isNaN(d.getTime())) return dateTimeStr;
   return d.toLocaleString('en-US', {
     year: 'numeric',
-    month: 'numeric',
+    month: 'long',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
@@ -24,8 +24,8 @@ function formatDateTime12h(dateTimeStr: string | null | undefined): string {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return new Response(JSON.stringify({ error: 'Missing Supabase service env vars' }), { status: 500 });
@@ -56,8 +56,8 @@ export const POST: APIRoute = async ({ request }) => {
         .single();
 
       if (!fetchErr && orderData) {
-        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
+        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
 
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
           try {

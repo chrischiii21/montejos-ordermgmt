@@ -111,6 +111,11 @@ import Layout from '../layouts/Layout.astro';
 				<div class="step-line" id="line-2-indicator"></div>
 				<div class="step" id="step-3-indicator">
 					<span class="step-num">3</span>
+					<span class="step-text">Review Details</span>
+				</div>
+				<div class="step-line" id="line-3-indicator"></div>
+				<div class="step" id="step-4-indicator">
+					<span class="step-num">4</span>
 					<span class="step-text">Secure Payment</span>
 				</div>
 			</div>
@@ -206,8 +211,11 @@ import Layout from '../layouts/Layout.astro';
 							<label for="cust-input-contact">Contact Number</label>
 							<div class="input-wrapper">
 								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-								<input type="text" id="cust-input-contact" placeholder="Receiver contact number" required />
+								<input type="text" inputmode="numeric" pattern="[0-9]*" id="cust-input-contact" placeholder="Receiver contact number" required />
 							</div>
+							<span id="contact-warning-subtext" style="display: none; font-size: 0.725rem; color: #ef4444; margin-top: 2px; font-weight: 500;">
+								Only numbers are allowed.
+							</span>
 							<span id="contact-prefill-subtext" style="display: none; font-size: 0.725rem; color: var(--text-muted); margin-top: 1px; font-style: italic;">
 								Pre-filled based on details we have. You can still change it.
 							</span>
@@ -280,8 +288,95 @@ import Layout from '../layouts/Layout.astro';
 				</form>
 			</section>
 
-			<!-- Step 3 Content: Payment -->
+			<!-- Step 3 Content: Review Details -->
 			<section id="step-3-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="card-header-group">
+					<h3>Review & Confirm Order Details</h3>
+					<p>Please double-check all details below. You can go back and make changes if needed.</p>
+				</div>
+
+				<div class="review-details-summary" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+					<!-- Customer details card -->
+					<div class="review-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+						<h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+							<span>Customer & Fulfillment Info</span>
+						</h4>
+						<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; font-size: 0.9rem;">
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Receiver Name</span>
+								<strong id="review-customer-name" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Contact Number</span>
+								<strong id="review-customer-contact" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Facebook Name</span>
+								<strong id="review-customer-fb" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Fulfillment Method</span>
+								<strong id="review-fulfillment-type" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="grid-column: span 2; display: flex; flex-direction: column; gap: 2px;">
+								<span id="review-datetime-label" style="font-size: 0.75rem; color: var(--text-secondary);">Delivery Date & Time</span>
+								<strong id="review-delivery-datetime" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div id="review-address-container" style="grid-column: span 2; display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Delivery Address</span>
+								<strong id="review-delivery-address" style="color: var(--text-primary);">-</strong>
+							</div>
+						</div>
+					</div>
+
+					<!-- Order items list summary -->
+					<div class="review-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+						<h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+							<span>Order Items & Pricing</span>
+						</h4>
+						<div id="review-items-list" style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; max-height: 200px; overflow-y: auto;">
+							<!-- Dynamic item summary lines -->
+						</div>
+						<div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem;">
+							<div style="display: flex; justify-content: space-between;">
+								<span style="color: var(--text-secondary);">Subtotal:</span>
+								<span id="review-subtotal" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
+							</div>
+							<div id="review-delivery-fee-row" style="display: flex; justify-content: space-between;">
+								<span style="color: var(--text-secondary);">Delivery/Meetup Fee:</span>
+								<span id="review-delivery-fee" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
+							</div>
+							<div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 2px;">
+								<span style="color: var(--text-secondary); font-weight: 700;">Total Bill:</span>
+								<strong id="review-total-bill" style="color: var(--text-primary); font-size: 1.05rem;">₱0.00</strong>
+							</div>
+							<div style="display: flex; justify-content: space-between; color: var(--accent-primary);">
+								<span style="font-weight: 700;">Selected Downpayment:</span>
+								<strong id="review-downpayment" style="font-size: 1.05rem;">₱0.00</strong>
+							</div>
+							<div style="display: flex; justify-content: space-between;">
+								<span id="review-balance-label" style="color: var(--text-secondary); font-weight: 700;">Remaining Balance:</span>
+								<strong id="review-balance" style="color: var(--text-primary); font-size: 1.05rem;">₱0.00</strong>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-actions-right" style="margin-top: 10px; display: flex; gap: 12px; justify-content: flex-end;">
+					<button type="button" class="btn btn-secondary" id="btn-backto-step-2">
+						Back
+					</button>
+					<button type="button" class="btn btn-primary" id="btn-submit-order" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+						<span>Submit Order Details</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					</button>
+				</div>
+			</section>
+
+			<!-- Step 4 Content: Payment -->
+			<section id="step-4-content" class="glass-panel step-content-card" style="display: none;">
 				<div class="success-header">
 					<div class="success-checkmark-wrapper">
 						<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -293,19 +388,19 @@ import Layout from '../layouts/Layout.astro';
 				<div class="payment-summary-block" style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 12px; padding: 16px; margin-bottom: 8px; font-size: 0.9rem; text-align: left; display: flex; flex-direction: column; gap: 6px;">
 					<div style="display: flex; justify-content: space-between;">
 						<span style="color: var(--text-secondary);">Fulfillment Method:</span>
-						<strong id="cust-step3-fulfillment" style="color: var(--text-primary);">-</strong>
+						<strong id="cust-step4-fulfillment" style="color: var(--text-primary);">-</strong>
 					</div>
 					<div style="display: flex; justify-content: space-between;">
 						<span style="color: var(--text-secondary);">Total Bill:</span>
-						<strong id="cust-step3-total" style="color: var(--text-primary);">₱0.00</strong>
+						<strong id="cust-step4-total" style="color: var(--text-primary);">₱0.00</strong>
 					</div>
 					<div style="display: flex; justify-content: space-between; color: var(--accent-primary);">
 						<span>Downpayment to Send:</span>
-						<strong id="cust-step3-downpayment">₱0.00</strong>
+						<strong id="cust-step4-downpayment">₱0.00</strong>
 					</div>
 					<div style="display: flex; justify-content: space-between; border-top: 1px dashed rgba(16, 185, 129, 0.2); padding-top: 6px; margin-top: 2px;">
-						<span style="color: var(--text-secondary);" id="cust-step3-balance-label">Remaining Balance:</span>
-						<strong id="cust-step3-balance" style="color: var(--text-primary);">₱0.00</strong>
+						<span style="color: var(--text-secondary);" id="cust-step4-balance-label">Remaining Balance:</span>
+						<strong id="cust-step4-balance" style="color: var(--text-primary);">₱0.00</strong>
 					</div>
 				</div>
 
@@ -342,12 +437,12 @@ import Layout from '../layouts/Layout.astro';
 					</div>
 				</div>
 
-				<!-- Receipt Preview in Step 3 -->
-				<div id="receipt-container-step3" style="width: 100%; display: flex; justify-content: center; padding: 12px 0;">
+				<!-- Receipt Preview in Step 4 -->
+				<div id="receipt-container-step4" style="width: 100%; display: flex; justify-content: center; padding: 12px 0;">
 					<!-- Dynamic Receipt HTML -->
 				</div>
 
-				<button id="btn-download-receipt-step3" class="btn btn-primary" style="padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; margin-bottom: 24px;">
+				<button id="btn-download-receipt-step4" class="btn btn-primary" style="padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; margin-bottom: 24px;">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
 					<span>Download Receipt Image</span>
 				</button>
@@ -515,6 +610,18 @@ import Layout from '../layouts/Layout.astro';
 
 	.step-line.completed {
 		background: #10b981;
+	}
+
+	@media (max-width: 600px) {
+		.step-indicator {
+			padding: 12px 14px;
+		}
+		.step-text {
+			display: none;
+		}
+		.step-line {
+			margin: 0 6px;
+		}
 	}
 
 	/* Cards */
@@ -1328,16 +1435,18 @@ import Layout from '../layouts/Layout.astro';
 
 	// Step elements
 	const step1Content = document.getElementById('step-1-content');
-	const step2Content = document.getElementById('step-content-card'); // wait let's use the actual step 2 id
 	const step2Section = document.getElementById('step-2-content');
 	const step3Section = document.getElementById('step-3-content');
+	const step4Section = document.getElementById('step-4-content');
 
 	// Indicator elements
 	const step1Indicator = document.getElementById('step-1-indicator');
 	const step2Indicator = document.getElementById('step-2-indicator');
 	const step3Indicator = document.getElementById('step-3-indicator');
+	const step4Indicator = document.getElementById('step-4-indicator');
 	const line1Indicator = document.getElementById('line-1-indicator');
 	const line2Indicator = document.getElementById('line-2-indicator');
+	const line3Indicator = document.getElementById('line-3-indicator');
 
 	// Checkbox & Navigation Step 1
 	const verifyCheckbox = document.getElementById('verify-order-checkbox') as HTMLInputElement;
@@ -1353,20 +1462,43 @@ import Layout from '../layouts/Layout.astro';
 	const custInputDatetime = document.getElementById('cust-input-datetime') as HTMLInputElement;
 	const custInputDownpayment = document.getElementById('cust-input-downpayment') as HTMLInputElement;
 
+	// Warning element for contact
+	const contactWarningSubtext = document.getElementById('contact-warning-subtext');
+
 	// Calc preview elements
 	const custCalcTotal = document.getElementById('cust-calc-total');
 	const custCalcDownpayment = document.getElementById('cust-calc-downpayment');
 	const custCalcBalance = document.getElementById('cust-calc-balance');
 	const custCalcBalanceLabel = document.getElementById('cust-calc-balance-label');
 
-	// Step 3 summary elements
-	const custStep3Fulfillment = document.getElementById('cust-step3-fulfillment');
-	const custStep3Total = document.getElementById('cust-step3-total');
-	const custStep3Downpayment = document.getElementById('cust-step3-downpayment');
-	const custStep3Balance = document.getElementById('cust-step3-balance');
-	const custStep3BalanceLabel = document.getElementById('cust-step3-balance-label');
+	// Step 3 (Review) elements
+	const btnBacktoStep2 = document.getElementById('btn-backto-step-2');
+	const btnSubmitOrder = document.getElementById('btn-submit-order');
+	const reviewCustomerName = document.getElementById('review-customer-name');
+	const reviewCustomerContact = document.getElementById('review-customer-contact');
+	const reviewCustomerFb = document.getElementById('review-customer-fb');
+	const reviewFulfillmentType = document.getElementById('review-fulfillment-type');
+	const reviewDeliveryDatetime = document.getElementById('review-delivery-datetime');
+	const reviewDeliveryAddress = document.getElementById('review-delivery-address');
+	const reviewAddressContainer = document.getElementById('review-address-container');
+	const reviewDatetimeLabel = document.getElementById('review-datetime-label');
+	const reviewItemsList = document.getElementById('review-items-list');
+	const reviewSubtotal = document.getElementById('review-subtotal');
+	const reviewDeliveryFeeRow = document.getElementById('review-delivery-fee-row');
+	const reviewDeliveryFee = document.getElementById('review-delivery-fee');
+	const reviewTotalBill = document.getElementById('review-total-bill');
+	const reviewDownpayment = document.getElementById('review-downpayment');
+	const reviewBalance = document.getElementById('review-balance');
+	const reviewBalanceLabel = document.getElementById('review-balance-label');
 
-	// Step 3 copy details
+	// Step 4 summary elements
+	const custStep4Fulfillment = document.getElementById('cust-step4-fulfillment');
+	const custStep4Total = document.getElementById('cust-step4-total');
+	const custStep4Downpayment = document.getElementById('cust-step4-downpayment');
+	const custStep4Balance = document.getElementById('cust-step4-balance');
+	const custStep4BalanceLabel = document.getElementById('cust-step4-balance-label');
+
+	// Step 4 copy details
 	const custOrderIdDisplay = document.getElementById('cust-order-id-display');
 
 	function updateLiveCalculation() {
@@ -1390,78 +1522,78 @@ import Layout from '../layouts/Layout.astro';
 				custCalcBalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
 			}
 		}
+	}
 
-		// Apply settings passed via shareable link (encoded in 's' query param) or fallback to localStorage
-		function applySharedSettingsFromUrl() {
-			try {
-				const params = new URLSearchParams(window.location.search);
-				let s = params.get('s');
-				
-				let decoded: any = null;
-				if (s) {
-					// Decode UTF-8 Base64, replace spaces back to + in case browser URL decoded it
-					const decodedStr = decodeURIComponent(escape(atob(s.replace(/ /g, '+'))));
-					if (decodedStr.startsWith('{')) {
-						// Fallback for old JSON links
-						decoded = JSON.parse(decodedStr);
-					} else {
-						// New compact pipe-separated format
-						const [maribankName, maribankNum, gcashName, gcashNum, dpPct] = decodedStr.split('|');
-						decoded = { maribankName, maribankNum, gcashName, gcashNum, dpPct: dpPct ? parseFloat(dpPct) : 50 };
-					}
+	// Apply settings passed via shareable link (encoded in 's' query param) or fallback to localStorage
+	function applySharedSettingsFromUrl() {
+		try {
+			const params = new URLSearchParams(window.location.search);
+			let s = params.get('s');
+			
+			let decoded: any = null;
+			if (s) {
+				// Decode UTF-8 Base64, replace spaces back to + in case browser URL decoded it
+				const decodedStr = decodeURIComponent(escape(atob(s.replace(/ /g, '+'))));
+				if (decodedStr.startsWith('{')) {
+					// Fallback for old JSON links
+					decoded = JSON.parse(decodedStr);
 				} else {
-					// Fallback to localStorage if available (useful for local admin tests)
-					const localSettingsStr = localStorage.getItem('flavorflow_settings');
-					if (localSettingsStr) {
-						decoded = JSON.parse(localSettingsStr);
+					// New compact pipe-separated format
+					const [maribankName, maribankNum, gcashName, gcashNum, dpPct] = decodedStr.split('|');
+					decoded = { maribankName, maribankNum, gcashName, gcashNum, dpPct: dpPct ? parseFloat(dpPct) : 50 };
+				}
+			} else {
+				// Fallback to localStorage if available (useful for local admin tests)
+				const localSettingsStr = localStorage.getItem('flavorflow_settings');
+				if (localSettingsStr) {
+					decoded = JSON.parse(localSettingsStr);
+				}
+			}
+
+			if (!decoded) return;
+
+			if (decoded.maribankName) {
+				document.querySelectorAll('.maribank-name').forEach(el => el.textContent = decoded.maribankName);
+			}
+			if (decoded.maribankNum) {
+				document.querySelectorAll('.maribank-num').forEach(el => el.textContent = decoded.maribankNum);
+				// Find copy button in Maribank header(s)
+				document.querySelectorAll('.payment-box').forEach(box => {
+					const brand = box.querySelector('.payment-brand');
+					if (brand && brand.textContent?.includes('MARIBANK')) {
+						const copyBtn = box.querySelector('.btn-copy-mini');
+						if (copyBtn) copyBtn.setAttribute('data-copy', decoded.maribankNum);
 					}
-				}
+				});
+			}
+			if (decoded.gcashName) {
+				document.querySelectorAll('.gcash-name').forEach(el => el.textContent = decoded.gcashName);
+			}
+			if (decoded.gcashNum) {
+				document.querySelectorAll('.gcash-num').forEach(el => el.textContent = decoded.gcashNum);
+				// Find copy button in GCash header(s)
+				document.querySelectorAll('.payment-box').forEach(box => {
+					const brand = box.querySelector('.payment-brand');
+					if (brand && brand.textContent?.includes('GCASH')) {
+						const copyBtn = box.querySelector('.btn-copy-mini');
+						if (copyBtn) copyBtn.setAttribute('data-copy', decoded.gcashNum);
+					}
+				});
+			}
 
-				if (!decoded) return;
-
-				if (decoded.maribankName) {
-					document.querySelectorAll('.maribank-name').forEach(el => el.textContent = decoded.maribankName);
-				}
-				if (decoded.maribankNum) {
-					document.querySelectorAll('.maribank-num').forEach(el => el.textContent = decoded.maribankNum);
-					// Find copy button in Maribank header(s)
-					document.querySelectorAll('.payment-box').forEach(box => {
-						const brand = box.querySelector('.payment-brand');
-						if (brand && brand.textContent?.includes('MARIBANK')) {
-							const copyBtn = box.querySelector('.btn-copy-mini');
-							if (copyBtn) copyBtn.setAttribute('data-copy', decoded.maribankNum);
-						}
-					});
-				}
-				if (decoded.gcashName) {
-					document.querySelectorAll('.gcash-name').forEach(el => el.textContent = decoded.gcashName);
-				}
-				if (decoded.gcashNum) {
-					document.querySelectorAll('.gcash-num').forEach(el => el.textContent = decoded.gcashNum);
-					// Find copy button in GCash header(s)
-					document.querySelectorAll('.payment-box').forEach(box => {
-						const brand = box.querySelector('.payment-brand');
-						if (brand && brand.textContent?.includes('GCASH')) {
-							const copyBtn = box.querySelector('.btn-copy-mini');
-							if (copyBtn) copyBtn.setAttribute('data-copy', decoded.gcashNum);
-						}
-					});
-				}
-
-				// Update downpayment percentages in text label/notes
-				const pct = decoded.dpPct !== undefined ? decoded.dpPct : 50;
-				const labelEl = document.getElementById('required-downpayment-label');
-				if (labelEl) labelEl.textContent = `Required Downpayment (${pct}%)`;
-				const noteEl = document.getElementById('required-downpayment-note');
-				if (noteEl) {
-					noteEl.innerHTML = `<strong>Note:</strong> To confirm your order, we request a ${pct}% downpayment of the total bill. The rest will be paid upon pickup/delivery of orders.`;
-				}
-				const subtextEl = document.getElementById('required-downpayment-subtext');
-				if (subtextEl) {
-					subtextEl.textContent = `Pre-filled with the requested ${pct}% downpayment. Feel free to adjust if paying more or less.`;
-				}
-			} catch (e) { /* ignore */ }
-		}
+			// Update downpayment percentages in text label/notes
+			const pct = decoded.dpPct !== undefined ? decoded.dpPct : 50;
+			const labelEl = document.getElementById('required-downpayment-label');
+			if (labelEl) labelEl.textContent = `Required Downpayment (${pct}%)`;
+			const noteEl = document.getElementById('required-downpayment-note');
+			if (noteEl) {
+				noteEl.innerHTML = `<strong>Note:</strong> To confirm your order, we request a ${pct}% downpayment of the total bill. The rest will be paid upon pickup/delivery of orders.`;
+			}
+			const subtextEl = document.getElementById('required-downpayment-subtext');
+			if (subtextEl) {
+				subtextEl.textContent = `Pre-filled with the requested ${pct}% downpayment. Feel free to adjust if paying more or less.`;
+			}
+		} catch (e) { /* ignore */ }
 	}
 
 	function generateReceiptHtml(order: Order): string {
@@ -1844,6 +1976,58 @@ import Layout from '../layouts/Layout.astro';
 			updateLiveCalculation();
 		});
 
+		// Add input restrictions on custInputContact
+		custInputContact?.addEventListener('keydown', (e) => {
+			// Allow control keys (Backspace, Delete, Tab, Escape, Enter, Arrow keys) and Select All (Ctrl+A / Cmd+A) etc.
+			const isControlKey = e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+				e.key === 'Escape' || e.key === 'Enter' || e.key.startsWith('Arrow') ||
+				((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'c' || e.key === 'v' || e.key === 'x'));
+
+			if (isControlKey) return;
+
+			// If it's a character and not a digit 0-9, prevent it
+			if (e.key.length === 1 && !/^[0-9]$/.test(e.key)) {
+				e.preventDefault();
+				showContactWarning();
+			}
+		});
+
+		custInputContact?.addEventListener('input', () => {
+			const rawVal = custInputContact.value;
+			const cleanVal = rawVal.replace(/[^0-9]/g, '');
+			if (rawVal !== cleanVal) {
+				custInputContact.value = cleanVal;
+				showContactWarning();
+			}
+		});
+
+		custInputContact?.addEventListener('paste', (e) => {
+			const pastedData = e.clipboardData?.getData('text') || '';
+			if (/[^0-9]/.test(pastedData)) {
+				e.preventDefault();
+				const cleanPasted = pastedData.replace(/[^0-9]/g, '');
+				
+				const start = custInputContact.selectionStart || 0;
+				const end = custInputContact.selectionEnd || 0;
+				const val = custInputContact.value;
+				custInputContact.value = val.substring(0, start) + cleanPasted + val.substring(end);
+				custInputContact.setSelectionRange(start + cleanPasted.length, start + cleanPasted.length);
+				
+				showContactWarning();
+			}
+		});
+
+		let warningTimeout: any = null;
+		function showContactWarning() {
+			if (contactWarningSubtext) {
+				contactWarningSubtext.style.display = 'block';
+				if (warningTimeout) clearTimeout(warningTimeout);
+				warningTimeout = setTimeout(() => {
+					contactWarningSubtext.style.display = 'none';
+				}, 2000);
+			}
+		}
+
 		// Checkbox controller
 		verifyCheckbox?.addEventListener('change', () => {
 			if (btnGotoStep2) {
@@ -1861,12 +2045,11 @@ import Layout from '../layouts/Layout.astro';
 			goToStep(1);
 		});
 
-		// Form Step 2 Submission
-		customerInfoForm?.addEventListener('submit', async (e) => {
+		// Form Step 2 Submission (Goes to Step 3 Review instead of saving directly to DB)
+		customerInfoForm?.addEventListener('submit', (e) => {
 			e.preventDefault();
 			if (!validateStep2Form()) return;
 
-			// Save to currentOrder
 			if (currentOrder) {
 				currentOrder.customer = custInputName.value.trim();
 				currentOrder.contact = custInputContact.value.trim();
@@ -1876,72 +2059,142 @@ import Layout from '../layouts/Layout.astro';
 				const rawDate = custInputDatetime.value;
 				currentOrder.deliveryDateTime = rawDate.replace('T', ' ');
 
-				// Get custom downpayment and recalculate balance
 				const downpaymentVal = custInputDownpayment.value.trim();
 				const customDownpayment = downpaymentVal ? Math.max(0, parseFloat(downpaymentVal)) : 0;
 				currentOrder.downpayment = customDownpayment;
 				currentOrder.balance = Math.max(0, currentOrder.total - customDownpayment);
 
+				// Update Review Details Content
+				if (reviewCustomerName) reviewCustomerName.textContent = currentOrder.customer;
+				if (reviewCustomerContact) reviewCustomerContact.textContent = currentOrder.contact;
+				if (reviewCustomerFb) reviewCustomerFb.textContent = currentOrder.facebookName || 'N/A';
+				
+				const isPickup = currentOrder.fulfillmentType === 'Pickup';
+				if (reviewFulfillmentType) reviewFulfillmentType.textContent = currentOrder.fulfillmentType || 'Delivery';
+				
+				if (reviewDatetimeLabel) reviewDatetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : 'Delivery Date & Time';
+				if (reviewDeliveryDatetime) {
+					reviewDeliveryDatetime.textContent = currentOrder.deliveryDateTime ? new Date(currentOrder.deliveryDateTime.replace(' ', 'T')).toLocaleString('en-US', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+						hour: 'numeric',
+						minute: '2-digit',
+						hour12: true
+					}) : 'Not set';
+				}
+				
+				if (reviewAddressContainer) reviewAddressContainer.style.display = isPickup ? 'none' : 'flex';
+				if (reviewDeliveryAddress) reviewDeliveryAddress.textContent = currentOrder.address || '-';
+
+				// Items review table list
+				if (reviewItemsList) {
+					reviewItemsList.innerHTML = currentOrder.items.map(it => `
+						<div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0;">
+							<span style="color: var(--text-primary); font-weight: 500;">${it.quantity}x ${it.name}</span>
+							<span style="color: var(--text-secondary);">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+						</div>
+					`).join('');
+				}
+
+				const deliveryFee = currentOrder.deliveryFee || 0;
+				const subtotal = currentOrder.total - deliveryFee;
+
+				if (reviewSubtotal) reviewSubtotal.textContent = `₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewDeliveryFeeRow) reviewDeliveryFeeRow.style.display = isPickup ? 'none' : 'flex';
+				if (reviewDeliveryFee) reviewDeliveryFee.textContent = `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewTotalBill) reviewTotalBill.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewDownpayment) reviewDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewBalance) reviewBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				
+				if (reviewBalanceLabel) {
+					if (isPickup) {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
+					} else if (currentOrder.fulfillmentType === 'Meetup') {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
+					} else {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
+					}
+				}
+
+				goToStep(3);
+			}
+		});
+
+		// Navigation Step 3 -> 2
+		btnBacktoStep2?.addEventListener('click', () => {
+			goToStep(2);
+		});
+
+		// Navigation Step 3 Submission (Saves to DB and goes to Step 4 Payment)
+		btnSubmitOrder?.addEventListener('click', async () => {
+			if (!currentOrder) return;
+
+			// Add visual loading state
+			const oldBtnHtml = btnSubmitOrder.innerHTML;
+			btnSubmitOrder.setAttribute('disabled', 'disabled');
+			btnSubmitOrder.innerHTML = `
+				<svg class="animate-spin" style="animation: spin 1s linear infinite; margin-right: 8px; display: inline-block; vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle><path class="opacity-75" fill="currentColor" style="opacity: 0.75;" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+				<span>Submitting...</span>
+			`;
+
+			try {
 				// Update Step 1 totals summary in case they go back
 				const custDownpayment = document.getElementById('cust-downpayment');
 				const custBalance = document.getElementById('cust-balance');
 				if (custDownpayment) custDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 				if (custBalance) custBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-				// Update Step 3 summary values
-				if (custStep3Fulfillment) custStep3Fulfillment.textContent = currentOrder.fulfillmentType || 'Delivery';
-				if (custStep3Total) custStep3Total.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-				if (custStep3Downpayment) custStep3Downpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-				if (custStep3Balance) custStep3Balance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-				if (custStep3BalanceLabel) {
+				// Update Step 4 summary values
+				if (custStep4Fulfillment) custStep4Fulfillment.textContent = currentOrder.fulfillmentType || 'Delivery';
+				if (custStep4Total) custStep4Total.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4Downpayment) custStep4Downpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4Balance) custStep4Balance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4BalanceLabel) {
 					const type = currentOrder.fulfillmentType || 'Delivery';
 					if (type === 'Pickup') {
-						custStep3BalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
 					} else if (type === 'Meetup') {
-						custStep3BalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
 					} else {
-						custStep3BalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
 					}
 				}
 
-				// Render Step 3 Receipt Card
-				const receiptContainerStep3 = document.getElementById('receipt-container-step3');
-				if (receiptContainerStep3) {
-					receiptContainerStep3.innerHTML = generateReceiptHtml(currentOrder);
+				// Render Step 4 Receipt Card
+				const receiptContainerStep4 = document.getElementById('receipt-container-step4');
+				if (receiptContainerStep4) {
+					receiptContainerStep4.innerHTML = generateReceiptHtml(currentOrder);
 				}
 
 				// Save verified flag to localStorage
 				localStorage.setItem('verified_order_' + currentOrder.id, 'true');
 
 				// Save updated order via serverless function to bypass RLS
-				try {
-					const resp = await fetch('/api/update-order', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							id: currentOrder.id,
-							isCustomerVerification: true,
-							orderUpdates: {
-								customer: currentOrder.customer,
-								contact: currentOrder.contact,
-								facebook_name: currentOrder.facebookName || null,
-								address: currentOrder.address,
-								delivery_date_time: currentOrder.deliveryDateTime,
-								downpayment: currentOrder.downpayment,
-								balance: currentOrder.balance
-							}
-						})
-					});
+				const resp = await fetch('/api/update-order', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: currentOrder.id,
+						isCustomerVerification: true,
+						orderUpdates: {
+							customer: currentOrder.customer,
+							contact: currentOrder.contact,
+							facebook_name: currentOrder.facebookName || null,
+							address: currentOrder.address,
+							delivery_date_time: currentOrder.deliveryDateTime,
+							downpayment: currentOrder.downpayment,
+							balance: currentOrder.balance
+						}
+					})
+				});
 
-					const result = await resp.json().catch(() => ({}));
-					if (!resp.ok) {
-						console.error('Failed to save customer details (server):', result);
-						alert('Failed to save your details. Please try again.');
-						return;
-					}
-				} catch (e) {
-					console.error('Failed to save customer details:', e);
+				const result = await resp.json().catch(() => ({}));
+				if (!resp.ok) {
+					console.error('Failed to save customer details (server):', result);
 					alert('Failed to save your details. Please try again.');
+					btnSubmitOrder.removeAttribute('disabled');
+					btnSubmitOrder.innerHTML = oldBtnHtml;
 					return;
 				}
 
@@ -1949,13 +2202,18 @@ import Layout from '../layouts/Layout.astro';
 					custOrderIdDisplay.textContent = currentOrder.id;
 				}
 
-				goToStep(3);
+				goToStep(4);
+			} catch (e) {
+				console.error('Failed to save customer details:', e);
+				alert('Failed to save your details. Please try again.');
+				btnSubmitOrder.removeAttribute('disabled');
+				btnSubmitOrder.innerHTML = oldBtnHtml;
 			}
 		});
 
-		// Bind Step 3 download button
-		const btnDownloadStep3 = document.getElementById('btn-download-receipt-step3');
-		btnDownloadStep3?.addEventListener('click', () => {
+		// Bind Step 4 download button
+		const btnDownloadStep4 = document.getElementById('btn-download-receipt-step4');
+		btnDownloadStep4?.addEventListener('click', () => {
 			if (currentOrder) {
 				downloadReceiptImage(currentOrder.id);
 			}
@@ -1989,6 +2247,7 @@ import Layout from '../layouts/Layout.astro';
 		if (step1Content) step1Content.style.display = step === 1 ? 'flex' : 'none';
 		if (step2Section) step2Section.style.display = step === 2 ? 'flex' : 'none';
 		if (step3Section) step3Section.style.display = step === 3 ? 'flex' : 'none';
+		if (step4Section) step4Section.style.display = step === 4 ? 'flex' : 'none';
 
 		// Toggle indicators
 		if (step === 1) {
@@ -1996,24 +2255,42 @@ import Layout from '../layouts/Layout.astro';
 			step1Indicator?.classList.remove('completed');
 			step2Indicator?.classList.remove('active', 'completed');
 			step3Indicator?.classList.remove('active', 'completed');
+			step4Indicator?.classList.remove('active', 'completed');
 			line1Indicator?.classList.remove('completed');
 			line2Indicator?.classList.remove('completed');
+			line3Indicator?.classList.remove('completed');
 		} else if (step === 2) {
 			step1Indicator?.classList.remove('active');
 			step1Indicator?.classList.add('completed');
 			step2Indicator?.classList.add('active');
 			step2Indicator?.classList.remove('completed');
 			step3Indicator?.classList.remove('active', 'completed');
+			step4Indicator?.classList.remove('active', 'completed');
 			line1Indicator?.classList.add('completed');
 			line2Indicator?.classList.remove('completed');
+			line3Indicator?.classList.remove('completed');
 		} else if (step === 3) {
 			step1Indicator?.classList.remove('active');
 			step1Indicator?.classList.add('completed');
 			step2Indicator?.classList.remove('active');
 			step2Indicator?.classList.add('completed');
 			step3Indicator?.classList.add('active');
+			step3Indicator?.classList.remove('completed');
+			step4Indicator?.classList.remove('active', 'completed');
 			line1Indicator?.classList.add('completed');
 			line2Indicator?.classList.add('completed');
+			line3Indicator?.classList.remove('completed');
+		} else if (step === 4) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.remove('active');
+			step2Indicator?.classList.add('completed');
+			step3Indicator?.classList.remove('active');
+			step3Indicator?.classList.add('completed');
+			step4Indicator?.classList.add('active');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.add('completed');
+			line3Indicator?.classList.add('completed');
 		}
 	}
 
