@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { sendTelegramMessage } from '../../lib/telegram';
 
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return '';
@@ -23,6 +24,22 @@ function formatDateTime12h(dateTimeStr: string | null | undefined): string {
   });
 }
 
+function getDiffText(oldVal: any, newVal: any, label: string, formatter?: (val: any) => string): string | null {
+  const oldStr = oldVal === null || oldVal === undefined ? '' : String(oldVal).trim();
+  const newStr = newVal === null || newVal === undefined ? '' : String(newVal).trim();
+  
+  if (oldStr === newStr) return null;
+  
+  const oldFormatted = formatter ? formatter(oldVal) : oldStr;
+  const newFormatted = formatter ? formatter(newVal) : newStr;
+  return `• <b>${label}:</b> ${oldFormatted || 'N/A'} ➡️ ${newFormatted || 'N/A'}`;
+}
+
+const formatCurrency = (val: any) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? '₱0.00' : `₱${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 export const POST: APIRoute = async ({ request }) => {
   const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -39,6 +56,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!id) return new Response(JSON.stringify({ error: 'Missing order ID' }), { status: 400 });
 
+    // 1. Fetch old order details first
+    const { data: oldOrder, error: oldFetchErr } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('id', id)
+      .single();
+    
+    if (oldFetchErr || !oldOrder) {
+      console.error('Failed to fetch old order details', oldFetchErr);
+      return new Response(JSON.stringify({ error: 'Order not found' }), { status: 404 });
+    }
+
+    // 2. Perform updates
     if (orderUpdates) {
       const { error: orderErr } = await supabase.from('orders').update(orderUpdates).eq('id', id);
       if (orderErr) {
@@ -47,8 +77,34 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
+    if (Array.isArray(items)) {
+      const { error: deleteErr } = await supabase.from('order_items').delete().eq('order_id', id);
+      if (deleteErr) {
+        console.error('Order items delete error', deleteErr);
+        return new Response(JSON.stringify({ error: deleteErr.message || deleteErr }), { status: 500 });
+      }
+
+      if (items.length > 0) {
+        const { error: itemsErr } = await supabase.from('order_items').insert(
+          items.map((it: any) => ({
+            order_id: id,
+            name: it.name,
+            quantity: it.quantity,
+            price: it.price,
+            total: it.total,
+            custom_inclusions: it.customInclusions ?? it.custom_inclusions ?? []
+          }))
+        );
+        if (itemsErr) {
+          console.error('Order items insert error', itemsErr);
+          return new Response(JSON.stringify({ error: itemsErr.message || itemsErr }), { status: 500 });
+        }
+      }
+    }
+
+    // 3. Trigger notification
     if (isCustomerVerification) {
-      // Fetch full order + items from Supabase
+      // Flow 3a: Customer verification confirmation slip
       const { data: orderData, error: fetchErr } = await supabase
         .from('orders')
         .select('*, order_items(*)')
@@ -102,59 +158,134 @@ export const POST: APIRoute = async ({ request }) => {
               `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
               `⚖️ BALANCE: <b>₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}</b>`;
 
-            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            const chatIds = TELEGRAM_CHAT_ID.split(',').map(id => id.trim()).filter(id => id !== '');
-
-            for (const chatId of chatIds) {
-              await fetch(telegramUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  chat_id: chatId,
-                  text: message,
-                  parse_mode: 'HTML'
-                })
-              }).then(async (teleResp) => {
-                if (!teleResp.ok) {
-                  const errBody = await teleResp.text();
-                  console.error(`Telegram bot API error for chat ID ${chatId}:`, errBody);
-                } else {
-                  console.log(`Telegram notification sent successfully to chat ID ${chatId} for order ${id}.`);
-                }
-              });
-            }
+            await sendTelegramMessage(message);
           } catch (teleErr) {
-            console.error('Failed to send Telegram notification:', teleErr);
+            console.error('Failed to send Telegram confirmation slip:', teleErr);
           }
-        } else {
-          console.log('Telegram Bot Token or Chat ID not configured. Notification skipped.');
         }
-      } else {
-        console.error(`Failed to fetch order details for Telegram notification:`, fetchErr?.message);
       }
-    }
+    } else {
+      // Flow 3b: Admin manual update comparison and notification
+      const { data: newOrder, error: newFetchErr } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('id', id)
+        .single();
 
-    if (Array.isArray(items)) {
-      const { error: deleteErr } = await supabase.from('order_items').delete().eq('order_id', id);
-      if (deleteErr) {
-        console.error('Order items delete error', deleteErr);
-        return new Response(JSON.stringify({ error: deleteErr.message || deleteErr }), { status: 500 });
-      }
+      if (!newFetchErr && newOrder) {
+        const changes: string[] = [];
 
-      if (items.length > 0) {
-        const { error: itemsErr } = await supabase.from('order_items').insert(
-          items.map((it: any) => ({
-            order_id: id,
-            name: it.name,
-            quantity: it.quantity,
-            price: it.price,
-            total: it.total,
-            custom_inclusions: it.customInclusions ?? it.custom_inclusions ?? []
-          }))
-        );
-        if (itemsErr) {
-          console.error('Order items insert error', itemsErr);
-          return new Response(JSON.stringify({ error: itemsErr.message || itemsErr }), { status: 500 });
+        const diffStatus = getDiffText(oldOrder.status, newOrder.status, 'Status');
+        if (diffStatus) changes.push(diffStatus);
+
+        const diffCustomer = getDiffText(oldOrder.customer, newOrder.customer, 'Customer Name');
+        if (diffCustomer) changes.push(diffCustomer);
+
+        const diffFacebook = getDiffText(oldOrder.facebook_name, newOrder.facebook_name, 'Facebook Name');
+        if (diffFacebook) changes.push(diffFacebook);
+
+        const diffContact = getDiffText(oldOrder.contact, newOrder.contact, 'Contact Number');
+        if (diffContact) changes.push(diffContact);
+
+        const diffAddress = getDiffText(oldOrder.address, newOrder.address, 'Address');
+        if (diffAddress) changes.push(diffAddress);
+
+        const diffFulfillment = getDiffText(oldOrder.fulfillment_type, newOrder.fulfillment_type, 'Fulfillment Type');
+        if (diffFulfillment) changes.push(diffFulfillment);
+
+        const diffDeliveryDateTime = getDiffText(oldOrder.delivery_date_time, newOrder.delivery_date_time, 'Delivery Date/Time', formatDateTime12h);
+        if (diffDeliveryDateTime) changes.push(diffDeliveryDateTime);
+
+        const diffTotal = getDiffText(oldOrder.total, newOrder.total, 'Total Amount', formatCurrency);
+        if (diffTotal) changes.push(diffTotal);
+
+        const diffDownpayment = getDiffText(oldOrder.downpayment, newOrder.downpayment, 'Downpayment', formatCurrency);
+        if (diffDownpayment) changes.push(diffDownpayment);
+
+        const diffBalance = getDiffText(oldOrder.balance, newOrder.balance, 'Balance', formatCurrency);
+        if (diffBalance) changes.push(diffBalance);
+
+        const diffDeliveryFee = getDiffText(oldOrder.delivery_fee, newOrder.delivery_fee, 'Delivery Fee', formatCurrency);
+        if (diffDeliveryFee) changes.push(diffDeliveryFee);
+
+        const diffNote = getDiffText(oldOrder.note, newOrder.note, 'Owner Note');
+        if (diffNote) changes.push(diffNote);
+
+        let itemsChanged = false;
+        if (Array.isArray(items)) {
+          const oldItems = oldOrder.order_items || [];
+          const newItems = newOrder.order_items || [];
+          if (oldItems.length !== newItems.length) {
+            itemsChanged = true;
+          } else {
+            for (const oIt of oldItems) {
+              const nIt = newItems.find((n: any) => n.name === oIt.name);
+              if (!nIt || nIt.quantity !== oIt.quantity || parseFloat(nIt.price) !== parseFloat(oIt.price)) {
+                itemsChanged = true;
+                break;
+              }
+              const oInc = oIt.custom_inclusions ?? [];
+              const nInc = nIt.custom_inclusions ?? nIt.customInclusions ?? [];
+              if (JSON.stringify(oInc) !== JSON.stringify(nInc)) {
+                itemsChanged = true;
+                break;
+              }
+            }
+          }
+        }
+        if (itemsChanged) {
+          changes.push(`• <b>Order Items:</b> Updated (see below)`);
+        }
+
+        if (changes.length > 0) {
+          const idNumber = newOrder.id.replace('ORD-', '');
+          const isCancelled = newOrder.status === 'Cancelled';
+          const title = isCancelled ? `❌ <b>ORDER CANCELLED</b>` : `🔄 <b>ORDER UPDATED</b>`;
+
+          const itemsText = (newOrder.order_items || []).map((it: any) => {
+            let text = `<b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
+            const inclusions = it.custom_inclusions ?? it.customInclusions ?? [];
+            if (Array.isArray(inclusions) && inclusions.length > 0) {
+              text += `\n  (Custom Inclusions:\n` + inclusions.map((inc: any) => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
+            }
+            return text;
+          }).join('\n');
+
+          const formattedDateTime = formatDateTime12h(newOrder.delivery_date_time);
+          const deliveryFee = parseFloat(newOrder.delivery_fee ?? 0);
+          const total = parseFloat(newOrder.total ?? 0);
+          const downpayment = parseFloat(newOrder.downpayment ?? 0);
+          const balance = parseFloat(newOrder.balance ?? 0);
+          const subtotal = total - deliveryFee;
+
+          const formattedSubtotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedDeliveryFee = deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedTotal = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedDownpayment = downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedBalance = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+          const fbName = newOrder.facebook_name;
+          const fbSuffix = fbName ? ` (FB: <b>${escapeHtml(fbName)}</b>)` : '';
+
+          const message = `${title}\n\n` +
+            `🎟️ Order ID: <b>${idNumber}</b>\n\n` +
+            `🛠️ <b>Changes:</b>\n` +
+            `${changes.join('\n')}\n\n` +
+            `📋 <b>C U R R E N T   S U M M A R Y</b>\n\n` +
+            `👤 Name: <b>${escapeHtml(newOrder.customer || '')}</b>${fbSuffix}\n` +
+            `📦 Fulfillment: <b>${escapeHtml(newOrder.fulfillment_type || 'Delivery')}</b>\n` +
+            `📍 Exact Address: ${escapeHtml(newOrder.address || '')}\n` +
+            `📞 Contact Number of the Receiver/s: ${escapeHtml(newOrder.contact || '')}\n` +
+            `⏰ Time & Date: <b>${escapeHtml(formattedDateTime)}</b>\n` +
+            `🛒 List of Order/s:\n` +
+            `${itemsText || 'No items'}\n\n` +
+            `💰 Subtotal: <b>₱${formattedSubtotal}</b>\n` +
+            `🛵 Delivery/Meetup Fee: <b>₱${formattedDeliveryFee}</b>\n` +
+            `💵 TOTAL: <b>₱${formattedTotal}</b>\n` +
+            `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
+            `⚖️ BALANCE: <b>₱${formattedBalance}${newOrder.status === 'Completed' ? ' (Settled)' : ''}</b>`;
+
+          await sendTelegramMessage(message);
         }
       }
     }

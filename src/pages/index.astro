@@ -3719,15 +3719,29 @@ function showConfirm(message) {
 	}
 
 	async function updateOrderStatus(id: string, newStatus: 'Pending' | 'Preparing' | 'Completed' | 'Cancelled') {
-		const { error } = await supabase
-			.from('orders')
-			.update({ status: newStatus })
-			.eq('id', id);
-		if (error) { console.error('Failed to update status:', error.message); showToast('Failed to update order status.'); return; }
-		const orderIdx = orders.findIndex(o => o.id === id);
-		if (orderIdx > -1) orders[orderIdx].status = newStatus;
-		updateDashboard();
-		showToast(`Order status updated to ${newStatus}!`);
+		try {
+			const resp = await fetch('/api/update-order', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id,
+					orderUpdates: { status: newStatus }
+				})
+			});
+			if (!resp.ok) {
+				const body = await resp.json().catch(() => ({}));
+				console.error('Failed to update status (server):', body);
+				showToast('Failed to update order status.');
+				return;
+			}
+			const orderIdx = orders.findIndex(o => o.id === id);
+			if (orderIdx > -1) orders[orderIdx].status = newStatus;
+			updateDashboard();
+			showToast(`Order status updated to ${newStatus}!`);
+		} catch (e) {
+			console.error('Failed to update status:', e);
+			showToast('Failed to update order status.');
+		}
 	}
 
 	async function deleteOrder(id: string) {
