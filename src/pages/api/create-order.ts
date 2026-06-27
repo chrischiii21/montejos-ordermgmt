@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { getInclusionsForTelegram } from '../../lib/telegram';
 
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return '';
@@ -86,9 +87,9 @@ export const POST: APIRoute = async ({ request }) => {
         try {
           const itemsText = (items || []).map((it: any) => {
             let text = `<b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
-            const inclusions = it.customInclusions ?? it.custom_inclusions ?? [];
-            if (Array.isArray(inclusions) && inclusions.length > 0) {
-              text += `\n  (Custom Inclusions:\n` + inclusions.map((inc: any) => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
+            const inclusions = getInclusionsForTelegram(it.name, it.customInclusions ?? it.custom_inclusions);
+            if (inclusions.length > 0) {
+              text += `\n  (Inclusions:\n` + inclusions.map((inc: any) => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
             }
             return text;
           }).join('\n');

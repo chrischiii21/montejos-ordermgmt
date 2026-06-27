@@ -23,6 +23,109 @@ function formatDateTime12h(dateTimeStr) {
   });
 }
 
+function getInclusionsForTelegram(itemName, customInclusions) {
+  if (customInclusions && customInclusions.length > 0) {
+    return customInclusions;
+  }
+  const PACKAGE_INCLUSIONS = {
+	"Set A Lechon Package": [
+		"1 whole Lechon Baboy",
+		"1 tray Buttered Shrimps",
+		"100 pieces Lumpia Shanghai",
+		"1 tray Chicken Cordon Bleu",
+		"1 tray Special Bam-e",
+		"1 tray Diniguan",
+		"1 tray Spicy Buffalo Chicken"
+	],
+	"Set B Lechon Package": [
+		"1 whole Lechon Baboy",
+		"1 tray Buttered Shrimps",
+		"150 pieces Lumpia Shanghai",
+		"1 tray Chicken Cordon Bleu",
+		"1 tray Special Bam-e",
+		"1 tray Diniguan",
+		"1 tray Spicy Buffalo Chicken",
+		"1 tray Calamares"
+	],
+	"Set C Lechon Package": [
+		"1 whole Lechon Baboy",
+		"1 tray Buttered Shrimps",
+		"200 pieces Lumpia Shanghai",
+		"1 tray Chicken Cordon Bleu",
+		"1 tray Special Bam-e",
+		"1 tray Diniguan",
+		"1 tray Spicy Buffalo Chicken",
+		"1 tray Calamares",
+		"1 tray Chicken Guisado"
+	],
+	"P1 Package (Bilao)": [
+		"1 whole Lechon Manok",
+		"30 pieces Pork Lumpia",
+		"10 pieces Battered Chicken",
+		"1/2 kilo Buttered Shrimps",
+		"25 pieces Calamares",
+		"Half tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	],
+	"P2 Package (Bilao)": [
+		"3 kilos Lechon Belly",
+		"30 pieces Pork Lumpia",
+		"10 pieces Battered Chicken",
+		"1/2 kilo Buttered Shrimps",
+		"25 pieces Calamares",
+		"Half tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	],
+	"P3 Package (Bilao)": [
+		"4 kilos Lechon Belly",
+		"40 pieces Pork Lumpia",
+		"15 pieces Battered Chicken",
+		"10 pieces Buffalo / Teriyaki Chicken",
+		"3/4 kilo Buttered Shrimps",
+		"40 pieces Calamares",
+		"1 tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	],
+	"P4 Package (Bilao)": [
+		"5 kilos Lechon Belly",
+		"50 pieces Pork Lumpia",
+		"20 pieces Battered Chicken",
+		"15 pieces Buffalo / Teriyaki Chicken",
+		"3/4 kilo Buttered Shrimps",
+		"50 pieces Calamares",
+		"1 tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	],
+	"P5 Package (Bilao)": [
+		"6 kilos Lechon Belly",
+		"70 pieces Pork Lumpia",
+		"25 pieces Battered Chicken",
+		"20 pieces Buffalo / Teriyaki Chicken",
+		"1 kilo Buttered Shrimps",
+		"60 pieces Calamares",
+		"1 tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	],
+	"P6 Package (Bilao)": [
+		"7 kilos Lechon Belly",
+		"80 pieces Pork Lumpia",
+		"30 pieces Battered Chicken",
+		"25 pieces Buffalo / Teriyaki Chicken",
+		"1 kilo Buttered Shrimps",
+		"70 pieces Calamares",
+		"1 tray Special Bam-i",
+		"1 tray Chosen Dessert"
+	]
+  };
+  for (const key in PACKAGE_INCLUSIONS) {
+    if (itemName.toLowerCase().includes(key.toLowerCase()) || 
+        (key.startsWith('P') && itemName.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
+      return PACKAGE_INCLUSIONS[key];
+    }
+  }
+  return [];
+}
+
 async function sendTelegramMessage(message) {
   const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -122,9 +225,9 @@ export const handler = async (event) => {
 
       const itemsText = (orderData.order_items || []).map(it => {
         let text = `<b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
-        const inclusions = it.custom_inclusions ?? it.customInclusions ?? [];
-        if (Array.isArray(inclusions) && inclusions.length > 0) {
-          text += `\n  (Custom Inclusions:\n` + inclusions.map(inc => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
+        const inclusions = getInclusionsForTelegram(it.name, it.custom_inclusions ?? it.customInclusions);
+        if (inclusions.length > 0) {
+          text += `\n  (Inclusions:\n` + inclusions.map(inc => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
         }
         return text;
       }).join('\n');
