@@ -138,16 +138,35 @@ import OrderTable from '../components/OrderTable.astro';
 					<button class="filter-tab" data-status="Completed">Completed <span class="tab-count" id="hcount-completed">0</span></button>
 					<button class="filter-tab" data-status="Cancelled">Cancelled <span class="tab-count" id="hcount-cancelled">0</span></button>
 				</div>
-				<div class="glass-panel history-table-wrap">
-					<table class="history-table">
-						<thead><tr>
-							<th>Order #</th><th>Customer</th><th>Total</th><th>Downpayment</th><th>Balance</th><th>Delivery Date</th><th>Status</th><th></th>
-						</tr></thead>
-						<tbody id="history-body"></tbody>
-					</table>
+				<div class="glass-panel">
+					<div class="history-table-wrap">
+						<table class="history-table">
+							<thead><tr>
+								<th>Order #</th><th>Customer</th><th>Total</th><th>Downpayment</th><th>Balance</th><th>Delivery Date</th><th>Status</th><th></th>
+							</tr></thead>
+							<tbody id="history-body"></tbody>
+						</table>
+					</div>
 					<div class="table-empty-state" id="history-empty" style="display:none">
 						<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 17h6"/><path d="M9 12h6"/><path d="M9 7h4"/></svg>
 						<p>No orders match your filters.</p>
+					</div>
+					<!-- Pagination Controls -->
+					<div class="history-pagination" id="history-pagination" style="display: none;">
+						<div class="pagination-info" id="pagination-info">
+							Showing 1-15 of 0 orders
+						</div>
+						<div class="pagination-controls">
+							<button class="pagination-btn" id="pagination-prev" title="Previous Page">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+							</button>
+							<div class="pagination-pages" id="pagination-pages">
+								<!-- Dynamically populated page buttons -->
+							</div>
+							<button class="pagination-btn" id="pagination-next" title="Next Page">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1878,6 +1897,86 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 	.cal-order-total { font-size: 0.88rem; font-weight: 800; color: var(--accent-primary); }
 	.cal-order-time { font-size: 0.7rem; color: var(--text-muted); }
+
+	/* === Order History Pagination === */
+	.history-pagination {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 16px 36px;
+		border-top: 1px solid var(--border-color);
+		font-family: var(--font-family);
+		font-size: 0.85rem;
+		background: var(--bg-card);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border-radius: 0 0 16px 16px;
+		position: sticky;
+		bottom: 0;
+		z-index: 10;
+		box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+	}
+	.pagination-info {
+		color: var(--text-muted);
+		font-size: 0.8rem;
+		font-weight: 500;
+	}
+	.pagination-controls {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.pagination-pages {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.pagination-btn {
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid var(--border-color);
+		color: var(--text-primary);
+		width: 32px;
+		height: 32px;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+		padding: 0;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+	.pagination-btn:hover {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: var(--border-color-hover);
+		color: var(--text-primary);
+	}
+	.pagination-btn.active {
+		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+		border-color: transparent;
+		color: #ffffff;
+		font-weight: 700;
+		box-shadow: 0 0 12px rgba(217, 43, 58, 0.2);
+	}
+	.pagination-btn.disabled,
+	.pagination-btn:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+	.pagination-ellipsis {
+		user-select: none;
+	}
+	@media (max-width: 640px) {
+		.history-pagination {
+			flex-direction: column;
+			gap: 12px;
+			padding: 16px 20px;
+			align-items: center;
+			text-align: center;
+		}
+	}
 </style>
 
 <script>
@@ -2528,6 +2627,9 @@ function showConfirm(message) {
 		calculateBestSellers();
 		renderOrdersTable();
 		updateTabCounts();
+		if (document.getElementById('view-order-history')?.style.display !== 'none') {
+			renderHistoryView();
+		}
 	}
 
 	// 1. Calculations & Metrics
@@ -5292,6 +5394,46 @@ Christy Montejo
 	let historySearch = '';
 	let historyFrom = '';
 	let historyTo = '';
+	let historyPage = 1;
+	const historyPageSize = 15;
+	let currentFilteredOrders: Order[] = [];
+
+	function renderPageButtons(current: number, total: number): string {
+		const buttons: string[] = [];
+		const maxVisible = 5;
+		
+		if (total <= maxVisible) {
+			for (let i = 1; i <= total; i++) {
+				buttons.push(`<button class="pagination-btn ${i === current ? 'active' : ''}" data-page="${i}">${i}</button>`);
+			}
+		} else {
+			buttons.push(`<button class="pagination-btn ${1 === current ? 'active' : ''}" data-page="1">1</button>`);
+			
+			let start = Math.max(2, current - 1);
+			let end = Math.min(total - 1, current + 1);
+			
+			if (current <= 3) {
+				end = 4;
+			} else if (current >= total - 2) {
+				start = total - 3;
+			}
+			
+			if (start > 2) {
+				buttons.push(`<span class="pagination-ellipsis" style="color: var(--text-muted); padding: 0 4px; display: inline-block;">...</span>`);
+			}
+			
+			for (let i = start; i <= end; i++) {
+				buttons.push(`<button class="pagination-btn ${i === current ? 'active' : ''}" data-page="${i}">${i}</button>`);
+			}
+			
+			if (end < total - 1) {
+				buttons.push(`<span class="pagination-ellipsis" style="color: var(--text-muted); padding: 0 4px; display: inline-block;">...</span>`);
+			}
+			
+			buttons.push(`<button class="pagination-btn ${total === current ? 'active' : ''}" data-page="${total}">${total}</button>`);
+		}
+		return buttons.join('');
+	}
 
 	function renderHistoryView() {
 		// Update counts
@@ -5341,16 +5483,30 @@ Christy Montejo
 			return db - da; // Latest delivery/order date first
 		});
 
+		currentFilteredOrders = filtered;
+
+		// Pagination calculation
+		const totalItems = filtered.length;
+		const totalPages = Math.ceil(totalItems / historyPageSize) || 1;
+		if (historyPage > totalPages) historyPage = totalPages;
+		if (historyPage < 1) historyPage = 1;
+
+		const startIndex = (historyPage - 1) * historyPageSize;
+		const endIndex = Math.min(startIndex + historyPageSize, totalItems);
+		const pagedOrders = filtered.slice(startIndex, endIndex);
+
 		const tbody = document.getElementById('history-body');
 		const empty = document.getElementById('history-empty');
+		const pagEl = document.getElementById('history-pagination');
 		if (!tbody || !empty) return;
 
-		if (filtered.length === 0) {
+		if (totalItems === 0) {
 			tbody.innerHTML = '';
 			empty.style.display = 'flex';
+			if (pagEl) pagEl.style.display = 'none';
 		} else {
 			empty.style.display = 'none';
-			tbody.innerHTML = filtered.map(o => {
+			tbody.innerHTML = pagedOrders.map(o => {
 				const sc = `badge-${o.status.toLowerCase()}`;
 				return `<tr>
 					<td style="font-weight:700;color:var(--accent-primary)">#${o.id.replace('ORD-','')}</td>
@@ -5378,6 +5534,51 @@ Christy Montejo
 					if (id) openDetailsModal(id);
 				});
 			});
+
+			// Render pagination controls
+			if (pagEl) {
+				if (totalPages <= 1) {
+					pagEl.style.display = 'none';
+				} else {
+					pagEl.style.display = 'flex';
+					
+					// Update pagination info text
+					const infoEl = document.getElementById('pagination-info');
+					if (infoEl) {
+						infoEl.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} orders`;
+					}
+					
+					// Render prev button disabled state
+					const prevBtn = document.getElementById('pagination-prev') as HTMLButtonElement;
+					if (prevBtn) {
+						prevBtn.disabled = historyPage === 1;
+						if (historyPage === 1) prevBtn.classList.add('disabled');
+						else prevBtn.classList.remove('disabled');
+					}
+					
+					// Render next button disabled state
+					const nextBtn = document.getElementById('pagination-next') as HTMLButtonElement;
+					if (nextBtn) {
+						nextBtn.disabled = historyPage === totalPages;
+						if (historyPage === totalPages) nextBtn.classList.add('disabled');
+						else nextBtn.classList.remove('disabled');
+					}
+					
+					// Render page buttons
+					const pagesEl = document.getElementById('pagination-pages');
+					if (pagesEl) {
+						pagesEl.innerHTML = renderPageButtons(historyPage, totalPages);
+						// Bind page button click listeners
+						pagesEl.querySelectorAll('.pagination-btn').forEach(btn => {
+							btn.addEventListener('click', (e) => {
+								const page = parseInt((e.currentTarget as HTMLElement).getAttribute('data-page') || '1');
+								historyPage = page;
+								renderHistoryView();
+							});
+						});
+					}
+				}
+			}
 		}
 
 		// Setup tab listeners once
@@ -5389,6 +5590,7 @@ Christy Montejo
 					tabsEl.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
 					tab.classList.add('active');
 					historyFilter = tab.getAttribute('data-status') || 'All';
+					historyPage = 1;
 					renderHistoryView();
 				});
 			});
@@ -5397,23 +5599,57 @@ Christy Montejo
 		const searchEl = document.getElementById('history-search') as HTMLInputElement;
 		if (searchEl && !searchEl.dataset.bound) {
 			searchEl.dataset.bound = '1';
-			searchEl.addEventListener('input', () => { historySearch = searchEl.value; renderHistoryView(); });
+			searchEl.addEventListener('input', () => { 
+				historySearch = searchEl.value; 
+				historyPage = 1;
+				renderHistoryView(); 
+			});
 		}
 		const fromEl = document.getElementById('history-from') as HTMLInputElement;
 		const toEl = document.getElementById('history-to') as HTMLInputElement;
 		if (fromEl && !fromEl.dataset.bound) {
 			fromEl.dataset.bound = '1';
-			fromEl.addEventListener('change', () => { historyFrom = fromEl.value; renderHistoryView(); });
+			fromEl.addEventListener('change', () => { 
+				historyFrom = fromEl.value; 
+				historyPage = 1;
+				renderHistoryView(); 
+			});
 		}
 		if (toEl && !toEl.dataset.bound) {
 			toEl.dataset.bound = '1';
-			toEl.addEventListener('change', () => { historyTo = toEl.value; renderHistoryView(); });
+			toEl.addEventListener('change', () => { 
+				historyTo = toEl.value; 
+				historyPage = 1;
+				renderHistoryView(); 
+			});
+		}
+
+		// Bind pagination Prev/Next once
+		const prevBtn = document.getElementById('pagination-prev');
+		if (prevBtn && !prevBtn.dataset.bound) {
+			prevBtn.dataset.bound = '1';
+			prevBtn.addEventListener('click', () => {
+				if (historyPage > 1) {
+					historyPage--;
+					renderHistoryView();
+				}
+			});
+		}
+		const nextBtn = document.getElementById('pagination-next');
+		if (nextBtn && !nextBtn.dataset.bound) {
+			nextBtn.dataset.bound = '1';
+			nextBtn.addEventListener('click', () => {
+				if (!nextBtn.classList.contains('disabled')) {
+					historyPage++;
+					renderHistoryView();
+				}
+			});
 		}
 
 		const csvBtn = document.getElementById('export-csv-btn');
 		if (csvBtn && !csvBtn.dataset.bound) {
 			csvBtn.dataset.bound = '1';
-			csvBtn.addEventListener('click', () => exportCSV(filtered));
+			csvBtn.addEventListener('click', () => exportCSV(currentFilteredOrders));
 		}
 	}
 
