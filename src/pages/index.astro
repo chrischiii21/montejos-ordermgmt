@@ -333,6 +333,9 @@ import OrderTable from '../components/OrderTable.astro';
 								Copy Link
 							</button>
 						</div>
+						<span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; display: block; font-style: italic; opacity: 0.85;">
+							ℹ️ Copies the link embedded with customer instructions and payment notice.
+						</span>
 					</div>
 					
 					<div class="form-actions">
@@ -3043,8 +3046,9 @@ function showConfirm(message) {
 		const shareableLinkInput = document.getElementById('shareable-link-input') as HTMLInputElement;
 		copyShareableLinkBtn?.addEventListener('click', () => {
 			if (shareableLinkInput && shareableLinkInput.value) {
-				navigator.clipboard.writeText(shareableLinkInput.value).then(() => {
-					showToast('Shareable link copied to clipboard!');
+				const messageText = getCustomerCopyMessage(shareableLinkInput.value);
+				navigator.clipboard.writeText(messageText).then(() => {
+					showToast('Shareable link message copied to clipboard!');
 					const oldText = copyShareableLinkBtn.textContent;
 					copyShareableLinkBtn.textContent = 'Copied!';
 					// persist copied state for this order and update table button if present
@@ -3093,7 +3097,8 @@ function showConfirm(message) {
 				const sig = getOrderSignature(id);
 				const settingsParam = getSettingsParam();
 				const uniqueLink = window.location.origin + '/order?id=' + id + '&t=' + sig + settingsParam;
-				navigator.clipboard.writeText(uniqueLink).then(() => {
+				const messageText = getCustomerCopyMessage(uniqueLink);
+				navigator.clipboard.writeText(messageText).then(() => {
 					const target = e.currentTarget as HTMLButtonElement;
 					target.classList.add('copied');
 					const oldHTML = target.innerHTML;
@@ -3864,7 +3869,8 @@ function showConfirm(message) {
 					const sig = getOrderSignature(id);
 					const settingsParam = getSettingsParam();
 					const uniqueLink = window.location.origin + '/order?id=' + id + '&t=' + sig + settingsParam;
-					navigator.clipboard.writeText(uniqueLink).then(() => {
+					const messageText = getCustomerCopyMessage(uniqueLink);
+					navigator.clipboard.writeText(messageText).then(() => {
 						const target = e.currentTarget as HTMLButtonElement;
 						target.classList.add('copied');
 						const oldHTML = target.innerHTML;
@@ -4072,6 +4078,14 @@ function showConfirm(message) {
 		if (openShareableLinkBtn) openShareableLinkBtn.href = uniqueLink;
 		
 		linkModalOverlay?.classList.add('active');
+	}
+
+	function getCustomerCopyMessage(uniqueLink: string) {
+		return `Hi! Here is the link to complete your order details. Please open the link to verify your order and fill out your delivery/contact details.
+
+Note: The payment details and mode of payment options will be shown at the end of the form once you submit your details.
+
+Order Link: ${uniqueLink}`;
 	}
 
 	// Clipboard Copy Confirmation Slip Helper
