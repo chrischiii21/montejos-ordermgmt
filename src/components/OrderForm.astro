@@ -1,374 +1,322 @@
 ---
 ---
 
-<div class="modal-overlay" id="order-modal-overlay">
-	<div class="glass-panel modal-container" id="order-modal">
+<div class="modal-overlay pos-overlay" id="order-modal-overlay">
+	<div class="glass-panel modal-container pos-container" id="order-modal">
 		<div class="modal-header">
 			<div>
-				<h3 class="modal-title">Create New Order</h3>
-				<span class="modal-subtitle">Add a new ticket to the queue</span>
+				<h3 class="modal-title">New Order</h3>
+				<span class="modal-subtitle">Tap a menu item to add it to the ticket</span>
 			</div>
 			<button class="close-btn" id="close-order-modal-btn" aria-label="Close modal">
 				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
 			</button>
 		</div>
-		
-		<form class="modal-form" id="create-order-form" autocomplete="off" novalidate>
-			<div class="form-group">
-				<label>Who will fill up the confirmation slip?</label>
-				<div class="toggle-selector">
-					<label class="toggle-option active" id="toggle-owner-label">
-						<input type="radio" name="slip-filler" value="Owner" checked style="display: none;" />
-						<span>Owner</span>
-					</label>
-					<label class="toggle-option" id="toggle-customer-label">
-						<input type="radio" name="slip-filler" value="Customer" style="display: none;" />
-						<span>Customer</span>
-					</label>
+
+		<form class="pos-body" id="create-order-form" autocomplete="off" novalidate>
+			<!-- LEFT: menu catalog -->
+			<div class="pos-catalog">
+				<div class="catalog-toolbar">
+					<div class="input-wrapper search-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+						<input type="text" id="item-search-input" placeholder="Search menu items..." />
+					</div>
+					<div class="category-tabs" id="category-tabs"></div>
 				</div>
+				<div class="item-grid" id="item-grid"></div>
 			</div>
 
-			<!-- Prefill Customer Checkbox Toggle -->
-			<div class="form-group" id="prefill-toggle-group" style="display: none; align-items: center; gap: 10px; margin-top: -8px; margin-bottom: 8px;">
-				<label class="custom-checkbox-container" style="display: inline-flex; align-items: center; cursor: pointer; user-select: none;">
-					<input type="checkbox" id="prefill-customer-checkbox" style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer; accent-color: var(--accent-primary);" />
-					<span style="font-size: 0.775rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-secondary);">Active Customer?</span>
-				</label>
-			</div>
-
-			<div id="customer-details-section">
-				<div class="form-row">
-					<div class="form-group flex-1">
-						<label for="customer-name">Customer Name</label>
-						<div class="input-wrapper">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-							<input type="text" id="customer-name" placeholder="Enter customer name" required list="past-customers-names" />
+			<!-- RIGHT: order ticket / cart -->
+			<div class="pos-cart">
+				<div class="cart-scroll">
+					<div class="ticket-items-container">
+						<label>Order Ticket</label>
+						<div class="ticket-items-list" id="ticket-items-list">
+							<div class="ticket-empty-state" id="ticket-empty-state">
+								No items added to this ticket yet.
+							</div>
 						</div>
-						<span class="error-message" id="customer-name-error">Customer name is required</span>
-						<datalist id="past-customers-names"></datalist>
+						<span class="error-message" id="ticket-items-error">Add at least one item to submit the order</span>
 					</div>
 
-					<div class="form-group flex-1">
-						<label for="customer-contact">Contact Number</label>
-						<div class="input-wrapper">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-							<input type="text" id="customer-contact" placeholder="Contact number" required list="past-customers-contacts" />
+					<div class="cart-divider"></div>
+
+					<div class="form-group">
+						<label>Who will fill up the confirmation slip?</label>
+						<div class="toggle-selector">
+							<label class="toggle-option active" id="toggle-owner-label">
+								<input type="radio" name="slip-filler" value="Owner" checked style="display: none;" />
+								<span>Owner</span>
+							</label>
+							<label class="toggle-option" id="toggle-customer-label">
+								<input type="radio" name="slip-filler" value="Customer" style="display: none;" />
+								<span>Customer</span>
+							</label>
 						</div>
-						<span class="error-message" id="customer-contact-error">Contact number is required</span>
-						<datalist id="past-customers-contacts"></datalist>
+					</div>
+
+					<!-- Prefill Customer Checkbox Toggle -->
+					<div class="form-group" id="prefill-toggle-group" style="display: none; align-items: center; gap: 10px; margin-top: -8px;">
+						<label class="custom-checkbox-container" style="display: inline-flex; align-items: center; cursor: pointer; user-select: none;">
+							<input type="checkbox" id="prefill-customer-checkbox" style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer; accent-color: var(--accent-primary);" />
+							<span style="font-size: 0.775rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-secondary);">Active Customer?</span>
+						</label>
+					</div>
+
+					<div id="customer-details-section">
+						<div class="form-group">
+							<label for="customer-name">Customer Name</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+								<input type="text" id="customer-name" placeholder="Enter customer name" required list="past-customers-names" />
+							</div>
+							<span class="error-message" id="customer-name-error">Customer name is required</span>
+							<datalist id="past-customers-names"></datalist>
+						</div>
+
+						<div class="form-group">
+							<label for="customer-contact">Contact Number</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+								<input type="text" id="customer-contact" placeholder="Contact number" required list="past-customers-contacts" />
+							</div>
+							<span class="error-message" id="customer-contact-error">Contact number is required</span>
+							<datalist id="past-customers-contacts"></datalist>
+						</div>
+
+						<div class="form-group">
+							<label for="customer-fb">Facebook Name (Optional)</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+								<input type="text" id="customer-fb" placeholder="Facebook Profile Name (optional)" />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="customer-address">Exact Address (for Delivery/Meetup)</label>
+							<div class="input-wrapper address-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+								<textarea id="customer-address" rows="2" placeholder="Enter complete address details" required></textarea>
+							</div>
+							<span class="error-message" id="customer-address-error">Exact address is required</span>
+						</div>
+
+						<div class="form-group">
+							<label for="delivery-date-time">Delivery/Meetup Date & Time</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+								<input type="datetime-local" id="delivery-date-time" required />
+							</div>
+							<span class="error-message" id="delivery-date-time-error">Date and time are required</span>
+						</div>
+					</div>
+
+					<!-- Fulfillment Type Selector -->
+					<div class="form-group">
+						<label>Fulfillment Type</label>
+						<div class="toggle-selector" id="fulfillment-selector">
+							<label class="toggle-option active" id="toggle-pickup-label">
+								<input type="radio" name="fulfillment-type" value="Pickup" checked style="display: none;" />
+								<span>Pickup</span>
+							</label>
+							<label class="toggle-option" id="toggle-meetup-label">
+								<input type="radio" name="fulfillment-type" value="Meetup" style="display: none;" />
+								<span>Meetup</span>
+							</label>
+							<label class="toggle-option" id="toggle-delivery-label">
+								<input type="radio" name="fulfillment-type" value="Delivery" style="display: none;" />
+								<span>Delivery</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- Delivery Fee Input Field -->
+					<div class="form-group" id="delivery-fee-group" style="display: none;">
+						<label for="delivery-fee">Delivery/Meetup Fee (₱)</label>
+						<div class="input-wrapper">
+							<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
+							<input type="number" id="delivery-fee" step="0.01" min="0.00" placeholder="0.00" value="0.00" style="background: transparent; border: none; outline: none; width: 100%; color: var(--text-primary);" />
+						</div>
+						<span class="error-message" id="delivery-fee-error">Delivery fee is required</span>
+					</div>
+
+					<div class="form-group">
+						<label for="order-status">Initial Status</label>
+						<div class="status-selector">
+							<label class="status-radio-label">
+								<input type="radio" name="order-status" value="Pending" checked />
+								<span class="radio-btn badge-pending">Pending</span>
+							</label>
+							<label class="status-radio-label">
+								<input type="radio" name="order-status" value="Preparing" />
+								<span class="radio-btn badge-preparing">Preparing</span>
+							</label>
+							<label class="status-radio-label">
+								<input type="radio" name="order-status" value="Completed" />
+								<span class="radio-btn badge-completed">Completed</span>
+							</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="order-downpayment">Downpayment Amount (₱)</label>
+						<div class="input-wrapper">
+							<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
+							<input type="number" id="order-downpayment" step="0.01" min="0.00" placeholder="0.00" required />
+						</div>
+						<span class="error-message" id="order-downpayment-error">Downpayment is required</span>
+					</div>
+
+					<div class="summary-box">
+						<div class="summary-row">
+							<span>TOTAL</span>
+							<span id="total-val">₱0.00</span>
+						</div>
+						<div class="summary-row">
+							<span>DOWNPAYMENT</span>
+							<span id="downpayment-val">₱0.00</span>
+						</div>
+						<div class="summary-row total-row">
+							<span>BALANCE</span>
+							<span id="balance-val">₱0.00</span>
+						</div>
+					</div>
+
+					<div class="payment-info-box">
+						<div class="payment-title">M O D E   O F   P A Y M E N T S</div>
+
+						<div class="payment-method">
+							<div class="method-name">Maribank Details</div>
+							<div class="method-detail form-maribank-name">Christy Montejo</div>
+							<div class="method-detail account-number form-maribank-num">11953471393</div>
+						</div>
+
+						<div class="payment-method">
+							<div class="method-name">Gcash Details</div>
+							<div class="method-detail form-gcash-name">Christy Montejo</div>
+							<div class="method-detail account-number form-gcash-num">09760721404</div>
+						</div>
+
+						<div class="payment-note" id="form-payment-note">
+							Note: To confirm your order, we are requesting 50% downpayment of the total bill, then the rest will be paid upon pickup/delivery of orders.
+						</div>
 					</div>
 				</div>
 
-				<div class="form-group">
-					<label for="customer-fb">Facebook Name (Optional)</label>
-					<div class="input-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-						<input type="text" id="customer-fb" placeholder="Facebook Profile Name (optional)" />
-					</div>
-				</div>
-
-				<div class="form-group">
-					<label for="customer-address">Exact Address (for Delivery/Meetup)</label>
-					<div class="input-wrapper address-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-						<textarea id="customer-address" rows="3" placeholder="Enter complete address details" required></textarea>
-					</div>
-					<span class="error-message" id="customer-address-error">Exact address is required</span>
-				</div>
-
-				<div class="form-group">
-					<label for="delivery-date-time">Delivery/Meetup Date & Time</label>
-					<div class="input-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-						<input type="datetime-local" id="delivery-date-time" required />
-					</div>
-					<span class="error-message" id="delivery-date-time-error">Date and time are required</span>
+				<div class="form-actions cart-footer">
+					<button type="button" class="btn btn-secondary" id="cancel-order-btn">Cancel</button>
+					<button type="submit" class="btn btn-primary" id="submit-order-btn">
+						<span id="submit-btn-text">Submit Order</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					</button>
 				</div>
 			</div>
 
-			<!-- Fulfillment Type Selector -->
-			<div class="form-group">
-				<label>Fulfillment Type</label>
-				<div class="toggle-selector" id="fulfillment-selector">
-					<label class="toggle-option active" id="toggle-pickup-label">
-						<input type="radio" name="fulfillment-type" value="Pickup" checked style="display: none;" />
-						<span>Pickup</span>
-					</label>
-					<label class="toggle-option" id="toggle-meetup-label">
-						<input type="radio" name="fulfillment-type" value="Meetup" style="display: none;" />
-						<span>Meetup</span>
-					</label>
-					<label class="toggle-option" id="toggle-delivery-label">
-						<input type="radio" name="fulfillment-type" value="Delivery" style="display: none;" />
-						<span>Delivery</span>
-					</label>
-				</div>
-			</div>
-
-			<!-- Delivery Fee Input Field -->
-			<div class="form-group" id="delivery-fee-group" style="display: none;">
-				<label for="delivery-fee">Delivery/Meetup Fee (₱)</label>
-				<div class="input-wrapper">
-					<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
-					<input type="number" id="delivery-fee" step="0.01" min="0.00" placeholder="0.00" value="0.00" style="background: transparent; border: none; outline: none; width: 100%; color: var(--text-primary);" />
-				</div>
-				<span class="error-message" id="delivery-fee-error">Delivery fee is required</span>
-			</div>
-
-			<div class="form-row">
-				<div class="form-group flex-2">
-					<label for="food-item">Select Menu Item</label>
-					<div class="input-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-						<select id="food-item" required>
-							<option value="" disabled selected>Select an item...</option>
-							<optgroup label="Set Lechon Packages">
-								<option value="Set A Lechon Package" data-price="15999.00">Set A Package - ₱15,999</option>
-								<option value="Set B Lechon Package" data-price="18675.00">Set B Package - ₱18,675</option>
-								<option value="Set C Lechon Package" data-price="19999.00">Set C Package - ₱19,999</option>
-							</optgroup>
-							<optgroup label="Belly Bilao Packages">
-								<option value="P1 Package (Bilao)" data-price="3100.00">P1 Package (10-12 pax) - ₱3,100</option>
-								<option value="P2 Package (Bilao)" data-price="4400.00">P2 Package (14-16 pax) - ₱4,400</option>
-								<option value="P3 Package (Bilao)" data-price="5400.00">P3 Package (18-20 pax) - ₱5,400</option>
-								<option value="P4 Package (Bilao)" data-price="6100.00">P4 Package (22-25 pax) - ₱6,100</option>
-								<option value="P5 Package (Bilao)" data-price="7900.00">P5 Package (27-30 pax) - ₱7,900</option>
-								<option value="P6 Package (Bilao)" data-price="8500.00">P6 Package (32-35 pax) - ₱8,500</option>
-							</optgroup>
-							<optgroup label="Food Trays - Chicken">
-								<option value="Battered Chicken (Tray)" data-price="1000.00">Battered Chicken - ₱1,000</option>
-								<option value="Chicken Fillet (Tray)" data-price="1200.00">Chicken Fillet - ₱1,200</option>
-								<option value="Teriyaki Chicken (Tray)" data-price="1200.00">Teriyaki Chicken - ₱1,200</option>
-								<option value="Buffalo Chicken (Tray)" data-price="1200.00">Buffalo Chicken - ₱1,200</option>
-								<option value="Chicken Ala King (Tray)" data-price="1300.00">Chicken Ala King - ₱1,300</option>
-								<option value="Sweet & Sour Chicken (Tray)" data-price="1300.00">Sweet & Sour Chicken - ₱1,300</option>
-								<option value="Chicken Adobo (Tray)" data-price="1200.00">Chicken Adobo - ₱1,200</option>
-								<option value="Chicken Cordon Bleu (Tray)" data-price="1300.00">Chicken Cordon Bleu - ₱1,300</option>
-							</optgroup>
-							<optgroup label="Food Trays - Seafood">
-								<option value="Calamares (Tray)" data-price="1200.00">Calamares - ₱1,200</option>
-								<option value="Buttered Shrimps (Tray)" data-price="1300.00">Buttered Shrimps - ₱1,300</option>
-								<option value="Shrimp Tempura (Tray)" data-price="1500.00">Shrimp Tempura - ₱1,500</option>
-								<option value="Escabeche (Tray)" data-price="1150.00">Escabeche - ₱1,150</option>
-								<option value="Fish Fillet (Tray)" data-price="900.00">Fish Fillet - ₱900</option>
-							</optgroup>
-							<optgroup label="Food Trays - Pork">
-								<option value="Lumpia Shanghai (100pcs)" data-price="700.00">Lumpia Shanghai (100pcs) - ₱700</option>
-								<option value="Lumpia Shanghai (200pcs)" data-price="1275.00">Lumpia Shanghai (200pcs) - ₱1,275</option>
-								<option value="Breaded Pork Chops (Tray)" data-price="1300.00">Breaded Pork Chops - ₱1,300</option>
-								<option value="Pork Tonkatsu (Tray)" data-price="1300.00">Pork Tonkatsu - ₱1,300</option>
-								<option value="Sweet & Sour Pork (Tray)" data-price="1400.00">Sweet & Sour Pork - ₱1,400</option>
-								<option value="Grilled Pork Belly (Tray)" data-price="1600.00">Grilled Pork Belly - ₱1,600</option>
-								<option value="Pork Menudo (Tray)" data-price="1500.00">Pork Menudo - ₱1,500</option>
-							</optgroup>
-							<optgroup label="Food Trays - Pasta & Noodle">
-								<option value="Special Bam-i (Tray)" data-price="1000.00">Special Bam-i - ₱1,000</option>
-								<option value="Filipino Style Spaghetti (Tray)" data-price="1000.00">Filipino Spaghetti - ₱1,000</option>
-								<option value="Classic Carbonara (Tray)" data-price="1000.00">Classic Carbonara - ₱1,000</option>
-								<option value="Tuna Carbonara (Tray)" data-price="1150.00">Tuna Carbonara - ₱1,150</option>
-							</optgroup>
-							<optgroup label="Food Trays - Veggie & Dessert">
-								<option value="Chopseuy (Tray)" data-price="1200.00">Chopseuy - ₱1,200</option>
-								<option value="Fruit Salad (Tray)" data-price="800.00">Fruit Salad - ₱800</option>
-								<option value="Fruit Macaroni Salad (Tray)" data-price="800.00">Fruit Macaroni Salad - ₱800</option>
-								<option value="Chicken Macaroni Salad (Tray)" data-price="800.00">Chicken Macaroni Salad - ₱800</option>
-								<option value="Buko Pandan (Tray)" data-price="800.00">Buko Pandan - ₱800</option>
-								<option value="Creamy Mango Float (Tray)" data-price="800.00">Creamy Mango Float - ₱800</option>
-								<option value="Creamy Coffee Jelly (Tray)" data-price="800.00">Creamy Coffee Jelly - ₱800</option>
-								<option value="Crema de Fruta (Tray)" data-price="800.00">Crema de Fruta - ₱800</option>
-								<option value="Creamy Maja Blanca (Tray)" data-price="800.00">Creamy Maja Blanca - ₱800</option>
-							</optgroup>
-							<optgroup label="Whole Lechon (A la carte)">
-								<option value="Family Lechon (XS)" data-price="9999.00">Family Lechon (XS) - ₱9,999</option>
-								<option value="Barkada Lechon (S)" data-price="11500.00">Barkada Lechon (S) - ₱11,500</option>
-								<option value="Jumbo Lechon (M)" data-price="12300.00">Jumbo Lechon (M) - ₱12,300</option>
-								<option value="Fiesta Lechon (L)" data-price="13300.00">Fiesta Lechon (L) - ₱13,300</option>
-								<option value="Grande Lechon (XL)" data-price="14500.00">Grande Lechon (XL) - ₱14,500</option>
-								<option value="El' Grande Lechon (XXL)" data-price="15300.00">El' Grande Lechon (XXL) - ₱15,300</option>
-							</optgroup>
-							<optgroup label="Lechon Belly (A la carte)">
-								<option value="Lechon Belly (4 Kilos)" data-price="2649.00">Lechon Belly (4kg) - ₱2,649</option>
-								<option value="Lechon Belly (5 Kilos)" data-price="2999.00">Lechon Belly (5kg) - ₱2,999</option>
-								<option value="Lechon Belly (6 Kilos)" data-price="3499.00">Lechon Belly (6kg) - ₱3,499</option>
-								<option value="Lechon Belly (7 Kilos)" data-price="3999.00">Lechon Belly (7kg) - ₱3,999</option>
-								<option value="Lechon Belly (8 Kilos)" data-price="4499.00">Lechon Belly (8kg) - ₱4,499</option>
-								<option value="Lechon Belly (9 Kilos)" data-price="4999.00">Lechon Belly (9kg) - ₱4,999</option>
-								<option value="Lechon Belly (10 Kilos)" data-price="5599.00">Lechon Belly (10kg) - ₱5,599</option>
-							</optgroup>
-							<optgroup label="Food Combos">
-								<option value="SEAPORK Combo" data-price="499.00">SEAPORK Combo - ₱499</option>
-								<option value="CHIXSEAPORK A Combo" data-price="750.00">CHIXSEAPORK A - ₱750</option>
-								<option value="BAM-I + LUMPIA Combo" data-price="850.00">BAM-I + LUMPIA - ₱850</option>
-								<option value="CHIXSEAPORK B Combo" data-price="1000.00">CHIXSEAPORK B - ₱1,000</option>
-								<option value="ALL-IN-ONE Combo" data-price="999.00">ALL-IN-ONE Combo - ₱999</option>
-								<option value="FAMILY MEAL Combo" data-price="1450.00">FAMILY MEAL Combo - ₱1,450</option>
-							</optgroup>
-							<option value="Custom Item" data-price="0.00">Custom Item...</option>
-						</select>
-					</div>
-					<span class="error-message" id="food-item-error">Please select a menu item</span>
-				</div>
-
-				<div class="form-group flex-1" id="custom-item-name-group" style="display: none;">
-					<label for="custom-item-name">Item Name</label>
-					<input type="text" id="custom-item-name" placeholder="Item Name" />
-				</div>
-			</div>
-
-			<!-- Chosen Dessert for Belly Bilao Packages -->
-			<div class="form-group" id="belly-dessert-group" style="display: none;">
-				<label for="belly-dessert">Select Chosen Dessert</label>
-				<div class="input-wrapper">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-					<select id="belly-dessert">
-						<option value="" disabled selected>Select a dessert...</option>
-						<option value="Fruit Salad">Fruit Salad</option>
-						<option value="Fruit Macaroni Salad">Fruit Macaroni Salad</option>
-						<option value="Chicken Macaroni Salad">Chicken Macaroni Salad</option>
-						<option value="Creamy Coffee Jelly">Creamy Coffee Jelly</option>
-						<option value="Creamy Buko Pandan">Creamy Buko Pandan</option>
-						<option value="Creamy Mango Float">Creamy Mango Float</option>
-						<option value="Creamy Banana Float">Creamy Banana Float</option>
-						<option value="Creamy Maja Blanca">Creamy Maja Blanca</option>
-					</select>
-				</div>
-				<span class="error-message" id="belly-dessert-error">Please select a dessert for this package</span>
-			</div>
-
-			<!-- Food Tray Size Toggle (Only shown for Food Trays) -->
-			<div class="form-group" id="foodtray-size-group" style="display: none; margin: 6px 0;">
-				<label>Tray Size</label>
-				<div class="toggle-selector" id="tray-size-selector">
-					<label class="toggle-option active" id="toggle-size-full">
-						<input type="radio" name="tray-size" value="Full" checked style="display: none;" />
-						<span>Full Tray</span>
-					</label>
-					<label class="toggle-option" id="toggle-size-half">
-						<input type="radio" name="tray-size" value="Half" style="display: none;" />
-						<span>Half Tray</span>
-					</label>
-				</div>
-			</div>
-
-			<div class="form-row">
-				<div class="form-group">
-					<label for="item-quantity">Quantity</label>
-					<input type="number" id="item-quantity" min="1" max="100" value="1" required />
-				</div>
-
-				<div class="form-group">
-					<label for="item-price">Price (₱)</label>
-					<input type="number" id="item-price" step="0.01" min="0.00" placeholder="0.00" required />
-				</div>
-			</div>
-
-			<!-- Customization Toggle -->
-			<div class="form-group" id="customize-item-toggle-group" style="display: none; margin: 12px 0 6px 0;">
-				<div style="display: flex; align-items: center;">
-					<label class="switch-container" style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
-						<input type="checkbox" id="customize-item-checkbox" style="width: auto; margin: 0; cursor: pointer; accent-color: var(--accent-primary);" />
-						<span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">Customize Package Inclusions & Price</span>
-					</label>
-				</div>
-			</div>
-
-			<!-- Customization Section -->
-			<div id="item-customization-section" style="display: none; margin: 12px 0; padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 10px;">
-				<label style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Customize Inclusions</label>
-				<div id="custom-inclusions-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-					<!-- Dynamic list of inclusion inputs -->
-				</div>
-				<button type="button" class="btn btn-secondary btn-sm" id="btn-add-inclusion" style="padding: 6px 12px; font-size: 0.75rem; width: auto; align-self: flex-start; display: flex; align-items: center; gap: 6px; border: 1px dashed var(--border-color); background: transparent;">
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-					<span>Add Inclusion</span>
-				</button>
-			</div>
-
-			<button type="button" class="btn btn-secondary" id="add-to-ticket-btn" style="margin-top: 8px; margin-bottom: 8px;">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-				<span>Add to Order Ticket</span>
-			</button>
-
-			<div class="ticket-items-container">
-				<label>Items in this Ticket</label>
-				<div class="ticket-items-list" id="ticket-items-list">
-					<div class="ticket-empty-state" id="ticket-empty-state">
-						No items added to this ticket yet.
-					</div>
-				</div>
-				<span class="error-message" id="ticket-items-error">Add at least one item to submit the order</span>
-			</div>
-
-			<div class="form-group">
-				<label for="order-status">Initial Status</label>
-				<div class="status-selector">
-					<label class="status-radio-label">
-						<input type="radio" name="order-status" value="Pending" checked />
-						<span class="radio-btn badge-pending">Pending</span>
-					</label>
-					<label class="status-radio-label">
-						<input type="radio" name="order-status" value="Preparing" />
-						<span class="radio-btn badge-preparing">Preparing</span>
-					</label>
-					<label class="status-radio-label">
-						<input type="radio" name="order-status" value="Completed" />
-						<span class="radio-btn badge-completed">Completed</span>
-					</label>
-				</div>
-			</div>
-
-			<div class="form-group">
-				<label for="order-downpayment">Downpayment Amount (₱)</label>
-				<div class="input-wrapper">
-					<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
-					<input type="number" id="order-downpayment" step="0.01" min="0.00" placeholder="0.00" required />
-				</div>
-				<span class="error-message" id="order-downpayment-error">Downpayment is required</span>
-			</div>
-
-			<div class="summary-box">
-				<div class="summary-row">
-					<span>TOTAL</span>
-					<span id="total-val">₱0.00</span>
-				</div>
-				<div class="summary-row">
-					<span>DOWNPAYMENT</span>
-					<span id="downpayment-val">₱0.00</span>
-				</div>
-				<div class="summary-row total-row">
-					<span>BALANCE</span>
-					<span id="balance-val">₱0.00</span>
-				</div>
-			</div>
-
-			<div class="payment-info-box">
-				<div class="payment-title">M O D E   O F   P A Y M E N T S</div>
-				
-				<div class="payment-method">
-					<div class="method-name">Maribank Details</div>
-					<div class="method-detail form-maribank-name">Christy Montejo</div>
-					<div class="method-detail account-number form-maribank-num">11953471393</div>
-				</div>
-				
-				<div class="payment-method">
-					<div class="method-name">Gcash Details</div>
-					<div class="method-detail form-gcash-name">Christy Montejo</div>
-					<div class="method-detail account-number form-gcash-num">09760721404</div>
-				</div>
-				
-				<div class="payment-note" id="form-payment-note">
-					Note: To confirm your order, we are requesting 50% downpayment of the total bill, then the rest will be paid upon pickup/delivery of orders.
-				</div>
-			</div>
-
-			<div class="form-actions">
-				<button type="button" class="btn btn-secondary" id="cancel-order-btn">Cancel</button>
-				<button type="submit" class="btn btn-primary" id="submit-order-btn">
-					<span id="submit-btn-text">Submit Order</span>
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-				</button>
-			</div>
+			<!-- Hidden state holder — populated from MENU_ITEMS by JS, drives the existing item-add logic -->
+			<select id="food-item" required style="display: none;"></select>
 		</form>
+
+		<!-- Quick-config popover shown when a catalog item is tapped -->
+		<div class="item-config-overlay" id="item-config-overlay">
+			<div class="item-config-panel glass-panel" id="item-config-panel">
+				<div class="item-config-header">
+					<div>
+						<h4 id="item-config-title">Item</h4>
+						<span class="item-config-price" id="item-config-price"></span>
+					</div>
+					<button type="button" class="close-btn" id="close-item-config-btn" aria-label="Close">
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+					</button>
+				</div>
+
+				<div class="item-config-body">
+					<div class="form-group" id="custom-item-name-group" style="display: none;">
+						<label for="custom-item-name">Item Name</label>
+						<input type="text" id="custom-item-name" placeholder="Item Name" />
+					</div>
+
+					<!-- Chosen Dessert for Belly Bilao Packages -->
+					<div class="form-group" id="belly-dessert-group" style="display: none;">
+						<label for="belly-dessert">Select Chosen Dessert</label>
+						<div class="input-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+							<select id="belly-dessert">
+								<option value="" disabled selected>Select a dessert...</option>
+								<option value="Fruit Salad">Fruit Salad</option>
+								<option value="Fruit Macaroni Salad">Fruit Macaroni Salad</option>
+								<option value="Chicken Macaroni Salad">Chicken Macaroni Salad</option>
+								<option value="Creamy Coffee Jelly">Creamy Coffee Jelly</option>
+								<option value="Creamy Buko Pandan">Creamy Buko Pandan</option>
+								<option value="Creamy Mango Float">Creamy Mango Float</option>
+								<option value="Creamy Banana Float">Creamy Banana Float</option>
+								<option value="Creamy Maja Blanca">Creamy Maja Blanca</option>
+							</select>
+						</div>
+						<span class="error-message" id="belly-dessert-error">Please select a dessert for this package</span>
+					</div>
+
+					<!-- Food Tray Size Toggle (Only shown for Food Trays) -->
+					<div class="form-group" id="foodtray-size-group" style="display: none;">
+						<label>Tray Size</label>
+						<div class="toggle-selector" id="tray-size-selector">
+							<label class="toggle-option active" id="toggle-size-full">
+								<input type="radio" name="tray-size" value="Full" checked style="display: none;" />
+								<span>Full Tray</span>
+							</label>
+							<label class="toggle-option" id="toggle-size-half">
+								<input type="radio" name="tray-size" value="Half" style="display: none;" />
+								<span>Half Tray</span>
+							</label>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="item-quantity">Quantity</label>
+							<div class="qty-stepper">
+								<button type="button" id="item-qty-decrease" aria-label="Decrease quantity">−</button>
+								<input type="number" id="item-quantity" min="1" max="100" value="1" required />
+								<button type="button" id="item-qty-increase" aria-label="Increase quantity">+</button>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="item-price">Price (₱)</label>
+							<input type="number" id="item-price" step="0.01" min="0.00" placeholder="0.00" required />
+						</div>
+					</div>
+
+					<!-- Customization Toggle -->
+					<div class="form-group" id="customize-item-toggle-group" style="display: none;">
+						<div style="display: flex; align-items: center;">
+							<label class="switch-container" style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+								<input type="checkbox" id="customize-item-checkbox" style="width: auto; margin: 0; cursor: pointer; accent-color: var(--accent-primary);" />
+								<span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">Customize Package Inclusions & Price</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- Customization Section -->
+					<div id="item-customization-section" style="display: none; margin-top: 4px; padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 10px;">
+						<label style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Customize Inclusions</label>
+						<div id="custom-inclusions-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+							<!-- Dynamic list of inclusion inputs -->
+						</div>
+						<button type="button" class="btn btn-secondary btn-sm" id="btn-add-inclusion" style="padding: 6px 12px; font-size: 0.75rem; width: auto; align-self: flex-start; display: flex; align-items: center; gap: 6px; border: 1px dashed var(--border-color); background: transparent;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+							<span>Add Inclusion</span>
+						</button>
+					</div>
+				</div>
+
+				<div class="item-config-footer">
+					<button type="button" class="btn btn-primary" id="add-to-ticket-btn">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+						<span>Add to Ticket</span>
+					</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -387,7 +335,12 @@
 		visibility: hidden;
 		transition: opacity 0.3s ease, visibility 0.3s ease;
 		display: flex;
-		justify-content: flex-end;
+	}
+
+	.pos-overlay {
+		justify-content: center;
+		align-items: center;
+		padding: 24px;
 	}
 
 	.modal-overlay.active {
@@ -396,25 +349,26 @@
 	}
 
 	.modal-container {
-		width: 100%;
-		max-width: 480px;
-		height: 100%;
-		border-radius: 0;
-		border-left: 1px solid var(--border-color);
-		border-top: none;
-		border-bottom: none;
-		border-right: none;
 		display: flex;
 		flex-direction: column;
-		padding: 32px;
-		transform: translateX(100%);
-		transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-		overflow-y: auto;
 		background: var(--bg-modal);
 	}
 
-	.modal-overlay.active .modal-container {
-		transform: translateX(0);
+	.pos-container {
+		width: 95vw;
+		max-width: 1440px;
+		height: 92vh;
+		border-radius: 16px;
+		border: 1px solid var(--border-color);
+		overflow: hidden;
+		transform: scale(0.97) translateY(8px);
+		opacity: 0;
+		transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+	}
+
+	.pos-overlay.active .pos-container {
+		transform: scale(1) translateY(0);
+		opacity: 1;
 	}
 
 	.modal-header {
@@ -422,12 +376,12 @@
 		justify-content: space-between;
 		align-items: center;
 		border-bottom: 1px solid var(--border-color);
-		padding-bottom: 20px;
-		margin-bottom: 24px;
+		padding: 20px 28px;
+		flex-shrink: 0;
 	}
 
 	.modal-title {
-		font-size: 1.25rem;
+		font-size: 1.15rem;
 		font-weight: 700;
 		color: var(--text-primary);
 	}
@@ -450,6 +404,7 @@
 		border-radius: 50%;
 		border: 1px solid var(--border-color);
 		transition: var(--transition-smooth);
+		flex-shrink: 0;
 	}
 
 	.close-btn:hover {
@@ -458,11 +413,170 @@
 		border-color: rgba(255, 255, 255, 0.2);
 	}
 
-	.modal-form {
+	/* ===== POS body: two-pane layout ===== */
+	.pos-body {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.pos-catalog {
+		flex: 1 1 60%;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
-		flex-grow: 1;
+		padding: 20px 24px;
+		border-right: 1px solid var(--border-color);
+		overflow: hidden;
+	}
+
+	.catalog-toolbar {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
+
+	.search-wrapper input {
+		padding-left: 40px;
+	}
+
+	.category-tabs {
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		padding-bottom: 4px;
+	}
+
+	.category-tabs::-webkit-scrollbar {
+		height: 4px;
+	}
+
+	:global(.category-tab) {
+		flex-shrink: 0;
+		padding: 8px 14px;
+		border-radius: 20px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		white-space: nowrap;
+		border: 1px solid var(--border-color);
+		background: rgba(255, 255, 255, 0.02);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: var(--transition-smooth);
+	}
+
+	:global(.category-tab:hover) {
+		color: var(--text-primary);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
+
+	:global(.category-tab.active) {
+		color: #ffffff;
+		background: var(--accent-primary);
+		border-color: var(--accent-primary);
+	}
+
+	.item-grid {
+		flex: 1;
+		overflow-y: auto;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 12px;
+		align-content: start;
+		padding-bottom: 8px;
+	}
+
+	:global(.item-card) {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 10px;
+		text-align: left;
+		padding: 14px;
+		min-height: 92px;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--border-color);
+		border-radius: 10px;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+		font-family: var(--font-family);
+	}
+
+	:global(.item-card:hover) {
+		border-color: var(--accent-primary);
+		background: rgba(255, 255, 255, 0.04);
+		transform: translateY(-2px);
+	}
+
+	:global(.item-card:active) {
+		transform: translateY(0);
+	}
+
+	:global(.item-card-name) {
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--text-primary);
+		line-height: 1.3;
+	}
+
+	:global(.item-card-price) {
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--accent-primary);
+	}
+
+	:global(.item-card-custom) {
+		border-style: dashed;
+		align-items: center;
+		justify-content: center;
+		flex-direction: row;
+		gap: 8px;
+		color: var(--text-secondary);
+	}
+
+	:global(.item-card-custom:hover) {
+		color: var(--text-primary);
+	}
+
+	:global(.item-grid-empty) {
+		grid-column: 1 / -1;
+		text-align: center;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		padding: 40px 16px;
+	}
+
+	/* ===== Cart panel ===== */
+	.pos-cart {
+		flex: 0 0 380px;
+		min-width: 320px;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.cart-scroll {
+		flex: 1;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		padding: 20px 24px 4px 24px;
+	}
+
+	.cart-divider {
+		height: 1px;
+		background: var(--border-color);
+		margin: 2px 0;
+	}
+
+	.cart-footer {
+		flex-shrink: 0;
+		padding: 16px 24px 20px 24px;
+		border-top: 1px solid var(--border-color);
 	}
 
 	.form-group {
@@ -474,14 +588,6 @@
 	.form-row {
 		display: flex;
 		gap: 16px;
-	}
-
-	.flex-1 {
-		flex: 1;
-	}
-
-	.flex-2 {
-		flex: 2;
 	}
 
 	label {
@@ -581,6 +687,14 @@
 		border-color: var(--status-cancelled);
 	}
 
+	.ticket-items-container.invalid .ticket-items-list {
+		border-color: var(--status-cancelled);
+	}
+
+	.ticket-items-container.invalid .error-message {
+		display: block;
+	}
+
 	/* Status radios */
 	.status-selector {
 		display: flex;
@@ -646,7 +760,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
-		margin-top: 10px;
 	}
 
 	.summary-row {
@@ -671,24 +784,27 @@
 	/* Form actions */
 	.form-actions {
 		display: flex;
-		gap: 16px;
-		margin-top: auto;
-		padding-top: 24px;
+		gap: 12px;
 	}
 
 	.btn {
 		flex: 1;
-		padding: 12px 20px;
+		padding: 12px 14px;
 		border-radius: 8px;
 		font-family: var(--font-family);
 		font-weight: 600;
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
+		gap: 6px;
+		white-space: nowrap;
 		transition: var(--transition-smooth);
+	}
+
+	.form-actions #submit-order-btn {
+		flex: 1.3;
 	}
 
 	.btn-secondary {
@@ -724,8 +840,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		margin-top: 8px;
-		margin-bottom: 16px;
 	}
 
 	.ticket-items-list {
@@ -733,10 +847,11 @@
 		border: 1px solid var(--border-color);
 		border-radius: 8px;
 		min-height: 80px;
-		max-height: 180px;
+		max-height: 260px;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
+		transition: var(--transition-smooth);
 	}
 
 	.ticket-empty-state {
@@ -754,6 +869,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 10px;
 		padding: 10px 14px;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 		font-size: 0.85rem;
@@ -769,6 +885,7 @@
 		flex-direction: column;
 		gap: 2px;
 		flex: 1;
+		min-width: 0;
 		text-align: left;
 	}
 
@@ -785,12 +902,16 @@
 	:global(.ticket-item-right) {
 		display: flex;
 		align-items: center;
-		gap: 16px;
+		gap: 10px;
+		flex-shrink: 0;
 	}
 
 	:global(.ticket-item-total) {
 		font-weight: 700;
 		color: var(--accent-primary);
+		font-size: 0.8rem;
+		min-width: 64px;
+		text-align: right;
 	}
 
 	:global(.btn-remove-item) {
@@ -810,7 +931,45 @@
 		background: rgba(239, 68, 68, 0.1);
 		transform: scale(1.05);
 	}
-	
+
+	:global(.cart-qty-stepper) {
+		display: flex;
+		align-items: center;
+		gap: 0;
+		border: 1px solid var(--border-color);
+		border-radius: 6px;
+		overflow: hidden;
+		flex-shrink: 0;
+	}
+
+	:global(.cart-qty-stepper button) {
+		width: 22px;
+		height: 22px;
+		background: transparent;
+		border: none;
+		color: var(--text-secondary);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.85rem;
+		line-height: 1;
+		transition: var(--transition-smooth);
+	}
+
+	:global(.cart-qty-stepper button:hover) {
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--text-primary);
+	}
+
+	:global(.cart-qty-stepper span) {
+		min-width: 22px;
+		text-align: center;
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+
 	@keyframes fadeIn {
 		from { opacity: 0; transform: translateY(4px); }
 		to { opacity: 1; transform: translateY(0); }
@@ -822,8 +981,6 @@
 		border: 1px dashed rgba(255, 255, 255, 0.1);
 		border-radius: 8px;
 		padding: 16px;
-		margin-top: 16px;
-		margin-bottom: 16px;
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
@@ -879,7 +1036,6 @@
 		border-radius: 8px;
 		padding: 4px;
 		gap: 4px;
-		margin-top: 6px;
 	}
 
 	.toggle-option {
@@ -904,5 +1060,395 @@
 		color: #ffffff;
 		background: var(--accent-primary);
 		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+	}
+
+	/* ===== Quick-config popover ===== */
+	.item-config-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(4, 7, 13, 0.65);
+		backdrop-filter: blur(4px);
+		-webkit-backdrop-filter: blur(4px);
+		z-index: 200;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.2s ease, visibility 0.2s ease;
+		padding: 20px;
+	}
+
+	.item-config-overlay.active {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.item-config-panel {
+		width: 420px;
+		max-width: 100%;
+		max-height: 88vh;
+		overflow-y: auto;
+		border-radius: 14px;
+		padding: 24px;
+		background: var(--bg-modal);
+		border: 1px solid var(--border-color);
+		transform: translateY(10px);
+		transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+	}
+
+	.item-config-overlay.active .item-config-panel {
+		transform: translateY(0);
+	}
+
+	.item-config-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.item-config-header h4 {
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: var(--text-primary);
+		margin-bottom: 4px;
+	}
+
+	.item-config-price {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--accent-primary);
+	}
+
+	.item-config-body {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.item-config-footer {
+		display: flex;
+	}
+
+	.item-config-footer .btn {
+		flex: 1;
+	}
+
+	/* Qty stepper (item config popover) */
+	.qty-stepper {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--border-color);
+		border-radius: 8px;
+		overflow: hidden;
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	.qty-stepper button {
+		width: 38px;
+		height: 42px;
+		flex-shrink: 0;
+		background: transparent;
+		border: none;
+		color: var(--text-primary);
+		font-size: 1.1rem;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+	}
+
+	.qty-stepper button:hover {
+		background: rgba(255, 255, 255, 0.06);
+	}
+
+	.qty-stepper input[type="number"] {
+		border: none;
+		background: transparent;
+		text-align: center;
+		padding: 12px 0;
+		-moz-appearance: textfield;
+	}
+
+	.qty-stepper input[type="number"]::-webkit-inner-spin-button,
+	.qty-stepper input[type="number"]::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	/* ===== Responsive ===== */
+
+	/* Tablet / small laptop: keep the two-pane layout but tighten it up */
+	@media (max-width: 1180px) {
+		.pos-container {
+			width: 98vw;
+			height: 94vh;
+		}
+
+		.pos-cart {
+			flex-basis: 340px;
+			min-width: 280px;
+		}
+	}
+
+	@media (max-width: 1024px) {
+		.pos-overlay {
+			padding: 14px;
+		}
+
+		.modal-header {
+			padding: 16px 20px;
+		}
+
+		.pos-catalog {
+			padding: 16px 18px;
+		}
+
+		.cart-scroll {
+			padding: 16px 18px 4px 18px;
+		}
+
+		.cart-footer {
+			padding: 14px 18px 18px 18px;
+		}
+
+		.pos-cart {
+			flex-basis: 300px;
+			min-width: 260px;
+		}
+
+		.item-grid {
+			grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+		}
+	}
+
+	/* Below this, side-by-side no longer fits comfortably — stack catalog above cart */
+	@media (max-width: 860px) {
+		.pos-overlay {
+			padding: 0;
+		}
+
+		.pos-container {
+			width: 100vw;
+			height: 100vh;
+			height: 100dvh;
+			max-width: none;
+			border-radius: 0;
+		}
+
+		.pos-body {
+			flex-direction: column;
+		}
+
+		.pos-catalog {
+			flex: 1 1 38%;
+			min-height: 220px;
+			border-right: none;
+			border-bottom: 1px solid var(--border-color);
+		}
+
+		.pos-cart {
+			flex: 1 1 62%;
+			flex-basis: auto;
+			min-width: 0;
+		}
+
+		.item-grid {
+			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		}
+	}
+
+	/* Phones */
+	@media (max-width: 560px) {
+		.modal-header {
+			padding: 14px 16px;
+		}
+
+		.modal-title {
+			font-size: 1rem;
+		}
+
+		.modal-subtitle {
+			font-size: 0.7rem;
+		}
+
+		.close-btn {
+			width: 32px;
+			height: 32px;
+		}
+
+		.pos-catalog {
+			padding: 14px;
+		}
+
+		.catalog-toolbar {
+			gap: 10px;
+			margin-bottom: 12px;
+		}
+
+		.cart-scroll {
+			padding: 14px 14px 4px 14px;
+			gap: 16px;
+		}
+
+		.cart-footer {
+			padding: 12px 14px 16px 14px;
+		}
+
+		.category-tabs {
+			gap: 6px;
+		}
+
+		:global(.category-tab) {
+			padding: 7px 12px;
+			font-size: 0.72rem;
+		}
+
+		.item-grid {
+			grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+			gap: 10px;
+		}
+
+		:global(.item-card) {
+			padding: 12px;
+			min-height: 80px;
+		}
+
+		:global(.item-card-name) {
+			font-size: 0.78rem;
+		}
+
+		.item-config-overlay {
+			padding: 0;
+			align-items: flex-end;
+		}
+
+		.item-config-panel {
+			width: 100%;
+			max-width: 100%;
+			padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)) 18px;
+			gap: 14px;
+			max-height: 85vh;
+			border-radius: 16px 16px 0 0;
+			transform: translateY(100%);
+		}
+
+		.item-config-overlay.active .item-config-panel {
+			transform: translateY(0);
+		}
+
+		.form-row {
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.status-selector {
+			flex-wrap: wrap;
+		}
+
+		.status-radio-label {
+			flex: 1 1 30%;
+		}
+
+		:global(.ticket-item-row) {
+			flex-wrap: wrap;
+			row-gap: 8px;
+		}
+
+		:global(.ticket-item-right) {
+			margin-left: auto;
+		}
+	}
+
+	/* Small phones */
+	@media (max-width: 380px) {
+		.pos-catalog {
+			padding: 10px;
+		}
+
+		.cart-scroll,
+		.cart-footer {
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+
+		.item-grid {
+			grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+			gap: 8px;
+		}
+
+		:global(.item-card) {
+			padding: 10px;
+			min-height: 72px;
+		}
+
+		.form-actions {
+			gap: 10px;
+		}
+
+		.btn {
+			padding: 12px 10px;
+			font-size: 0.82rem;
+		}
+	}
+
+	/* Short / landscape viewports — vh-based sizing breaks down, so let flexbox share space instead */
+	@media (max-height: 500px) {
+		.pos-overlay {
+			padding: 0;
+		}
+
+		.pos-container {
+			width: 100vw;
+			height: 100vh;
+			height: 100dvh;
+			max-width: none;
+			border-radius: 0;
+		}
+
+		.modal-header {
+			padding: 10px 18px;
+		}
+
+		.modal-subtitle {
+			display: none;
+		}
+
+		.pos-body {
+			flex-direction: row;
+		}
+
+		.pos-catalog {
+			flex: 1 1 55%;
+			padding: 10px 14px;
+		}
+
+		.pos-cart {
+			flex: 1 1 45%;
+			flex-basis: auto;
+			min-width: 260px;
+		}
+
+		.cart-scroll {
+			padding: 10px 16px 4px 16px;
+			gap: 10px;
+		}
+
+		.cart-footer {
+			padding: 8px 16px 12px 16px;
+		}
+
+		.item-config-overlay {
+			align-items: center;
+			padding: 10px;
+		}
+
+		.item-config-panel {
+			max-height: 92vh;
+			padding: 16px;
+			gap: 10px;
+		}
 	}
 </style>
