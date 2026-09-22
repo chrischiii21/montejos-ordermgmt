@@ -45,6 +45,9 @@ const { id, title, initialValue, trendId, initialTrend = "+0%", isTrendPositive 
 		align-items: flex-start;
 		position: relative;
 		overflow: hidden;
+		/* Lets .card-value size itself against this card, not the viewport —
+		   four cards across a 1200px screen leave far less room than a phone. */
+		container-type: inline-size;
 	}
 
 	.card-content {
@@ -52,6 +55,7 @@ const { id, title, initialValue, trendId, initialTrend = "+0%", isTrendPositive 
 		flex-direction: column;
 		gap: 8px;
 		z-index: 2;
+		min-width: 0;
 	}
 
 	.card-title {
@@ -63,13 +67,21 @@ const { id, title, initialValue, trendId, initialTrend = "+0%", isTrendPositive 
 	}
 
 	.card-value {
+		/* Peso amounts must never wrap mid-number — scale the type down instead */
 		font-size: 2rem;
 		font-weight: 700;
 		color: var(--text-primary);
 		letter-spacing: -0.02em;
 		line-height: 1.2;
+		font-variant-numeric: tabular-nums;
+		overflow-wrap: normal;
+		white-space: nowrap;
 		transition: var(--transition-smooth);
 	}
+
+	@container (max-width: 300px) { .card-value { font-size: 1.6rem; } }
+	@container (max-width: 240px) { .card-value { font-size: 1.35rem; } }
+	@container (max-width: 200px) { .card-value { font-size: 1.15rem; } }
 
 	.card-footer {
 		display: flex;

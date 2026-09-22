@@ -147,6 +147,8 @@ import OrderTable from '../components/OrderTable.astro';
 							<tbody id="history-body"></tbody>
 						</table>
 					</div>
+					<!-- Phone layout: the same orders as cards (the 8-column table cannot fit) -->
+					<div class="history-cards" id="history-cards"></div>
 					<div class="table-empty-state" id="history-empty" style="display:none">
 						<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 17h6"/><path d="M9 12h6"/><path d="M9 7h4"/></svg>
 						<p>No orders match your filters.</p>
@@ -176,7 +178,7 @@ import OrderTable from '../components/OrderTable.astro';
 				<div class="analytics-summary" id="analytics-summary"></div>
 				<div class="analytics-charts-row">
 					<div class="glass-panel chart-card">
-						<div class="chart-label">Daily Revenue Trend</div>
+						<div class="chart-label">Monthly Revenue Trend</div>
 						<div id="revenue-bar-chart" class="bar-chart-container"></div>
 					</div>
 					<div class="glass-panel chart-card chart-card-sm">
@@ -285,22 +287,78 @@ import OrderTable from '../components/OrderTable.astro';
 			<!-- SETTINGS VIEW -->
 			<div id="view-settings" class="view-container" style="display:none">
 				<div class="settings-grid">
-					<div class="glass-panel settings-section">
-						<div class="settings-section-title">Payment Methods</div>
-						<div class="settings-field"><label>Maribank — Account Name</label><input type="text" id="s-maribank-name" /></div>
-						<div class="settings-field"><label>Maribank — Account Number</label><input type="text" id="s-maribank-num" /></div>
-						<div class="settings-field"><label>GCash — Account Name</label><input type="text" id="s-gcash-name" /></div>
-						<div class="settings-field"><label>GCash — Account Number</label><input type="text" id="s-gcash-num" /></div>
-						<button class="btn-save-settings" id="save-payment-btn">Save Payment Info</button>
-					</div>
-					<div class="glass-panel settings-section">
-						<div class="settings-section-title">Default Downpayment</div>
-						<div class="settings-field"><label>Default Downpayment %</label><input type="number" id="s-dp-pct" min="0" max="100" step="1" /></div>
-						<button class="btn-save-settings" id="save-dp-btn">Save</button>
-						<div class="settings-section-title" style="margin-top:24px">Data Management</div>
-						<button class="btn-danger-settings" id="reset-orders-btn">Reset to Default Orders</button>
-						<button class="btn-danger-settings" id="clear-orders-btn" style="margin-top:8px">Clear All Orders</button>
-					</div>
+					<!-- Payment Methods -->
+					<section class="glass-panel settings-section settings-section-wide">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Payment Methods</h2>
+								<p class="settings-head-sub">Shown to customers on the order links you share.</p>
+							</div>
+						</header>
+
+						<div class="settings-pay-grid">
+							<div class="settings-pay-card">
+								<span class="settings-pay-brand brand-maribank">Maribank</span>
+								<div class="settings-field"><label for="s-maribank-name">Account Name</label><input type="text" id="s-maribank-name" autocomplete="off" /></div>
+								<div class="settings-field"><label for="s-maribank-num">Account Number</label><input type="text" id="s-maribank-num" inputmode="numeric" autocomplete="off" /></div>
+							</div>
+							<div class="settings-pay-card">
+								<span class="settings-pay-brand brand-gcash">GCash</span>
+								<div class="settings-field"><label for="s-gcash-name">Account Name</label><input type="text" id="s-gcash-name" autocomplete="off" /></div>
+								<div class="settings-field"><label for="s-gcash-num">Account Number</label><input type="text" id="s-gcash-num" inputmode="numeric" autocomplete="off" /></div>
+							</div>
+						</div>
+
+						<div class="settings-actions">
+							<button class="btn-save-settings" id="save-payment-btn">Save Payment Info</button>
+						</div>
+					</section>
+
+					<!-- Default Downpayment -->
+					<section class="glass-panel settings-section">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Default Downpayment</h2>
+								<p class="settings-head-sub">Pre-filled on new orders and quoted on the customer link.</p>
+							</div>
+						</header>
+
+						<div class="settings-field">
+							<label for="s-dp-pct">Percentage of total</label>
+							<div class="settings-input-suffix">
+								<input type="number" id="s-dp-pct" min="0" max="100" step="1" />
+								<span class="settings-suffix">%</span>
+							</div>
+						</div>
+
+						<div class="settings-actions">
+							<button class="btn-save-settings" id="save-dp-btn">Save Downpayment</button>
+						</div>
+					</section>
+
+					<!-- Data Management -->
+					<section class="glass-panel settings-section settings-section-danger">
+						<header class="settings-head">
+							<span class="settings-head-icon is-danger">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Data Management</h2>
+								<p class="settings-head-sub">These actions affect every order and cannot be undone.</p>
+							</div>
+						</header>
+
+						<div class="settings-danger-actions">
+							<button class="btn-danger-settings" id="reset-orders-btn">Reset to Default Orders</button>
+							<button class="btn-danger-settings" id="clear-orders-btn">Clear All Orders</button>
+						</div>
+					</section>
 				</div>
 			</div>
 		</main>
@@ -1084,13 +1142,13 @@ import OrderTable from '../components/OrderTable.astro';
 	/* Upcoming orders styled globally in <style is:global> */
 
 	/* ===== ORDER HISTORY ===== */
-	.view-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-	.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-	.search-box { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; }
+	.view-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
+	.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; min-width: 0; flex: 1 1 260px; }
+	.search-box { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; flex: 1 1 220px; min-width: 0; max-width: 100%; }
 	.search-box svg { color: var(--text-muted); flex-shrink: 0; }
-	.search-box input { background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; width: 220px; }
-	.date-range-group { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
-	.date-range-group input[type="date"] { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-family: var(--font-family); font-size: 0.8rem; outline: none; }
+	.search-box input { background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; width: 100%; min-width: 0; }
+	.date-range-group { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; min-width: 0; }
+	.date-range-group input[type="date"] { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-family: var(--font-family); font-size: 0.8rem; outline: none; flex: 1 1 130px; min-width: 0; }
 	.btn-export { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; font-family: var(--font-family); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
 	.btn-export:hover { background: var(--bg-card-hover); color: var(--text-primary); }
 	.history-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -1098,14 +1156,25 @@ import OrderTable from '../components/OrderTable.astro';
 	/* Order history table styles moved to <style is:global> to support dynamic rows. */
 
 	/* ===== ANALYTICS ===== */
-	.analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; }
-	.analytic-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+	.analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 24px; }
+	.analytic-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 	.analytic-card .a-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-	.analytic-card .a-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+	/* Peso amounts must never wrap mid-number — scale the type down instead */
+	.analytic-card .a-value {
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: var(--text-primary);
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+		overflow-wrap: normal;
+		white-space: nowrap;
+	}
+	@container (max-width: 210px) { .analytic-card .a-value { font-size: 1.3rem; } }
+	@container (max-width: 175px) { .analytic-card .a-value { font-size: 1.1rem; } }
 	.analytic-card .a-sub { font-size: 0.75rem; color: var(--text-muted); }
 	.analytics-charts-row { display: grid; grid-template-columns: 1fr 300px; gap: 28px; }
 	@media (max-width: 900px) { .analytics-charts-row { grid-template-columns: 1fr; } }
-	.chart-card { padding: 24px; }
+	.chart-card { padding: 24px; min-width: 0; }
 	.chart-card-sm { padding: 20px; }
 	.chart-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-primary); margin-bottom: 16px; }
 	.bar-chart-container { display: flex; align-items: flex-end; gap: 12px; height: 160px; padding-top: 8px; overflow-x: auto; }
@@ -1128,17 +1197,153 @@ import OrderTable from '../components/OrderTable.astro';
 	/* Scoped styles removed. Live Kitchen layouts and styles are fully defined globally under <style is:global> to ensure compatibility with dynamically rendered content. */
 
 	/* ===== SETTINGS ===== */
-	.settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-	.settings-section { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+	.settings-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+		gap: 24px;
+		align-items: start;
+	}
+	/* Payment Methods holds two account cards, so it takes the full row when there is one */
+	@media (min-width: 1100px) { .settings-section-wide { grid-column: span 2; } }
+
+	.settings-section { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+	/* Panel header: accent icon tile + title + one line of context */
+	.settings-head { display: flex; align-items: flex-start; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+	.settings-head-icon {
+		display: flex; align-items: center; justify-content: center;
+		width: 36px; height: 36px; flex-shrink: 0;
+		border-radius: 10px;
+		background: var(--accent-primary-light);
+		border: 1px solid var(--border-color);
+		color: var(--accent-primary);
+	}
+	.settings-head-icon.is-danger { background: var(--status-cancelled-light); border-color: rgba(239,68,68,0.25); color: var(--status-cancelled); }
+	.settings-head-text { min-width: 0; }
+	.settings-head-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; }
+	.settings-head-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+
+	/* Legacy title style, kept for any panel that still uses it */
 	.settings-section-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-	.settings-field { display: flex; flex-direction: column; gap: 6px; }
+
+	/* The two account cards inside Payment Methods */
+	.settings-pay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+	.settings-pay-card {
+		display: flex; flex-direction: column; gap: 14px;
+		min-width: 0;
+		padding: 16px;
+		border-radius: 12px;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		transition: border-color 0.2s;
+	}
+	.settings-pay-card:focus-within { border-color: var(--border-color-hover); }
+	.settings-pay-brand {
+		align-self: flex-start;
+		font-size: 0.68rem; font-weight: 800;
+		text-transform: uppercase; letter-spacing: 0.08em;
+		padding: 4px 10px; border-radius: 20px;
+	}
+	.brand-maribank { color: var(--accent-primary); background: var(--accent-primary-light); border: 1px solid rgba(255,94,0,0.25); }
+	.brand-gcash { color: #0ea5e9; background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); }
+
+	.settings-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 	.settings-field label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
-	.settings-field input { background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; outline: none; transition: var(--transition-smooth); }
-	.settings-field input:focus { border-color: var(--accent-primary); box-shadow: 0 0 10px rgba(217, 43, 58, 0.15); }
-	.btn-save-settings { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-family: var(--font-family); font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: var(--transition-smooth); align-self: flex-start; }
-	.btn-save-settings:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35); }
-	.btn-danger-settings { background: transparent; border: 1px solid var(--status-cancelled); color: var(--status-cancelled); padding: 10px 20px; border-radius: 8px; font-family: var(--font-family); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: var(--transition-smooth); width: 100%; }
-	.btn-danger-settings:hover { background: rgba(239,68,68,0.1); }
+	.settings-field input {
+		width: 100%; min-width: 0;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: 8px;
+		padding: 10px 14px;
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		outline: none;
+		transition: var(--transition-smooth);
+	}
+	.settings-field input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-primary-light); }
+
+	/* Number input with a trailing unit */
+	.settings-input-suffix { position: relative; display: flex; align-items: center; }
+	.settings-input-suffix input { padding-right: 38px; }
+	.settings-suffix {
+		position: absolute; right: 14px;
+		font-size: 0.85rem; font-weight: 700;
+		color: var(--text-muted);
+		pointer-events: none;
+	}
+
+	.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 4px; }
+	.settings-danger-actions { display: flex; flex-direction: column; gap: 10px; }
+
+	.btn-save-settings {
+		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+		border: none; color: #fff;
+		padding: 11px 20px; border-radius: 10px;
+		font-family: var(--font-family); font-weight: 700; font-size: 0.875rem;
+		cursor: pointer;
+		box-shadow: 0 4px 15px rgba(255, 94, 0, 0.25);
+		transition: var(--transition-smooth);
+	}
+	.btn-save-settings:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 94, 0, 0.4); }
+	.btn-save-settings:active { transform: translateY(1px); }
+
+	.btn-danger-settings {
+		background: transparent;
+		border: 1px solid rgba(239, 68, 68, 0.4);
+		color: var(--status-cancelled);
+		padding: 11px 20px; border-radius: 10px;
+		font-family: var(--font-family); font-weight: 700; font-size: 0.85rem;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+		width: 100%;
+	}
+	.btn-danger-settings:hover { background: var(--status-cancelled-light); border-color: var(--status-cancelled); }
+	.btn-danger-settings:active { transform: translateY(1px); }
+
+	/* ===== MOBILE: keep every container inside the viewport ===== */
+
+	/* Grid/flex children default to min-width:auto, which lets wide content
+	   (tables, charts, long IDs) push the whole page sideways. */
+	.view-container,
+	.dashboard-grid,
+	.grid-table-area,
+	.grid-analytics-area,
+	.analytics-charts-row,
+	.analytic-card,
+	.settings-grid,
+	.settings-section,
+	.stats-grid,
+	.header-left,
+	.header-right {
+		min-width: 0;
+	}
+
+	@media (max-width: 640px) {
+		.main-content { padding: 20px 16px; gap: 20px; }
+		.view-container { gap: 20px; }
+		.analytics-summary,
+		.settings-grid,
+		.stats-grid,
+		.dashboard-grid { gap: 16px; }
+		.chart-card { padding: 18px 14px; }
+		.chart-card-sm { padding: 18px 14px; }
+		.analytic-card { padding: 16px; }
+		.settings-section { padding: 20px 16px; }
+		.dashboard-header h1 { font-size: 1.4rem; }
+		.dashboard-header { padding-bottom: 18px; }
+		.btn-primary-dashboard { padding: 11px 16px; font-size: 0.82rem; }
+
+		/* Modals: use the full width the phone has, minus a small gutter */
+		#link-modal-overlay .modal-container,
+		#details-modal-overlay .modal-container {
+			width: calc(100% - 24px);
+			padding: 18px 16px;
+		}
+		#details-modal-overlay .modal-container { max-height: calc(100dvh - 32px); }
+		#link-modal-overlay .modal-title-group h3,
+		#details-modal-overlay .modal-title-group h3 { font-size: 1.05rem; }
+	}
 </style>
 
 <style is:global>
@@ -1877,8 +2082,9 @@ import OrderTable from '../components/OrderTable.astro';
 		justify-content: space-between;
 		gap: 8px;
 	}
-	.cal-order-customer { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
-	.cal-order-id { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+	.cal-order-who { min-width: 0; }
+	.cal-order-customer { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+	.cal-order-id { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; font-family: monospace; overflow-wrap: anywhere; }
 	.cal-order-items {
 		display: flex;
 		flex-wrap: wrap;
@@ -1900,6 +2106,117 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 	.cal-order-total { font-size: 0.88rem; font-weight: 800; color: var(--accent-primary); }
 	.cal-order-time { font-size: 0.7rem; color: var(--text-muted); }
+
+	/* Clickable order card → opens the Order Details modal */
+	.cal-order-card[data-id] { cursor: pointer; }
+	.cal-order-card[data-id]:hover,
+	.cal-order-card[data-id]:focus-visible {
+		border-color: var(--accent-primary);
+		background: var(--bg-card-hover);
+		outline: none;
+	}
+	.cal-order-view {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		font-size: 0.68rem;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		color: var(--text-muted);
+		border-top: 1px dashed var(--border-color);
+		padding-top: 8px;
+		transition: color 0.2s;
+	}
+	.cal-order-card[data-id]:hover .cal-order-view,
+	.cal-order-card[data-id]:focus-visible .cal-order-view { color: var(--accent-primary); }
+
+	/* === Order History: phone card list (hidden until the table is dropped) === */
+	.history-cards {
+		display: none;
+		flex-direction: column;
+		gap: 12px;
+		padding: 12px;
+	}
+	.history-card {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		padding: 14px;
+		border-radius: 12px;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+	}
+	.history-card.is-upcoming { border-color: var(--accent-primary); background: var(--accent-primary-light); }
+
+	.hcard-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+	.hcard-id {
+		font-size: 1rem; font-weight: 800;
+		color: var(--accent-primary);
+		letter-spacing: -0.01em;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.hcard-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+	.hcard-name { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+	.hcard-name .text-muted { font-weight: 600; color: var(--text-muted); }
+	.hcard-contact { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+	.hcard-who .awaiting-badge { align-self: flex-start; margin-left: 0; margin-top: 2px; }
+
+	.hcard-date {
+		display: flex; align-items: center; gap: 7px;
+		font-size: 0.78rem;
+		color: var(--text-secondary);
+		padding: 8px 10px;
+		border-radius: 8px;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+	}
+	.hcard-date svg { color: var(--accent-primary); flex-shrink: 0; }
+
+	/* Total / Downpayment / Balance read as one figures strip */
+	.hcard-figures {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 8px;
+		padding-top: 12px;
+		border-top: 1px solid var(--border-color);
+	}
+	.hcard-fig { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+	.hcard-fig-label {
+		font-size: 0.6rem; font-weight: 700;
+		text-transform: uppercase; letter-spacing: 0.05em;
+		color: var(--text-muted);
+	}
+	.hcard-fig-value {
+		font-size: 0.82rem; font-weight: 700;
+		color: var(--text-primary);
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+	.hcard-fig-value.is-dp { color: var(--status-preparing); }
+	.hcard-fig-value.is-balance { color: var(--accent-primary); }
+	.hcard-settled { display: block; font-size: 0.62rem; font-weight: 800; color: var(--status-completed); }
+
+	.hcard-btn {
+		display: flex; align-items: center; justify-content: center; gap: 7px;
+		width: 100%;
+		padding: 10px;
+		border-radius: 9px;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		color: var(--text-secondary);
+		font-family: var(--font-family);
+		font-size: 0.78rem; font-weight: 700;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+	}
+	.hcard-btn:hover, .hcard-btn:active {
+		background: var(--accent-primary-light);
+		border-color: var(--accent-primary);
+		color: var(--accent-primary);
+	}
 
 	/* === Order History Pagination === */
 	.history-pagination {
@@ -1980,11 +2297,61 @@ import OrderTable from '../components/OrderTable.astro';
 			text-align: center;
 		}
 	}
+
+	/* ===== MOBILE: keep every container inside the viewport ===== */
+
+	/* Grid/flex children default to min-width:auto, which lets wide content
+	   (tables, charts, long IDs) push the whole page sideways. */
+	.kds-board,
+	.kds-column,
+	.cal-layout,
+	.cal-panel,
+	.cal-day-panel {
+		min-width: 0;
+	}
+
+	/* The KDS top bar holds three groups that together exceed a phone's width */
+	.kds-top-bar { flex-wrap: wrap; gap: 12px; }
+	.kds-counts { flex-wrap: wrap; }
+
+	/* The day panel is a sidebar on desktop; on a stacked phone layout it
+	   should grow with its content instead of scrolling inside itself. */
+	@media (max-width: 900px) {
+		.cal-day-panel { max-height: none; }
+		#cal-day-orders { overflow-y: visible; }
+	}
+
+	@media (max-width: 640px) {
+		.cal-panel { padding: 16px 12px; }
+		.cal-grid, .cal-weekdays { gap: 3px; }
+		.cal-cell { min-height: 52px; padding: 6px 2px 4px; gap: 3px; border-radius: 8px; }
+		.cal-day-num { font-size: 0.8rem; }
+		.cal-order-badge { font-size: 0.58rem; padding: 1px 4px; min-width: 16px; }
+		.cal-weekdays span { font-size: 0.6rem; letter-spacing: 0.02em; }
+		.cal-day-header { padding: 14px 16px; }
+		#cal-day-orders { padding: 12px; }
+
+		.kds-column { padding: 16px; min-height: 0; }
+		.kitchen-card { padding: 16px; }
+		.kcard-actions { flex-wrap: wrap; }
+		.kcard-btn { flex: 1 1 auto; }
+
+		/* Eight columns will never fit a phone: hide the table and show the
+		   card list that renderHistoryView() renders alongside it. */
+		.history-table-wrap { display: none; }
+		.history-cards { display: flex; }
+	}
+
+	@media (max-width: 400px) {
+		.cal-cell { min-height: 46px; padding: 5px 1px 3px; }
+		.cal-day-num { font-size: 0.72rem; }
+		.cal-weekdays span { font-size: 0.55rem; }
+	}
 </style>
 
 <script>
 	import { createClient } from '@supabase/supabase-js';
-	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm } from '../lib/menu';
+	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm, getInclusionOptions } from '../lib/menu';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,
@@ -2449,6 +2816,9 @@ function showConfirm(message) {
 		updateTabCounts();
 		if (document.getElementById('view-order-history')?.style.display !== 'none') {
 			renderHistoryView();
+		}
+		if (document.getElementById('view-calendar')?.style.display !== 'none') {
+			renderCalendarView();
 		}
 	}
 
@@ -2963,6 +3333,17 @@ function showConfirm(message) {
 		// 1. ITEMS BREAKDOWN SECTION
 		let itemsHTML = '';
 		if (activeEditSection === 'items') {
+			// Built once and reused by every item's inclusion picker and by the
+			// shared datalist that makes the free-text rows auto-complete too.
+			const inclusionGroups = getInclusionOptions();
+			const inclusionOptionsHTML = inclusionGroups.map(g => `
+				<optgroup label="${escapeHtml(g.group)}">
+					${g.options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+				</optgroup>`).join('');
+			const inclusionDatalistHTML = `<datalist id="inclusion-suggestions">${
+				[...new Set(inclusionGroups.flatMap(g => g.options))].map(o => `<option value="${escapeHtml(o)}"></option>`).join('')
+			}</datalist>`;
+
 			itemsHTML = `
 				<form id="edit-items-form" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
 					<div id="edit-items-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
@@ -3011,17 +3392,23 @@ function showConfirm(message) {
 										<div class="edit-inclusions-list" style="display: flex; flex-direction: column; gap: 4px;">
 											${(it.customInclusions || []).map((inc, incIdx) => `
 												<div style="display: flex; gap: 6px; align-items: center;">
-													<input type="text" class="edit-inclusion-input" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 3px 6px; border-radius: 4px; font-size: 0.75rem;" value="${inc.replace(/"/g, '&quot;')}" placeholder="Inclusion description..." />
+													<input type="text" class="edit-inclusion-input" list="inclusion-suggestions" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="flex: 1; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 3px 6px; border-radius: 4px; font-size: 0.75rem;" value="${inc.replace(/"/g, '&quot;')}" placeholder="Type or pick an inclusion..." />
 													<button type="button" class="btn-remove-edit-inclusion" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px;" title="Remove Inclusion">
 														<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
 													</button>
 												</div>
 											`).join('')}
 										</div>
-										<button type="button" class="btn-add-edit-inclusion" data-item-idx="${idx}" style="align-self: flex-start; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px;">
-											<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
-											<span>Add Inclusion</span>
-										</button>
+										<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px;">
+											<select class="edit-inclusion-picker" data-item-idx="${idx}" style="flex: 1 1 150px; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.7rem; color-scheme: dark;">
+												<option value="">+ Add from menu…</option>
+												${inclusionOptionsHTML}
+											</select>
+											<button type="button" class="btn-add-edit-inclusion" data-item-idx="${idx}" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+												<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+												<span>Type custom</span>
+											</button>
+										</div>
 									</div>
 								</div>
 							`;
@@ -3037,6 +3424,7 @@ function showConfirm(message) {
 							<button type="submit" class="btn btn-primary btn-save-items" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 6px; cursor: pointer;">Save</button>
 						</div>
 					</div>
+					${inclusionDatalistHTML}
 				</form>
 			`;
 		} else {
@@ -3227,9 +3615,9 @@ function showConfirm(message) {
 		const modalBody = document.getElementById('details-modal-body');
 		if (modalBody) {
 			modalBody.innerHTML = `
-				<div class="detail-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; text-align: left; align-items: start;">
+				<div class="detail-grid" style="gap: 24px; text-align: left; align-items: start;">
 					<!-- Left Column: Items Breakdown & Payments -->
-					<div class="detail-left-column" style="display: flex; flex-direction: column; gap: 20px;">
+					<div class="detail-left-column" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
 						<!-- Items breakdown card -->
 						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
 							<div class="detail-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3250,7 +3638,7 @@ function showConfirm(message) {
 					</div>
 					
 					<!-- Right Column: Delivery Info, Status & Manage buttons -->
-					<div class="detail-right-column" style="display: flex; flex-direction: column; gap: 20px;">
+					<div class="detail-right-column" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
 						<!-- Customer & Delivery details card -->
 						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
 							<div class="detail-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3576,7 +3964,23 @@ function showConfirm(message) {
 			});
 		});
 
-		// Add Inclusion Click Handler
+		// Add Inclusion from the menu dropdown
+		modal.querySelectorAll('.edit-inclusion-picker').forEach(select => {
+			select.addEventListener('change', (e) => {
+				const target = e.currentTarget as HTMLSelectElement;
+				const itemIdx = parseInt(target.getAttribute('data-item-idx') || '0');
+				const value = target.value;
+				target.value = '';
+				if (!value || !editItemsStaged[itemIdx]) return;
+				if (!editItemsStaged[itemIdx].customInclusions) {
+					editItemsStaged[itemIdx].customInclusions = [];
+				}
+				editItemsStaged[itemIdx].customInclusions.push(value);
+				renderDetailsModalContent();
+			});
+		});
+
+		// Add Inclusion Click Handler (blank row the owner types into)
 		modal.querySelectorAll('.btn-add-edit-inclusion').forEach(btn => {
 			btn.addEventListener('click', (e) => {
 				const target = e.currentTarget as HTMLButtonElement;
@@ -4365,10 +4769,15 @@ Christy Montejo
 			container.id = 'toast-container';
 			container.style.position = 'fixed';
 			container.style.bottom = '24px';
-			container.style.right = '24px';
+			container.style.right = '16px';
+			// Anchored on both sides so a long message wraps instead of
+			// running off the left edge on a phone.
+			container.style.left = '16px';
 			container.style.zIndex = '9999';
 			container.style.display = 'flex';
 			container.style.flexDirection = 'column';
+			container.style.alignItems = 'flex-end';
+			container.style.pointerEvents = 'none';
 			container.style.gap = '8px';
 			document.body.appendChild(container);
 		}
@@ -4380,6 +4789,8 @@ Christy Montejo
 		toast.style.color = '#10b981';
 		toast.style.padding = '12px 20px';
 		toast.style.borderRadius = '10px';
+		toast.style.maxWidth = '100%';
+		toast.style.pointerEvents = 'auto';
 		toast.style.fontSize = '0.875rem';
 		toast.style.fontWeight = '600';
 		toast.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3)';
@@ -5501,12 +5912,14 @@ Christy Montejo
 		const pagedOrders = filtered.slice(startIndex, endIndex);
 
 		const tbody = document.getElementById('history-body');
+		const cardsEl = document.getElementById('history-cards');
 		const empty = document.getElementById('history-empty');
 		const pagEl = document.getElementById('history-pagination');
 		if (!tbody || !empty) return;
 
 		if (totalItems === 0) {
 			tbody.innerHTML = '';
+			if (cardsEl) cardsEl.innerHTML = '';
 			empty.style.display = 'flex';
 			if (pagEl) pagEl.style.display = 'none';
 		} else {
@@ -5532,13 +5945,48 @@ Christy Montejo
 					</button></td>
 				</tr>`;
 			}).join('');
-			// Bind detail buttons
-			tbody.querySelectorAll('.btn-view-details').forEach(btn => {
+			// Same orders as cards, for the phone layout that drops the table
+			if (cardsEl) {
+				cardsEl.innerHTML = pagedOrders.map(o => {
+					const sc = `badge-${o.status.toLowerCase()}`;
+					const named = o.customer && o.customer !== 'Pending Customer Details';
+					const awaiting = !named || !o.deliveryDateTime;
+					const money = (n: number) => `₱${n.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+					return `
+					<article class="history-card">
+						<div class="hcard-top">
+							<span class="hcard-id">#${o.id.replace('ORD-','')}</span>
+							<span class="status-badge ${sc}">${o.status}</span>
+						</div>
+						<div class="hcard-who">
+							<span class="hcard-name">${named ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
+							${(o.contact && o.contact.trim()) ? `<span class="hcard-contact">${escapeHtml(o.contact)}</span>` : ''}
+							${awaiting ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+						</div>
+						<div class="hcard-date">
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+							<span>${o.deliveryDateTime ? formatDateTime12h(o.deliveryDateTime) : formatDateTime12h(o.date)}</span>
+						</div>
+						<div class="hcard-figures">
+							<div class="hcard-fig"><span class="hcard-fig-label">Total</span><span class="hcard-fig-value">${money(o.total)}</span></div>
+							<div class="hcard-fig"><span class="hcard-fig-label">Downpayment</span><span class="hcard-fig-value is-dp">${money(o.downpayment)}</span></div>
+							<div class="hcard-fig"><span class="hcard-fig-label">Balance</span><span class="hcard-fig-value is-balance">${money(o.balance)}${o.status === 'Completed' ? '<span class="hcard-settled">Settled</span>' : ''}</span></div>
+						</div>
+						<button class="hcard-btn" data-id="${o.id}">
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
+							<span>View details</span>
+						</button>
+					</article>`;
+				}).join('');
+			}
+
+			// Bind detail buttons (table rows and cards)
+			[tbody, cardsEl].forEach(root => root?.querySelectorAll('.btn-view-details, .hcard-btn').forEach(btn => {
 				btn.addEventListener('click', e => {
 					const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
 					if (id) openDetailsModal(id);
 				});
-			});
+			}));
 
 			// Render pagination controls
 			if (pagEl) {
@@ -5692,33 +6140,51 @@ Christy Montejo
 			].map(c => `<div class="analytic-card"><span class="a-label">${c.label}</span><span class="a-value">${c.value}</span><span class="a-sub">${c.sub}</span></div>`).join('');
 		}
 
-		// Bar chart (Daily Revenue Trend)
+		// Bar chart (Monthly Revenue Trend)
 		const barEl = document.getElementById('revenue-bar-chart');
 		if (barEl) {
-			const dailyRevenue: Record<string, number> = {};
+			const monthlyRevenue: Record<string, number> = {};
 			completed.forEach(o => {
-				const dateKey = (o.deliveryDateTime || o.date).substring(0, 10);
-				if (dateKey) {
-					dailyRevenue[dateKey] = (dailyRevenue[dateKey] || 0) + o.total;
+				const monthKey = (o.deliveryDateTime || o.date).substring(0, 7); // YYYY-MM
+				if (monthKey.length === 7) {
+					monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + o.total;
 				}
 			});
 
-			const sortedDates = Object.keys(dailyRevenue).sort();
-			const recentDates = sortedDates.slice(-12); // Last 12 days of revenue
-			const maxRevenue = recentDates.length ? Math.max(...recentDates.map(d => dailyRevenue[d])) : 1;
+			// Walk every month between the first and last with revenue so a month
+			// that earned nothing shows as a gap in the trend rather than vanishing.
+			const monthsWithRevenue = Object.keys(monthlyRevenue).sort();
+			let months: string[] = [];
+			if (monthsWithRevenue.length) {
+				const [firstY, firstM] = monthsWithRevenue[0].split('-').map(Number);
+				const last = monthsWithRevenue[monthsWithRevenue.length - 1];
+				const cursor = new Date(firstY, firstM - 1, 1);
+				while (true) {
+					const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+					months.push(key);
+					if (key >= last) break;
+					cursor.setMonth(cursor.getMonth() + 1);
+				}
+				months = months.slice(-12); // Last 12 months
+			}
 
-			const formatShortDate = (dateStr: string) => {
-				const d = new Date(dateStr + 'T00:00:00');
-				if (isNaN(d.getTime())) return dateStr;
-				return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+			const maxRevenue = months.length ? Math.max(...months.map(m => monthlyRevenue[m] || 0), 1) : 1;
+
+			const formatMonth = (monthKey: string, long = false) => {
+				const [y, m] = monthKey.split('-').map(Number);
+				const d = new Date(y, m - 1, 1);
+				if (isNaN(d.getTime())) return monthKey;
+				return long
+					? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+					: `${d.toLocaleDateString('en-US', { month: 'short' })} '${String(y).slice(-2)}`;
 			};
 
-			barEl.innerHTML = recentDates.map(dateKey => {
-				const rev = dailyRevenue[dateKey];
+			barEl.innerHTML = months.map(monthKey => {
+				const rev = monthlyRevenue[monthKey] || 0;
 				const pct = Math.max(4, Math.round((rev / maxRevenue) * 140)); // 140px max height
-				return `<div class="bar-wrap" title="${dateKey}: ₱${rev.toLocaleString('en-US', { minimumFractionDigits: 2 })}">
+				return `<div class="bar-wrap" title="${formatMonth(monthKey, true)}: ₱${rev.toLocaleString('en-US', { minimumFractionDigits: 2 })}">
 					<div class="bar-fill" style="height:${pct}px;background:#10b981"></div>
-					<span class="bar-id">${formatShortDate(dateKey)}</span>
+					<span class="bar-id">${formatMonth(monthKey)}</span>
 				</div>`;
 			}).join('') || '<span style="color:var(--text-muted);font-size:0.8rem;padding:16px">No completed orders yet.</span>';
 		}
@@ -6311,19 +6777,34 @@ Christy Montejo
 		};
 
 		body.innerHTML = dayOrders.map(o => `
-			<div class="cal-order-card">
+			<div class="cal-order-card" data-id="${o.id}" role="button" tabindex="0" aria-label="View details for order ${o.id}">
 				<div class="cal-order-top">
-					<div>
-						<div class="cal-order-customer">${o.customer}</div>
+					<div class="cal-order-who">
+						<div class="cal-order-customer">${escapeHtml(o.customer)}</div>
 						<div class="cal-order-id">#${o.id}</div>
 					</div>
 					<span class="status-badge ${statusClass[o.status] || ''} cal-order-status">${o.status}</span>
 				</div>
-				<div class="cal-order-items">${o.items.map(it => `<span class="cal-order-item-pill">${it.quantity}× ${it.name}</span>`).join('')}</div>
+				<div class="cal-order-items">${o.items.map(it => `<span class="cal-order-item-pill">${it.quantity}× ${escapeHtml(it.name)}</span>`).join('')}</div>
 				<div class="cal-order-footer">
 					<span class="cal-order-total">₱${o.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
 					${o.deliveryDateTime ? `<span class="cal-order-time">${formatTime12h(o.deliveryDateTime)}</span>` : ''}
 				</div>
+				<span class="cal-order-view">
+					<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
+					<span>View details</span>
+				</span>
 			</div>`).join('');
+
+		// Clicking (or pressing Enter/Space on) a card opens the shared Order Details modal
+		body.querySelectorAll<HTMLElement>('.cal-order-card[data-id]').forEach(card => {
+			card.addEventListener('click', () => {
+				const id = card.getAttribute('data-id');
+				if (id) openDetailsModal(id);
+			});
+			card.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+			});
+		});
 	}
 </script>

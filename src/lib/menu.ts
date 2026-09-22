@@ -192,3 +192,32 @@ export function getInclusionsForForm(itemName: string): string[] | null {
 	}
 	return null;
 }
+
+export interface InclusionOptionGroup {
+	group: string;
+	options: string[];
+}
+
+/**
+ * Options offered when picking an inclusion by hand: first the phrases the
+ * standard packages are built from, then every menu item grouped by category.
+ * Anything not listed here can still be typed in freely.
+ */
+export function getInclusionOptions(): InclusionOptionGroup[] {
+	const seen = new Set<string>();
+	const packaged: string[] = [];
+	for (const list of Object.values(PACKAGE_INCLUSIONS)) {
+		for (const inclusion of list) {
+			const key = inclusion.toLowerCase();
+			if (seen.has(key)) continue;
+			seen.add(key);
+			packaged.push(inclusion);
+		}
+	}
+	packaged.sort((a, b) => a.localeCompare(b));
+
+	return [
+		{ group: "Package Inclusions", options: packaged },
+		...MENU_ITEMS.map(cat => ({ group: cat.category, options: cat.items.map(i => i.name) }))
+	];
+}

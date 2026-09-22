@@ -523,11 +523,14 @@
 		gap: 20px;
 	}
 
+	/* Two columns (items/payments | delivery/manage) once there is room for them */
 	@media (min-width: 768px) {
 		:global(.detail-grid) {
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: 1.2fr 1fr;
 		}
 	}
+
+	:global(.detail-grid) > * { min-width: 0; }
 
 	:global(.detail-section) {
 		background: rgba(255, 255, 255, 0.01);
@@ -682,5 +685,26 @@
 		font-size: 0.8rem;
 		font-weight: 600;
 		border-radius: 8px;
+	}
+</style>
+
+<style>
+	/* ===== MOBILE: keep the panel inside the viewport ===== */
+	.order-table-container { min-width: 0; }
+
+	@media (max-width: 640px) {
+		.order-table-container { padding: 16px 14px; gap: 16px; }
+		.filter-tabs { padding-bottom: 2px; }
+		.filter-tab { height: 32px; padding: 0 11px; font-size: 0.75rem; }
+		.tab-view-all-btn { flex-shrink: 0; }
+	}
+
+	/* The details panel unfolds under a row: it must wrap, not stretch the table */
+	@media (max-width: 640px) {
+		:global(.detail-section) { padding: 14px; }
+		:global(.table-item-entry-name) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+		:global(.detail-actions-buttons .action-btn) { flex: 1 1 auto; justify-content: center; }
+		/* !important: these rows are rendered with inline styles */
+		:global(.detail-item-row) { gap: 8px !important; font-size: 0.8rem !important; }
 	}
 </style>

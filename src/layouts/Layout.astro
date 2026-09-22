@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/jpeg" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Montejo's Lechon & Food Trays - Argao</title>
@@ -115,6 +115,16 @@
 		box-sizing: border-box;
 		margin: 0;
 		padding: 0;
+	}
+
+	/* Long unbroken strings (order IDs, emails, share links) must never widen a container */
+	h1, h2, h3, h4, p, span, td, th, li, label, div {
+		overflow-wrap: break-word;
+	}
+
+	img, video, canvas {
+		max-width: 100%;
+		height: auto;
 	}
 
 	html,
