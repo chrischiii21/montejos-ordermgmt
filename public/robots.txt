@@ -1,0 +1,6 @@
+# Montejo's Lechon & Food Trays - Argao
+# Private order management app. Nothing here is meant to be indexed:
+# the dashboard is session-gated and /order links are issued per customer.
+
+User-agent: *
+Disallow: /

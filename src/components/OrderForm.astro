@@ -230,7 +230,8 @@
 				</div>
 
 				<div class="item-config-body">
-					<div class="form-group" id="custom-item-name-group" style="display: none;">
+					<div class="item-config-main">
+						<div class="form-group" id="custom-item-name-group" style="display: none;">
 						<label for="custom-item-name">Item Name</label>
 						<input type="text" id="custom-item-name" placeholder="Item Name" />
 					</div>
@@ -296,10 +297,12 @@
 						</div>
 					</div>
 
+					</div>
+
 					<!-- Customization Section -->
-					<div id="item-customization-section" style="display: none; margin-top: 4px; padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 10px;">
+					<div id="item-customization-section" style="display: none; margin-top: 4px; padding: 14px; background: var(--bg-well); border: 1px solid var(--border-color); border-radius: 0;">
 						<label style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Customize Inclusions</label>
-						<div id="custom-inclusions-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+						<div id="custom-inclusions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
 							<!-- Dynamic list of inclusion inputs -->
 						</div>
 						<button type="button" class="btn btn-secondary btn-sm" id="btn-add-inclusion" style="padding: 6px 12px; font-size: 0.75rem; width: auto; align-self: flex-start; display: flex; align-items: center; gap: 6px; border: 1px dashed var(--border-color); background: transparent;">
@@ -327,7 +330,7 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: rgba(4, 7, 13, 0.75);
+		background: rgba(10, 10, 10, 0.75);
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
 		z-index: 100;
@@ -358,7 +361,7 @@
 		width: 95vw;
 		max-width: 1440px;
 		height: 92vh;
-		border-radius: 16px;
+		border-radius: 0;
 		border: 1px solid var(--border-color);
 		overflow: hidden;
 		transform: scale(0.97) translateY(8px);
@@ -381,8 +384,10 @@
 	}
 
 	.modal-title {
-		font-size: 1.15rem;
-		font-weight: 700;
+		font-family: var(--font-display);
+		font-size: 1.55rem;
+		font-weight: 600;
+		letter-spacing: 0.015em;
 		color: var(--text-primary);
 	}
 
@@ -401,7 +406,7 @@
 		justify-content: center;
 		width: 36px;
 		height: 36px;
-		border-radius: 50%;
+		border-radius: 0;
 		border: 1px solid var(--border-color);
 		transition: var(--transition-smooth);
 		flex-shrink: 0;
@@ -409,8 +414,8 @@
 
 	.close-btn:hover {
 		color: var(--text-primary);
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.2);
+		background: rgba(var(--tint-rgb), 0.05);
+		border-color: rgba(var(--hairline-rgb), 0.2);
 	}
 
 	/* ===== POS body: two-pane layout ===== */
@@ -456,12 +461,12 @@
 	:global(.category-tab) {
 		flex-shrink: 0;
 		padding: 8px 14px;
-		border-radius: 20px;
+		border-radius: 0;
 		font-size: 0.75rem;
 		font-weight: 600;
 		white-space: nowrap;
 		border: 1px solid var(--border-color);
-		background: rgba(255, 255, 255, 0.02);
+		background: rgba(var(--tint-rgb), 0.02);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: var(--transition-smooth);
@@ -469,7 +474,7 @@
 
 	:global(.category-tab:hover) {
 		color: var(--text-primary);
-		border-color: rgba(255, 255, 255, 0.2);
+		border-color: rgba(var(--hairline-rgb), 0.2);
 	}
 
 	:global(.category-tab.active) {
@@ -497,9 +502,9 @@
 		text-align: left;
 		padding: 14px;
 		min-height: 92px;
-		background: rgba(255, 255, 255, 0.02);
+		background: rgba(var(--tint-rgb), 0.02);
 		border: 1px solid var(--border-color);
-		border-radius: 10px;
+		border-radius: 0;
 		cursor: pointer;
 		transition: var(--transition-smooth);
 		font-family: var(--font-family);
@@ -507,7 +512,7 @@
 
 	:global(.item-card:hover) {
 		border-color: var(--accent-primary);
-		background: rgba(255, 255, 255, 0.04);
+		background: rgba(var(--tint-rgb), 0.04);
 		transform: translateY(-2px);
 	}
 
@@ -618,9 +623,9 @@
 	select {
 		width: 100%;
 		padding: 12px 14px;
-		background: rgba(255, 255, 255, 0.02);
+		background: var(--input-bg);
 		border: 1px solid var(--border-color);
-		border-radius: 8px;
+		border-radius: 0;
 		color: var(--text-primary);
 		font-family: var(--font-family);
 		font-size: 0.9rem;
@@ -629,7 +634,7 @@
 	}
 
 	input[type="datetime-local"] {
-		color-scheme: dark;
+		color-scheme: light dark;
 	}
 
 	.input-wrapper input[type="text"],
@@ -645,8 +650,8 @@
 	textarea:focus,
 	select:focus {
 		border-color: var(--accent-primary);
-		background: rgba(255, 255, 255, 0.04);
-		box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+		background: var(--input-bg);
+		box-shadow: 0 0 10px rgba(228, 94, 27, 0.15);
 	}
 
 	.address-wrapper {
@@ -717,7 +722,7 @@
 		display: block;
 		text-align: center;
 		padding: 10px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-size: 0.8rem;
 		font-weight: 600;
 		border: 1px solid var(--border-color);
@@ -736,7 +741,7 @@
 		background: var(--status-preparing-light);
 		color: var(--status-preparing);
 		border-color: var(--status-preparing);
-		box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+		box-shadow: 0 0 10px rgba(228, 94, 27, 0.2);
 	}
 
 	.status-radio-label input:checked + .radio-btn.badge-completed {
@@ -747,15 +752,15 @@
 	}
 
 	.radio-btn:hover {
-		background: rgba(255, 255, 255, 0.03);
-		border-color: rgba(255, 255, 255, 0.15);
+		background: rgba(var(--tint-rgb), 0.03);
+		border-color: rgba(var(--hairline-rgb), 0.15);
 	}
 
 	/* Summary Box */
 	.summary-box {
-		background: rgba(255, 255, 255, 0.01);
+		background: rgba(var(--tint-rgb), 0.01);
 		border: 1px solid var(--border-color);
-		border-radius: 10px;
+		border-radius: 0;
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
@@ -790,7 +795,7 @@
 	.btn {
 		flex: 1;
 		padding: 12px 14px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-family: var(--font-family);
 		font-weight: 600;
 		font-size: 0.85rem;
@@ -814,21 +819,21 @@
 	}
 
 	.btn-secondary:hover {
-		background: rgba(255, 255, 255, 0.04);
+		background: rgba(var(--tint-rgb), 0.04);
 		color: var(--text-primary);
-		border-color: rgba(255, 255, 255, 0.2);
+		border-color: rgba(var(--hairline-rgb), 0.2);
 	}
 
 	.btn-primary {
 		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
 		border: none;
 		color: white;
-		box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35);
+		box-shadow: 0 4px 15px rgba(228, 94, 27, 0.35);
 	}
 
 	.btn-primary:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 6px 20px rgba(217, 43, 58, 0.45);
+		box-shadow: 0 6px 20px rgba(228, 94, 27, 0.45);
 	}
 
 	.btn-primary:active {
@@ -843,9 +848,9 @@
 	}
 
 	.ticket-items-list {
-		background: rgba(0, 0, 0, 0.2);
+		background: var(--bg-well);
 		border: 1px solid var(--border-color);
-		border-radius: 8px;
+		border-radius: 0;
 		min-height: 80px;
 		max-height: 260px;
 		overflow-y: auto;
@@ -871,7 +876,7 @@
 		justify-content: space-between;
 		gap: 10px;
 		padding: 10px 14px;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+		border-bottom: 1px solid rgba(var(--hairline-rgb), 0.03);
 		font-size: 0.85rem;
 		animation: fadeIn 0.2s ease;
 	}
@@ -923,7 +928,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 4px;
-		border-radius: 4px;
+		border-radius: 0;
 		transition: var(--transition-smooth);
 	}
 
@@ -937,7 +942,7 @@
 		align-items: center;
 		gap: 0;
 		border: 1px solid var(--border-color);
-		border-radius: 6px;
+		border-radius: 0;
 		overflow: hidden;
 		flex-shrink: 0;
 	}
@@ -958,7 +963,7 @@
 	}
 
 	:global(.cart-qty-stepper button:hover) {
-		background: rgba(255, 255, 255, 0.06);
+		background: rgba(var(--tint-rgb), 0.06);
 		color: var(--text-primary);
 	}
 
@@ -977,9 +982,9 @@
 
 	/* Payment Info Box */
 	.payment-info-box {
-		background: rgba(255, 255, 255, 0.02);
-		border: 1px dashed rgba(255, 255, 255, 0.1);
-		border-radius: 8px;
+		background: rgba(var(--tint-rgb), 0.02);
+		border: 1px dashed rgba(var(--hairline-rgb), 0.1);
+		border-radius: 0;
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
@@ -1022,7 +1027,7 @@
 		font-size: 0.725rem;
 		color: var(--text-muted);
 		line-height: 1.4;
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		border-top: 1px solid rgba(var(--hairline-rgb), 0.05);
 		padding-top: 8px;
 		font-style: italic;
 		text-align: left;
@@ -1031,9 +1036,9 @@
 	/* Toggle Selector Styling */
 	.toggle-selector {
 		display: flex;
-		background: rgba(255, 255, 255, 0.02);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 8px;
+		background: rgba(var(--tint-rgb), 0.02);
+		border: 1px solid rgba(var(--hairline-rgb), 0.08);
+		border-radius: 0;
 		padding: 4px;
 		gap: 4px;
 	}
@@ -1042,7 +1047,7 @@
 		flex: 1;
 		text-align: center;
 		padding: 8px 12px;
-		border-radius: 6px;
+		border-radius: 0;
 		cursor: pointer;
 		font-size: 0.8rem;
 		font-weight: 600;
@@ -1053,20 +1058,20 @@
 
 	.toggle-option:hover {
 		color: var(--text-primary);
-		background: rgba(255, 255, 255, 0.04);
+		background: rgba(var(--tint-rgb), 0.04);
 	}
 
 	.toggle-option.active {
 		color: #ffffff;
 		background: var(--accent-primary);
-		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+		box-shadow: 0 4px 12px rgba(228, 94, 27, 0.2);
 	}
 
 	/* ===== Quick-config popover ===== */
 	.item-config-overlay {
 		position: fixed;
 		inset: 0;
-		background: rgba(4, 7, 13, 0.65);
+		background: rgba(10, 10, 10, 0.65);
 		backdrop-filter: blur(4px);
 		-webkit-backdrop-filter: blur(4px);
 		z-index: 200;
@@ -1085,23 +1090,49 @@
 	}
 
 	.item-config-panel {
-		width: 420px;
+		width: min(480px, 100%);
 		max-width: 100%;
-		max-height: 88vh;
+		max-height: 92vh;
 		overflow-y: auto;
-		border-radius: 14px;
-		padding: 24px;
+		border-radius: 0;
+		padding: 20px;
 		background: var(--bg-modal);
 		border: 1px solid var(--border-color);
 		transform: translateY(10px);
 		transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 		display: flex;
 		flex-direction: column;
-		gap: 18px;
+		gap: 14px;
 	}
 
 	.item-config-overlay.active .item-config-panel {
 		transform: translateY(0);
+	}
+
+	/* With the inclusions editor open the dialog earns a second column, so the
+	   item controls and the inclusion list sit side by side instead of stacking. */
+	.item-config-panel.is-wide {
+		width: min(880px, 100%);
+	}
+
+	.item-config-main {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		min-width: 0;
+	}
+
+	@media (min-width: 860px) {
+		.is-wide .item-config-body {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+			gap: 22px;
+			align-items: start;
+		}
+
+		.is-wide #item-customization-section {
+			margin-top: 0 !important;
+		}
 	}
 
 	.item-config-header {
@@ -1127,7 +1158,7 @@
 	.item-config-body {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 14px;
 	}
 
 	.item-config-footer {
@@ -1143,9 +1174,9 @@
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--border-color);
-		border-radius: 8px;
+		border-radius: 0;
 		overflow: hidden;
-		background: rgba(255, 255, 255, 0.02);
+		background: rgba(var(--tint-rgb), 0.02);
 	}
 
 	.qty-stepper button {
@@ -1161,7 +1192,7 @@
 	}
 
 	.qty-stepper button:hover {
-		background: rgba(255, 255, 255, 0.06);
+		background: rgba(var(--tint-rgb), 0.06);
 	}
 
 	.qty-stepper input[type="number"] {
@@ -1331,7 +1362,7 @@
 			padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)) 18px;
 			gap: 14px;
 			max-height: 85vh;
-			border-radius: 16px 16px 0 0;
+			border-radius: 0;
 			transform: translateY(100%);
 		}
 

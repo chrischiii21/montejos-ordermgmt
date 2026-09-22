@@ -15,8 +15,8 @@ import OrderTable from '../components/OrderTable.astro';
 		<aside class="sidebar">
 			<div class="sidebar-logo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px; position: relative;">
 				<div class="logo-glow"></div>
-				<img src="/logo.jpg" alt="Montejo's Logo" class="logo-img" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 12px rgba(99, 102, 241, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.15);" />
-				<h2 style="font-size: 0.9rem; line-height: 1.3; font-weight: 800; background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Montejo's Lechon & Food Trays - Argao</h2>
+				<img src="/logo.jpg" alt="Montejo's Logo" class="logo-img" style="width: 38px; height: 38px; border-radius: 0; object-fit: cover; box-shadow: 0 0 12px rgba(228, 94, 27, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.15);" />
+				<h2 style="font-family: var(--font-display); font-size: 1.05rem; line-height: 1.25; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary);">Montejo's Lechon & Food Trays - Argao</h2>
 			</div>
 
 			<nav class="sidebar-nav">
@@ -62,7 +62,7 @@ import OrderTable from '../components/OrderTable.astro';
 			<!-- Shared Dynamic Header -->
 			<header class="dashboard-header animate-fade-in">
 				<div class="header-left" style="display: flex; align-items: center; gap: 14px;">
-					<button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open Menu" style="background: rgba(15, 22, 38, 0.7); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 10px; cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--card-shadow); flex-shrink: 0;">
+					<button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open Menu" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 0; cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--card-shadow); flex-shrink: 0;">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
 					</button>
 					<div>
@@ -72,7 +72,7 @@ import OrderTable from '../components/OrderTable.astro';
 				</div>
 				<div class="header-right" id="header-actions" style="display: flex; align-items: center; gap: 12px;">
 					<!-- Theme Toggle Switcher -->
-					<button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" style="background: rgba(15, 22, 38, 0.7); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 10px; cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--card-shadow); display: flex; align-items: center; justify-content: center;">
+					<button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 0; cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--card-shadow); display: flex; align-items: center; justify-content: center;">
 						<!-- Sun icon (shows in dark mode to switch to light) -->
 						<svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
 						<!-- Moon icon (shows in light mode to switch to dark) -->
@@ -415,7 +415,7 @@ import OrderTable from '../components/OrderTable.astro';
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: rgba(4, 7, 13, 0.8);
+			background: rgba(10, 10, 10, 0.8);
 			backdrop-filter: blur(8px);
 			-webkit-backdrop-filter: blur(8px);
 			display: flex;
@@ -435,9 +435,9 @@ import OrderTable from '../components/OrderTable.astro';
 		#confirm-modal-overlay .modal-container {
 			width: 90%;
 			max-width: 400px;
-			background: #0f172a;
+			background: var(--bg-modal);
 			border: 1px solid var(--border-color);
-			border-radius: 16px;
+			border-radius: 0;
 			padding: 24px;
 			box-shadow: var(--card-shadow), var(--glow-effect);
 			transform: scale(0.9);
@@ -480,15 +480,15 @@ import OrderTable from '../components/OrderTable.astro';
 			justify-content: center;
 			width: 32px;
 			height: 32px;
-			border-radius: 50%;
+			border-radius: 0;
 			border: 1px solid var(--border-color);
 			transition: var(--transition-smooth);
 		}
 
 		#confirm-modal-overlay .close-btn:hover {
 			color: var(--text-primary);
-			background: rgba(255, 255, 255, 0.05);
-			border-color: rgba(255, 255, 255, 0.2);
+			background: rgba(var(--tint-rgb), 0.05);
+			border-color: rgba(var(--hairline-rgb), 0.2);
 		}
 
 		#confirm-modal-overlay #confirm-modal-message {
@@ -504,7 +504,7 @@ import OrderTable from '../components/OrderTable.astro';
 			align-items: center;
 			justify-content: center;
 			padding: 10px 18px;
-			border-radius: 8px;
+			border-radius: 0;
 			font-family: var(--font-family);
 			font-weight: 700;
 			font-size: 0.875rem;
@@ -516,31 +516,31 @@ import OrderTable from '../components/OrderTable.astro';
 		}
 
 		#confirm-modal-overlay .btn-secondary {
-			background: rgba(255, 255, 255, 0.04);
+			background: rgba(var(--tint-rgb), 0.04);
 			border: 1px solid var(--border-color);
 			color: var(--text-primary);
 		}
 
 		#confirm-modal-overlay .btn-secondary:hover {
-			background: rgba(255, 255, 255, 0.08);
+			background: rgba(var(--tint-rgb), 0.08);
 			border-color: var(--text-secondary);
 		}
 
 		#confirm-modal-overlay .btn-primary {
 			background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
 			color: white;
-			box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35);
+			box-shadow: 0 4px 15px rgba(228, 94, 27, 0.35);
 		}
 
 		#confirm-modal-overlay .btn-primary:hover {
 			transform: translateY(-1px);
-			box-shadow: 0 6px 20px rgba(217, 43, 58, 0.45);
+			box-shadow: 0 6px 20px rgba(228, 94, 27, 0.45);
 		}
 	</style>
 
 		<!-- Order Details Modal -->
 		<div class="modal-overlay" id="details-modal-overlay">
-			<div class="modal-container" style="max-width: 700px; width: 90%;">
+			<div class="modal-container" style="max-width: min(1240px, 94vw); width: 94%;">
 				<div class="modal-header">
 					<div class="modal-title-group">
 						<span class="modal-subtitle" id="details-subtitle" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--accent-primary); display: block; margin-bottom: 4px;">Order Details</span>
@@ -609,7 +609,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.sidebar.active {
 		display: flex !important;
 		z-index: 1000;
-		box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+		box-shadow: 0 0 40px -6px var(--shadow-strong);
 	}
 
 	@media (min-width: 1024px) {
@@ -635,7 +635,7 @@ import OrderTable from '../components/OrderTable.astro';
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: rgba(4, 7, 13, 0.65);
+		background: rgba(10, 10, 10, 0.65);
 		backdrop-filter: blur(4px);
 		-webkit-backdrop-filter: blur(4px);
 		z-index: 999;
@@ -657,16 +657,16 @@ import OrderTable from '../components/OrderTable.astro';
 
 	.logo-icon {
 		color: var(--accent-primary);
-		filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+		filter: drop-shadow(0 0 8px rgba(228, 94, 27, 0.5));
 	}
 
 	.sidebar-logo h2 {
-		font-size: 1.25rem;
-		font-weight: 800;
-		letter-spacing: -0.02em;
-		background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
+		font-family: var(--font-display);
+		font-size: 1.3rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1.25;
+		color: var(--text-primary);
 	}
 
 	.logo-glow {
@@ -693,7 +693,7 @@ import OrderTable from '../components/OrderTable.astro';
 		align-items: center;
 		gap: 12px;
 		padding: 12px 16px;
-		border-radius: 10px;
+		border-radius: 0;
 		color: var(--text-secondary);
 		text-decoration: none;
 		font-weight: 600;
@@ -707,7 +707,7 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	.nav-item:hover {
-		background: rgba(255, 255, 255, 0.02);
+		background: rgba(var(--tint-rgb), 0.02);
 		color: var(--text-primary);
 		border-color: var(--border-color);
 	}
@@ -715,12 +715,12 @@ import OrderTable from '../components/OrderTable.astro';
 	.nav-item.active {
 		background: var(--accent-primary-light);
 		color: var(--text-primary);
-		border-color: rgba(99, 102, 241, 0.2);
+		border-color: rgba(228, 94, 27, 0.2);
 	}
 
 	.nav-item.active svg {
 		color: var(--accent-primary);
-		filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.4));
+		filter: drop-shadow(0 0 5px rgba(228, 94, 27, 0.4));
 	}
 
 	.nav-divider {
@@ -741,7 +741,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.user-avatar {
 		width: 38px;
 		height: 38px;
-		border-radius: 50%;
+		border-radius: 0;
 		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
 		display: flex;
 		align-items: center;
@@ -749,7 +749,7 @@ import OrderTable from '../components/OrderTable.astro';
 		font-size: 0.85rem;
 		font-weight: 700;
 		color: white;
-		box-shadow: 0 0 10px rgba(217, 43, 58, 0.3);
+		box-shadow: 0 0 10px rgba(228, 94, 27, 0.3);
 	}
 
 	.user-info {
@@ -809,18 +809,20 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	.date-display {
-		font-size: 0.8rem;
-		font-weight: 700;
+		font-size: 0.7rem;
+		font-weight: 500;
 		color: var(--accent-primary);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: 0.18em;
 	}
 
 	.dashboard-header h1 {
-		font-size: 1.8rem;
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		margin-top: 4px;
+		font-family: var(--font-display);
+		font-size: 2.4rem;
+		font-weight: 600;
+		letter-spacing: 0.015em;
+		line-height: 1.15;
+		margin-top: 2px;
 	}
 
 	.btn-primary-dashboard {
@@ -831,18 +833,18 @@ import OrderTable from '../components/OrderTable.astro';
 		font-weight: 700;
 		font-size: 0.875rem;
 		padding: 12px 20px;
-		border-radius: 10px;
+		border-radius: 0;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		box-shadow: 0 4px 15px rgba(217, 43, 58, 0.3);
+		box-shadow: 0 4px 15px rgba(228, 94, 27, 0.3);
 		transition: var(--transition-smooth);
 	}
 
 	.btn-primary-dashboard:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(217, 43, 58, 0.45), 0 0 15px rgba(217, 43, 58, 0.2);
+		box-shadow: 0 6px 20px rgba(228, 94, 27, 0.45), 0 0 15px rgba(228, 94, 27, 0.2);
 	}
 
 	.btn-primary-dashboard:active {
@@ -899,7 +901,7 @@ import OrderTable from '../components/OrderTable.astro';
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: rgba(4, 7, 13, 0.85);
+		background: rgba(10, 10, 10, 0.85);
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
 		z-index: 1000;
@@ -923,7 +925,7 @@ import OrderTable from '../components/OrderTable.astro';
 		max-width: 480px;
 		background: var(--bg-modal);
 		border: 1px solid var(--border-color);
-		border-radius: 16px;
+		border-radius: 0;
 		padding: 24px;
 		box-shadow: var(--card-shadow), var(--glow-effect);
 		transform: scale(0.9);
@@ -937,8 +939,8 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	#details-modal-overlay .modal-container {
-		max-width: 700px;
-		max-height: 90vh;
+		max-width: min(1240px, 94vw);
+		max-height: 92vh;
 	}
 
 	#link-modal-overlay.modal-overlay.active .modal-container,
@@ -992,7 +994,7 @@ import OrderTable from '../components/OrderTable.astro';
 		justify-content: center;
 		width: 32px;
 		height: 32px;
-		border-radius: 50%;
+		border-radius: 0;
 		border: 1px solid var(--border-color);
 		transition: var(--transition-smooth);
 	}
@@ -1000,8 +1002,8 @@ import OrderTable from '../components/OrderTable.astro';
 	#link-modal-overlay .close-btn:hover,
 	#details-modal-overlay .close-btn:hover {
 		color: var(--text-primary);
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.2);
+		background: rgba(var(--tint-rgb), 0.05);
+		border-color: rgba(var(--hairline-rgb), 0.2);
 	}
 
 	#link-modal-overlay .modal-body {
@@ -1024,12 +1026,12 @@ import OrderTable from '../components/OrderTable.astro';
 		width: 6px;
 	}
 	#details-modal-overlay .modal-body::-webkit-scrollbar-track {
-		background: rgba(255, 255, 255, 0.02);
-		border-radius: 3px;
+		background: rgba(var(--tint-rgb), 0.02);
+		border-radius: 0;
 	}
 	#details-modal-overlay .modal-body::-webkit-scrollbar-thumb {
-		background: rgba(255, 255, 255, 0.15);
-		border-radius: 3px;
+		background: rgba(var(--tint-rgb), 0.15);
+		border-radius: 0;
 	}
 	#details-modal-overlay .modal-body::-webkit-scrollbar-thumb:hover {
 		background: var(--accent-primary);
@@ -1061,9 +1063,9 @@ import OrderTable from '../components/OrderTable.astro';
 	#link-modal-overlay .input-wrapper {
 		display: flex;
 		align-items: center;
-		background: rgba(255, 255, 255, 0.03);
+		background: rgba(var(--tint-rgb), 0.03);
 		border: 1px solid var(--border-color);
-		border-radius: 10px;
+		border-radius: 0;
 		padding: 8px 12px;
 		gap: 10px;
 		transition: var(--transition-smooth);
@@ -1071,8 +1073,8 @@ import OrderTable from '../components/OrderTable.astro';
 
 	#link-modal-overlay .input-wrapper:focus-within {
 		border-color: var(--accent-primary);
-		box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
-		background: rgba(255, 255, 255, 0.05);
+		box-shadow: 0 0 10px rgba(228, 94, 27, 0.15);
+		background: rgba(var(--tint-rgb), 0.05);
 	}
 
 	#link-modal-overlay #shareable-link-input {
@@ -1093,7 +1095,7 @@ import OrderTable from '../components/OrderTable.astro';
 		justify-content: center;
 		gap: 8px;
 		padding: 10px 18px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-family: var(--font-family);
 		font-weight: 700;
 		font-size: 0.875rem;
@@ -1106,25 +1108,25 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	#link-modal-overlay .btn-secondary {
-		background: rgba(255, 255, 255, 0.04);
+		background: rgba(var(--tint-rgb), 0.04);
 		border: 1px solid var(--border-color);
 		color: var(--text-primary);
 	}
 
 	#link-modal-overlay .btn-secondary:hover {
-		background: rgba(255, 255, 255, 0.08);
+		background: rgba(var(--tint-rgb), 0.08);
 		border-color: var(--text-secondary);
 	}
 
 	#link-modal-overlay .btn-primary {
 		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
 		color: white;
-		box-shadow: 0 4px 15px rgba(217, 43, 58, 0.35);
+		box-shadow: 0 4px 15px rgba(228, 94, 27, 0.35);
 	}
 
 	#link-modal-overlay .btn-primary:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 6px 20px rgba(217, 43, 58, 0.45);
+		box-shadow: 0 6px 20px rgba(228, 94, 27, 0.45);
 	}
 
 
@@ -1144,12 +1146,12 @@ import OrderTable from '../components/OrderTable.astro';
 	/* ===== ORDER HISTORY ===== */
 	.view-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
 	.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; min-width: 0; flex: 1 1 260px; }
-	.search-box { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; flex: 1 1 220px; min-width: 0; max-width: 100%; }
+	.search-box { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0; padding: 8px 14px; flex: 1 1 220px; min-width: 0; max-width: 100%; }
 	.search-box svg { color: var(--text-muted); flex-shrink: 0; }
 	.search-box input { background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; width: 100%; min-width: 0; }
 	.date-range-group { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; min-width: 0; }
-	.date-range-group input[type="date"] { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-family: var(--font-family); font-size: 0.8rem; outline: none; flex: 1 1 130px; min-width: 0; }
-	.btn-export { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; font-family: var(--font-family); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+	.date-range-group input[type="date"] { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0; padding: 8px 10px; color: var(--text-primary); font-family: var(--font-family); font-size: 0.8rem; outline: none; flex: 1 1 130px; min-width: 0; }
+	.btn-export { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 0; font-family: var(--font-family); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
 	.btn-export:hover { background: var(--bg-card-hover); color: var(--text-primary); }
 	.history-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 
@@ -1157,7 +1159,7 @@ import OrderTable from '../components/OrderTable.astro';
 
 	/* ===== ANALYTICS ===== */
 	.analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 24px; }
-	.analytic-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
+	.analytic-card { background: rgba(var(--tint-rgb), 0.03); border: 1px solid var(--border-color); border-radius: 0; padding: 20px; display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 	.analytic-card .a-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 	/* Peso amounts must never wrap mid-number — scale the type down instead */
 	.analytic-card .a-value {
@@ -1176,17 +1178,17 @@ import OrderTable from '../components/OrderTable.astro';
 	@media (max-width: 900px) { .analytics-charts-row { grid-template-columns: 1fr; } }
 	.chart-card { padding: 24px; min-width: 0; }
 	.chart-card-sm { padding: 20px; }
-	.chart-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-primary); margin-bottom: 16px; }
+	.chart-label { font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent-primary); margin-bottom: 16px; }
 	.bar-chart-container { display: flex; align-items: flex-end; gap: 12px; height: 160px; padding-top: 8px; overflow-x: auto; }
 	.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-	.bar-fill { width: 36px; border-radius: 4px 4px 0 0; transition: height 0.4s ease; cursor: pointer; }
+	.bar-fill { width: 36px; border-radius: 0; transition: height 0.4s ease; cursor: pointer; }
 	.bar-fill:hover { filter: brightness(1.2); }
 	.bar-id { font-size: 0.6rem; color: var(--text-muted); }
 	.donut-container { display: flex; justify-content: center; align-items: center; margin: 8px 0; }
 	.donut-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 	.legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); }
-	.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-	.analytics-top-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
+	.legend-dot { width: 10px; height: 10px; border-radius: 0; flex-shrink: 0; }
+	.analytics-top-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(var(--hairline-rgb), 0.04); font-size: 0.85rem; }
 	.analytics-top-item:last-child { border-bottom: none; }
 	.ati-rank { font-weight: 700; color: var(--accent-primary); min-width: 28px; }
 	.ati-name { flex: 1; color: var(--text-primary); }
@@ -1213,7 +1215,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.settings-head-icon {
 		display: flex; align-items: center; justify-content: center;
 		width: 36px; height: 36px; flex-shrink: 0;
-		border-radius: 10px;
+		border-radius: 0;
 		background: var(--accent-primary-light);
 		border: 1px solid var(--border-color);
 		color: var(--accent-primary);
@@ -1232,7 +1234,7 @@ import OrderTable from '../components/OrderTable.astro';
 		display: flex; flex-direction: column; gap: 14px;
 		min-width: 0;
 		padding: 16px;
-		border-radius: 12px;
+		border-radius: 0;
 		background: var(--bg-secondary);
 		border: 1px solid var(--border-color);
 		transition: border-color 0.2s;
@@ -1242,9 +1244,9 @@ import OrderTable from '../components/OrderTable.astro';
 		align-self: flex-start;
 		font-size: 0.68rem; font-weight: 800;
 		text-transform: uppercase; letter-spacing: 0.08em;
-		padding: 4px 10px; border-radius: 20px;
+		padding: 4px 10px; border-radius: 0;
 	}
-	.brand-maribank { color: var(--accent-primary); background: var(--accent-primary-light); border: 1px solid rgba(255,94,0,0.25); }
+	.brand-maribank { color: var(--accent-primary); background: var(--accent-primary-light); border: 1px solid rgba(228, 94, 27,0.25); }
 	.brand-gcash { color: #0ea5e9; background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); }
 
 	.settings-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -1253,7 +1255,7 @@ import OrderTable from '../components/OrderTable.astro';
 		width: 100%; min-width: 0;
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 8px;
+		border-radius: 0;
 		padding: 10px 14px;
 		color: var(--text-primary);
 		font-family: var(--font-family);
@@ -1279,20 +1281,20 @@ import OrderTable from '../components/OrderTable.astro';
 	.btn-save-settings {
 		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
 		border: none; color: #fff;
-		padding: 11px 20px; border-radius: 10px;
+		padding: 11px 20px; border-radius: 0;
 		font-family: var(--font-family); font-weight: 700; font-size: 0.875rem;
 		cursor: pointer;
-		box-shadow: 0 4px 15px rgba(255, 94, 0, 0.25);
+		box-shadow: 0 4px 15px rgba(228, 94, 27, 0.25);
 		transition: var(--transition-smooth);
 	}
-	.btn-save-settings:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 94, 0, 0.4); }
+	.btn-save-settings:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(228, 94, 27, 0.4); }
 	.btn-save-settings:active { transform: translateY(1px); }
 
 	.btn-danger-settings {
 		background: transparent;
 		border: 1px solid rgba(239, 68, 68, 0.4);
 		color: var(--status-cancelled);
-		padding: 11px 20px; border-radius: 10px;
+		padding: 11px 20px; border-radius: 0;
 		font-family: var(--font-family); font-weight: 700; font-size: 0.85rem;
 		cursor: pointer;
 		transition: var(--transition-smooth);
@@ -1394,8 +1396,8 @@ import OrderTable from '../components/OrderTable.astro';
 		color: var(--accent-primary);
 		background: var(--accent-primary-light);
 		padding: 2px 6px;
-		border-radius: 4px;
-		border: 1px solid rgba(255, 94, 0, 0.2);
+		border-radius: 0;
+		border: 1px solid rgba(228, 94, 27, 0.2);
 		margin-top: 4px;
 		display: inline-block;
 	}
@@ -1411,7 +1413,7 @@ import OrderTable from '../components/OrderTable.astro';
 		border: 1px solid var(--border-color);
 		height: 36px;
 		padding: 0 14px;
-		border-radius: 8px;
+		border-radius: 0;
 		color: var(--text-secondary);
 		font-family: inherit;
 		font-size: 0.8rem;
@@ -1439,7 +1441,7 @@ import OrderTable from '../components/OrderTable.astro';
 		background: var(--border-color);
 		color: var(--text-secondary);
 		padding: 1px 6px;
-		border-radius: 10px;
+		border-radius: 0;
 		font-weight: 700;
 	}
 	.filter-tab.active .tab-count {
@@ -1448,7 +1450,7 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 	/* Status-colored counts */
 	#hcount-pending   { color: #f59e0b; background: rgba(245,158,11,0.15); }
-	#hcount-preparing { color: #f97316; background: rgba(249,115,22,0.15); }
+	#hcount-preparing { color: #d9661a; background: var(--status-preparing-light); }
 	#hcount-completed { color: #10b981; background: rgba(16,185,129,0.15); }
 	#hcount-cancelled { color: #ef4444; background: rgba(239,68,68,0.15); }
 
@@ -1456,14 +1458,14 @@ import OrderTable from '../components/OrderTable.astro';
 	.analytic-card {
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 14px;
+		border-radius: 0;
 		padding: 20px 22px;
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 		transition: border-color 0.2s;
 	}
-	.analytic-card:hover { border-color: rgba(99,102,241,0.35); }
+	.analytic-card:hover { border-color: rgba(228, 94, 27,0.35); }
 	.analytic-card .a-label {
 		font-size: 0.68rem;
 		font-weight: 700;
@@ -1492,7 +1494,7 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 	.bar-fill {
 		width: 36px;
-		border-radius: 4px 4px 0 0;
+		border-radius: 0;
 		transition: height 0.4s ease, filter 0.15s;
 		cursor: pointer;
 		min-height: 4px;
@@ -1516,7 +1518,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.legend-dot {
 		width: 10px;
 		height: 10px;
-		border-radius: 50%;
+		border-radius: 0;
 		flex-shrink: 0;
 	}
 
@@ -1556,9 +1558,9 @@ import OrderTable from '../components/OrderTable.astro';
 		justify-content: space-between;
 		align-items: center;
 		padding: 16px 20px;
-		background: rgba(15, 23, 42, 0.4);
+		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 12px;
+		border-radius: 0;
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
 		margin-bottom: 24px;
@@ -1576,7 +1578,7 @@ import OrderTable from '../components/OrderTable.astro';
 		width: 8px;
 		height: 8px;
 		background-color: #10b981;
-		border-radius: 50%;
+		border-radius: 0;
 		box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
 		animation: pulse-green 2s infinite;
 	}
@@ -1610,7 +1612,7 @@ import OrderTable from '../components/OrderTable.astro';
 
 	.kitchen-badge {
 		padding: 6px 14px;
-		border-radius: 20px;
+		border-radius: 0;
 		font-size: 0.8rem;
 		font-weight: 700;
 	}
@@ -1620,15 +1622,15 @@ import OrderTable from '../components/OrderTable.astro';
 		border: 1px solid rgba(245, 158, 11, 0.3);
 	}
 	.kitchen-badge.badge-preparing {
-		background: rgba(14, 165, 233, 0.15);
-		color: #0ea5e9;
-		border: 1px solid rgba(14, 165, 233, 0.3);
+		background: rgba(228, 94, 27, 0.15);
+		color: var(--status-preparing);
+		border: 1px solid rgba(228, 94, 27, 0.3);
 	}
 
 	/* Small awaiting badge for orders missing customer details */
 	.awaiting-badge {
 		padding: 4px 8px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-size: 0.7rem;
 		font-weight: 800;
 		color: #f59e0b;
@@ -1646,7 +1648,7 @@ import OrderTable from '../components/OrderTable.astro';
 		border: 1px solid var(--border-color);
 		color: var(--text-secondary);
 		padding: 8px 14px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-family: var(--font-family);
 		font-size: 0.8rem;
 		font-weight: 600;
@@ -1654,7 +1656,7 @@ import OrderTable from '../components/OrderTable.astro';
 		transition: var(--transition-smooth);
 	}
 	.btn-refresh:hover {
-		background: rgba(255, 255, 255, 0.05);
+		background: rgba(var(--tint-rgb), 0.05);
 		color: var(--text-primary);
 		border-color: var(--text-secondary);
 	}
@@ -1673,9 +1675,9 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	.kds-column {
-		background: rgba(30, 41, 59, 0.2);
+		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 16px;
+		border-radius: 0;
 		padding: 24px;
 		display: flex;
 		flex-direction: column;
@@ -1690,7 +1692,7 @@ import OrderTable from '../components/OrderTable.astro';
 		justify-content: space-between;
 		align-items: center;
 		padding-bottom: 12px;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		border-bottom: 1px solid rgba(var(--hairline-rgb), 0.05);
 	}
 
 	.kds-col-header-left {
@@ -1714,14 +1716,14 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	.kds-col-preparing .kds-col-title {
-		color: #0ea5e9;
+		color: var(--status-preparing);
 	}
 
 	.kds-col-count {
 		font-size: 0.75rem;
 		font-weight: 700;
 		padding: 2px 8px;
-		border-radius: 10px;
+		border-radius: 0;
 	}
 
 	.kds-col-pending .kds-col-count {
@@ -1730,8 +1732,8 @@ import OrderTable from '../components/OrderTable.astro';
 	}
 
 	.kds-col-preparing .kds-col-count {
-		background: rgba(14, 165, 233, 0.15);
-		color: #0ea5e9;
+		background: rgba(228, 94, 27, 0.15);
+		color: var(--status-preparing);
 	}
 
 	.kds-col-body {
@@ -1769,7 +1771,7 @@ import OrderTable from '../components/OrderTable.astro';
 
 	.kds-all-empty-icon {
 		font-size: 3rem;
-		filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
+		filter: drop-shadow(0 0 10px rgba(228, 94, 27, 0.2));
 	}
 
 	.kds-all-empty-title {
@@ -1786,10 +1788,10 @@ import OrderTable from '../components/OrderTable.astro';
 
 	/* === Live Kitchen: KDS cards === */
 	.kitchen-card {
-		background: rgba(255,255,255,0.03);
-		border: 1px solid rgba(255,255,255,0.08);
+		background: rgba(var(--tint-rgb), 0.03);
+		border: 1px solid rgba(var(--hairline-rgb), 0.08);
 		border-left-width: 4px;
-		border-radius: 12px;
+		border-radius: 0;
 		padding: 20px;
 		display: flex;
 		flex-direction: column;
@@ -1801,7 +1803,7 @@ import OrderTable from '../components/OrderTable.astro';
 		box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 	}
 	.kitchen-card.status-pending { border-left-color: #f59e0b; }
-	.kitchen-card.status-preparing { border-left-color: #ff8800; }
+	.kitchen-card.status-preparing { border-left-color: #e45e1b; }
 
 	.kcard-header {
 		display: flex;
@@ -1809,21 +1811,21 @@ import OrderTable from '../components/OrderTable.astro';
 		align-items: flex-start;
 	}
 	.kcard-id {
-		font-weight: 800;
+		font-weight: 700;
 		font-size: 1.1rem;
-		color: #fff;
+		color: var(--text-primary);
 		letter-spacing: -0.02em;
 	}
 	.kcard-timer {
 		font-size: 0.72rem;
-		color: rgba(255,255,255,0.35);
-		background: rgba(255,255,255,0.06);
+		color: var(--text-muted);
+		background: var(--bg-well);
 		padding: 3px 8px;
-		border-radius: 20px;
+		border-radius: 0;
 	}
 	.kcard-customer {
 		font-size: 0.875rem;
-		color: rgba(255,255,255,0.6);
+		color: var(--text-secondary);
 		display: flex;
 		align-items: center;
 		gap: 6px;
@@ -1833,17 +1835,17 @@ import OrderTable from '../components/OrderTable.astro';
 		flex-direction: column;
 		gap: 5px;
 		padding: 10px 12px;
-		background: rgba(0,0,0,0.25);
-		border-radius: 8px;
-		border: 1px solid rgba(255,255,255,0.04);
+		background: var(--bg-well);
+		border-radius: 0;
+		border: 1px solid var(--border-color);
 	}
 	.kcard-item {
 		font-size: 0.82rem;
-		color: rgba(255,255,255,0.6);
+		color: var(--text-secondary);
 		line-height: 1.4;
 	}
 	.kcard-item strong {
-		color: #fff;
+		color: var(--text-primary);
 		font-weight: 700;
 	}
 	.kcard-actions {
@@ -1854,7 +1856,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.kcard-btn {
 		flex: 1;
 		padding: 9px 8px;
-		border-radius: 8px;
+		border-radius: 0;
 		font-size: 0.78rem;
 		font-weight: 700;
 		cursor: pointer;
@@ -1862,14 +1864,14 @@ import OrderTable from '../components/OrderTable.astro';
 		text-align: center;
 	}
 	.kcard-btn-prepare {
-		background: rgba(14,165,233,0.12);
-		color: #0ea5e9;
-		border: 1px solid rgba(14,165,233,0.5) !important;
+		background: rgba(228, 94, 27,0.12);
+		color: var(--status-preparing);
+		border: 1px solid rgba(228, 94, 27,0.5) !important;
 	}
 	.kcard-btn-prepare:hover {
-		background: #0ea5e9;
+		background: var(--status-preparing);
 		color: white;
-		border-color: #0ea5e9 !important;
+		border-color: var(--status-preparing) !important;
 	}
 	.kcard-btn-complete {
 		background: rgba(16,185,129,0.12);
@@ -1896,7 +1898,7 @@ import OrderTable from '../components/OrderTable.astro';
 		background: var(--bg-card-hover);
 		border: 1px solid var(--border-color);
 		color: var(--text-muted);
-		border-radius: 6px;
+		border-radius: 0;
 		width: 28px;
 		height: 28px;
 		display: flex;
@@ -1940,7 +1942,7 @@ import OrderTable from '../components/OrderTable.astro';
 		border: 1px solid var(--border-color);
 		color: var(--text-secondary);
 		width: 32px; height: 32px;
-		border-radius: 8px;
+		border-radius: 0;
 		cursor: pointer;
 		display: flex; align-items: center; justify-content: center;
 		transition: all 0.2s;
@@ -1977,7 +1979,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.cal-cell {
 		position: relative;
 		min-height: 60px;
-		border-radius: 10px;
+		border-radius: 0;
 		padding: 8px 6px 6px;
 		display: flex;
 		flex-direction: column;
@@ -2012,7 +2014,7 @@ import OrderTable from '../components/OrderTable.astro';
 		background: var(--accent-primary);
 		color: #fff;
 		padding: 1px 5px;
-		border-radius: 20px;
+		border-radius: 0;
 		line-height: 1.5;
 		min-width: 18px;
 		text-align: center;
@@ -2068,7 +2070,7 @@ import OrderTable from '../components/OrderTable.astro';
 	.cal-order-card {
 		background: var(--bg-secondary);
 		border: 1px solid var(--border-color);
-		border-radius: 10px;
+		border-radius: 0;
 		padding: 12px 14px;
 		display: flex;
 		flex-direction: column;
@@ -2096,7 +2098,7 @@ import OrderTable from '../components/OrderTable.astro';
 		border: 1px solid var(--border-color);
 		color: var(--text-secondary);
 		padding: 2px 8px;
-		border-radius: 20px;
+		border-radius: 0;
 	}
 	.cal-order-footer {
 		display: flex;
@@ -2143,7 +2145,7 @@ import OrderTable from '../components/OrderTable.astro';
 		flex-direction: column;
 		gap: 12px;
 		padding: 14px;
-		border-radius: 12px;
+		border-radius: 0;
 		background: var(--bg-secondary);
 		border: 1px solid var(--border-color);
 	}
@@ -2168,7 +2170,7 @@ import OrderTable from '../components/OrderTable.astro';
 		font-size: 0.78rem;
 		color: var(--text-secondary);
 		padding: 8px 10px;
-		border-radius: 8px;
+		border-radius: 0;
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
 	}
@@ -2203,7 +2205,7 @@ import OrderTable from '../components/OrderTable.astro';
 		display: flex; align-items: center; justify-content: center; gap: 7px;
 		width: 100%;
 		padding: 10px;
-		border-radius: 9px;
+		border-radius: 0;
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
 		color: var(--text-secondary);
@@ -2230,7 +2232,7 @@ import OrderTable from '../components/OrderTable.astro';
 		background: var(--bg-card);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
-		border-radius: 0 0 16px 16px;
+		border-radius: 0;
 		position: sticky;
 		bottom: 0;
 		z-index: 10;
@@ -2252,12 +2254,12 @@ import OrderTable from '../components/OrderTable.astro';
 		gap: 6px;
 	}
 	.pagination-btn {
-		background: rgba(255, 255, 255, 0.03);
+		background: rgba(var(--tint-rgb), 0.03);
 		border: 1px solid var(--border-color);
 		color: var(--text-primary);
 		width: 32px;
 		height: 32px;
-		border-radius: 8px;
+		border-radius: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -2268,7 +2270,7 @@ import OrderTable from '../components/OrderTable.astro';
 		font-weight: 600;
 	}
 	.pagination-btn:hover {
-		background: rgba(255, 255, 255, 0.08);
+		background: rgba(var(--tint-rgb), 0.08);
 		border-color: var(--border-color-hover);
 		color: var(--text-primary);
 	}
@@ -2277,7 +2279,7 @@ import OrderTable from '../components/OrderTable.astro';
 		border-color: transparent;
 		color: #ffffff;
 		font-weight: 700;
-		box-shadow: 0 0 12px rgba(217, 43, 58, 0.2);
+		box-shadow: 0 0 12px rgba(228, 94, 27, 0.2);
 	}
 	.pagination-btn.disabled,
 	.pagination-btn:disabled {
@@ -2324,7 +2326,7 @@ import OrderTable from '../components/OrderTable.astro';
 	@media (max-width: 640px) {
 		.cal-panel { padding: 16px 12px; }
 		.cal-grid, .cal-weekdays { gap: 3px; }
-		.cal-cell { min-height: 52px; padding: 6px 2px 4px; gap: 3px; border-radius: 8px; }
+		.cal-cell { min-height: 52px; padding: 6px 2px 4px; gap: 3px; border-radius: 0; }
 		.cal-day-num { font-size: 0.8rem; }
 		.cal-order-badge { font-size: 0.58rem; padding: 1px 4px; min-width: 16px; }
 		.cal-weekdays span { font-size: 0.6rem; letter-spacing: 0.02em; }
@@ -3346,7 +3348,7 @@ function showConfirm(message) {
 
 			itemsHTML = `
 				<form id="edit-items-form" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
-					<div id="edit-items-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+					<div id="edit-items-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: min(52vh, 520px); overflow-y: auto; padding-right: 4px;">
 						${editItemsStaged.map((it, idx) => {
 							// Determine if it matches any standard menu item
 							let matchedStandardName = "";
@@ -3362,11 +3364,11 @@ function showConfirm(message) {
 							const isCustom = !matchedStandardName;
 
 							return `
-								<div class="edit-item-row" data-idx="${idx}" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px;">
+								<div class="edit-item-row" data-idx="${idx}" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--bg-well); border: 1px solid var(--border-color); border-radius: 0;">
 									<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-										<input type="number" class="edit-item-qty" style="width: 55px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; text-align: center;" value="${it.quantity}" min="1" required />
+										<input type="number" class="edit-item-qty" style="width: 55px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 0; font-size: 0.8rem; text-align: center;" value="${it.quantity}" min="1" required />
 										
-										<select class="edit-item-select" data-idx="${idx}" style="flex: 1; min-width: 120px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; color-scheme: dark;">
+										<select class="edit-item-select" data-idx="${idx}" style="flex: 1; min-width: 120px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 0; font-size: 0.8rem; color-scheme: light dark;">
 											<option value="Custom Item" ${isCustom ? 'selected' : ''}>Custom Item...</option>
 											${MENU_ITEMS.map(cat => `
 												<optgroup label="${cat.category}">
@@ -3378,21 +3380,21 @@ function showConfirm(message) {
 											`).join('')}
 										</select>
 
-										<input type="text" class="edit-item-name" data-idx="${idx}" style="flex: 1; min-width: 120px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; ${!isCustom ? 'display: none;' : ''}" value="${it.name}" placeholder="Item Name" required />
+										<input type="text" class="edit-item-name" data-idx="${idx}" style="flex: 1; min-width: 120px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 0; font-size: 0.8rem; ${!isCustom ? 'display: none;' : ''}" value="${it.name}" placeholder="Item Name" required />
 										
-										<input type="number" step="0.01" class="edit-item-price" style="width: 85px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; text-align: right;" value="${it.price}" required />
+										<input type="number" step="0.01" class="edit-item-price" style="width: 85px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 0; font-size: 0.8rem; text-align: right;" value="${it.price}" required />
 										
 										<button type="button" class="btn-remove-edit-item" data-idx="${idx}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px;" title="Remove Item">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
 										</button>
 									</div>
 
-									<div class="edit-item-inclusions-section" style="display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-top: 2px;">
+									<div class="edit-item-inclusions-section" style="display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: var(--bg-well); border: 1px solid rgba(var(--hairline-rgb), 0.05); border-radius: 0; margin-top: 2px;">
 										<label style="font-size: 0.65rem; color: var(--accent-primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Inclusions</label>
 										<div class="edit-inclusions-list" style="display: flex; flex-direction: column; gap: 4px;">
 											${(it.customInclusions || []).map((inc, incIdx) => `
 												<div style="display: flex; gap: 6px; align-items: center;">
-													<input type="text" class="edit-inclusion-input" list="inclusion-suggestions" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="flex: 1; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 3px 6px; border-radius: 4px; font-size: 0.75rem;" value="${inc.replace(/"/g, '&quot;')}" placeholder="Type or pick an inclusion..." />
+													<input type="text" class="edit-inclusion-input" list="inclusion-suggestions" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="flex: 1; min-width: 0; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 3px 6px; border-radius: 0; font-size: 0.75rem;" value="${inc.replace(/"/g, '&quot;')}" placeholder="Type or pick an inclusion..." />
 													<button type="button" class="btn-remove-edit-inclusion" data-item-idx="${idx}" data-inc-idx="${incIdx}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px;" title="Remove Inclusion">
 														<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
 													</button>
@@ -3400,11 +3402,11 @@ function showConfirm(message) {
 											`).join('')}
 										</div>
 										<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px;">
-											<select class="edit-inclusion-picker" data-item-idx="${idx}" style="flex: 1 1 150px; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 4px; font-size: 0.7rem; color-scheme: dark;">
+											<select class="edit-inclusion-picker" data-item-idx="${idx}" style="flex: 1 1 150px; min-width: 0; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 6px; border-radius: 0; font-size: 0.7rem; color-scheme: light dark;">
 												<option value="">+ Add from menu…</option>
 												${inclusionOptionsHTML}
 											</select>
-											<button type="button" class="btn-add-edit-inclusion" data-item-idx="${idx}" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+											<button type="button" class="btn-add-edit-inclusion" data-item-idx="${idx}" style="background: rgba(var(--tint-rgb), 0.05); border: 1px dashed var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 4px 8px; border-radius: 0; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
 												<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
 												<span>Type custom</span>
 											</button>
@@ -3415,13 +3417,13 @@ function showConfirm(message) {
 						}).join('')}
 					</div>
 					<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-						<button type="button" id="btn-add-edit-item" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-primary);">
+						<button type="button" id="btn-add-edit-item" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; background: rgba(var(--tint-rgb), 0.05); border: 1px solid var(--border-color); color: var(--text-primary);">
 							<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
 							<span>Add Item</span>
 						</button>
 						<div style="display: flex; gap: 8px;">
 							<button type="button" class="btn btn-secondary btn-cancel-edit" style="padding: 6px 12px; font-size: 0.75rem;">Cancel</button>
-							<button type="submit" class="btn btn-primary btn-save-items" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 6px; cursor: pointer;">Save</button>
+							<button type="submit" class="btn btn-primary btn-save-items" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 0; cursor: pointer;">Save</button>
 						</div>
 					</div>
 					${inclusionDatalistHTML}
@@ -3439,7 +3441,7 @@ function showConfirm(message) {
 					</div>
 				` : '';
 				return `
-					<div class="detail-item-row" style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.875rem;">
+					<div class="detail-item-row" style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(var(--hairline-rgb), 0.05); font-size: 0.875rem;">
 						<span class="detail-item-qty" style="color: var(--accent-primary); font-weight: 700;">${it.quantity}x</span>
 						<span class="detail-item-name" style="color: var(--text-primary); font-weight: 500;">${it.name}</span>
 						<span class="detail-item-price" style="color: var(--text-secondary);">₱${it.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -3450,7 +3452,7 @@ function showConfirm(message) {
 			}).join('');
 
 			itemsHTML = `
-				<div class="detail-items-list" style="max-height: 200px; overflow-y: auto; padding-right: 4px;">
+				<div class="detail-items-list" style="max-height: min(46vh, 460px); overflow-y: auto; padding-right: 4px;">
 					${itemsHTMLList}
 				</div>
 			`;
@@ -3463,15 +3465,15 @@ function showConfirm(message) {
 				<form id="edit-payment-form" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Delivery/Meetup Fee</label>
-						<input type="number" step="0.01" id="edit-delivery-fee" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.deliveryFee || 0}" required />
+						<input type="number" step="0.01" id="edit-delivery-fee" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.deliveryFee || 0}" required />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Downpayment Paid</label>
-						<input type="number" step="0.01" id="edit-downpayment" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.downpayment}" required />
+						<input type="number" step="0.01" id="edit-downpayment" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.downpayment}" required />
 					</div>
 					<div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
 						<button type="button" class="btn btn-secondary btn-cancel-edit" style="padding: 6px 12px; font-size: 0.75rem;">Cancel</button>
-						<button type="submit" class="btn btn-primary btn-save-payment" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 6px; cursor: pointer;">Save</button>
+						<button type="submit" class="btn btn-primary btn-save-payment" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 0; cursor: pointer;">Save</button>
 					</div>
 				</form>
 			`;
@@ -3486,7 +3488,7 @@ function showConfirm(message) {
 						<span class="field-label" style="color: var(--text-secondary);">Delivery/Meetup Fee:</span>
 						<span class="field-value" style="color: var(--text-primary);">₱${(order.deliveryFee || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
 					</div>
-					<div class="detail-field" style="display: flex; justify-content: space-between; font-size: 0.875rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 6px; margin-top: 2px;">
+					<div class="detail-field" style="display: flex; justify-content: space-between; font-size: 0.875rem; border-top: 1px solid rgba(var(--hairline-rgb), 0.05); padding-top: 6px; margin-top: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-weight: 700;">Total Bill:</span>
 						<span class="field-value highlight-total" style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">₱${order.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
 					</div>
@@ -3509,11 +3511,11 @@ function showConfirm(message) {
 				<form id="edit-customer-form" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Customer Name</label>
-						<input type="text" id="edit-customer-name" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.customer}" required />
+						<input type="text" id="edit-customer-name" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.customer}" required />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Fulfillment Type</label>
-						<select id="edit-fulfillment-type" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem; color-scheme: dark;">
+						<select id="edit-fulfillment-type" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem; color-scheme: light dark;">
 							<option value="Pickup" ${order.fulfillmentType === 'Pickup' ? 'selected' : ''}>PICKUP</option>
 							<option value="Meetup" ${order.fulfillmentType === 'Meetup' ? 'selected' : ''}>MEETUP</option>
 							<option value="Delivery" ${order.fulfillmentType === 'Delivery' ? 'selected' : ''}>DELIVERY</option>
@@ -3521,7 +3523,7 @@ function showConfirm(message) {
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Order Status</label>
-						<select id="edit-order-status" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem; color-scheme: dark;">
+						<select id="edit-order-status" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem; color-scheme: light dark;">
 							<option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
 							<option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
 							<option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
@@ -3530,23 +3532,23 @@ function showConfirm(message) {
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Exact Address</label>
-						<input type="text" id="edit-customer-address" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.address || ''}" />
+						<input type="text" id="edit-customer-address" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.address || ''}" />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Contact Number</label>
-						<input type="text" id="edit-customer-contact" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.contact || ''}" />
+						<input type="text" id="edit-customer-contact" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.contact || ''}" />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Facebook Name</label>
-						<input type="text" id="edit-facebook-name" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem;" value="${order.facebookName || ''}" />
+						<input type="text" id="edit-facebook-name" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem;" value="${order.facebookName || ''}" />
 					</div>
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Delivery Date & Time</label>
-						<input type="datetime-local" id="edit-delivery-datetime" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 0.875rem; color-scheme: dark;" value="${(order.deliveryDateTime || '').replace(' ', 'T')}" />
+						<input type="datetime-local" id="edit-delivery-datetime" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: 0; font-size: 0.875rem; color-scheme: light dark;" value="${(order.deliveryDateTime || '').replace(' ', 'T')}" />
 					</div>
 					<div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
 						<button type="button" class="btn btn-secondary btn-cancel-edit" style="padding: 6px 12px; font-size: 0.75rem;">Cancel</button>
-						<button type="submit" class="btn btn-primary btn-save-customer" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 6px; cursor: pointer;">Save</button>
+						<button type="submit" class="btn btn-primary btn-save-customer" style="padding: 6px 12px; font-size: 0.75rem; background: var(--accent-primary); color: white; border: none; font-weight: 700; border-radius: 0; cursor: pointer;">Save</button>
 					</div>
 				</form>
 			`;
@@ -3589,7 +3591,7 @@ function showConfirm(message) {
 					${((order.customer || '').trim() === 'Pending Customer Details' || (order.customer || '').trim() === '') ? `
 						<div class="detail-field" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
 							<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Owner Note (FB Name) — visible only to owner</span>
-							<textarea id="owner-note" style="width:100%;min-height:70px;background: rgba(0,0,0,0.03);border:1px solid var(--border-color);color:var(--text-primary);padding:8px;border-radius:6px;">${escapeHtml(existingOwnerNote)}</textarea>
+							<textarea id="owner-note" style="width:100%;min-height:70px;background: var(--bg-well);border:1px solid var(--border-color);color:var(--text-primary);padding:8px;border-radius: 0;">${escapeHtml(existingOwnerNote)}</textarea>
 							<div style="display:flex;justify-content:flex-end;">
 								<button id="save-note-btn" data-id="${id}" class="btn btn-primary" style="padding:6px 12px;margin-top:6px;">Save Note</button>
 							</div>
@@ -3603,13 +3605,13 @@ function showConfirm(message) {
 
 		// Header Edit Action Buttons
 		const editItemsBtnHTML = activeEditSection ? '' : `
-			<button class="btn-edit-section" data-section="items" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(217, 43, 58, 0.2); transition: all 0.2s;" title="Edit Items">Edit</button>
+			<button class="btn-edit-section" data-section="items" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 0; border: 1px solid rgba(228, 94, 27, 0.2); transition: all 0.2s;" title="Edit Items">Edit</button>
 		`;
 		const editPaymentBtnHTML = activeEditSection ? '' : `
-			<button class="btn-edit-section" data-section="payment" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(217, 43, 58, 0.2); transition: all 0.2s;" title="Edit Payments">Edit</button>
+			<button class="btn-edit-section" data-section="payment" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 0; border: 1px solid rgba(228, 94, 27, 0.2); transition: all 0.2s;" title="Edit Payments">Edit</button>
 		`;
 		const editCustomerBtnHTML = activeEditSection ? '' : `
-			<button class="btn-edit-section" data-section="customer" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(217, 43, 58, 0.2); transition: all 0.2s;" title="Edit Customer Details">Edit</button>
+			<button class="btn-edit-section" data-section="customer" style="background: transparent; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 0; border: 1px solid rgba(228, 94, 27, 0.2); transition: all 0.2s;" title="Edit Customer Details">Edit</button>
 		`;
 
 		const modalBody = document.getElementById('details-modal-body');
@@ -3619,7 +3621,7 @@ function showConfirm(message) {
 					<!-- Left Column: Items Breakdown & Payments -->
 					<div class="detail-left-column" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
 						<!-- Items breakdown card -->
-						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 0; background: rgba(var(--tint-rgb), 0.02); border: 1px solid rgba(var(--hairline-rgb), 0.05);">
 							<div class="detail-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
 								<div class="detail-section-title" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 0.05em;">Items Breakdown</div>
 								${editItemsBtnHTML}
@@ -3628,7 +3630,7 @@ function showConfirm(message) {
 						</div>
 						
 						<!-- Payment breakdown card -->
-						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 0; background: rgba(var(--tint-rgb), 0.02); border: 1px solid rgba(var(--hairline-rgb), 0.05);">
 							<div class="detail-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
 								<div class="detail-section-title" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 0.05em;">Payment Breakdown</div>
 								${editPaymentBtnHTML}
@@ -3640,7 +3642,7 @@ function showConfirm(message) {
 					<!-- Right Column: Delivery Info, Status & Manage buttons -->
 					<div class="detail-right-column" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
 						<!-- Customer & Delivery details card -->
-						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 0; background: rgba(var(--tint-rgb), 0.02); border: 1px solid rgba(var(--hairline-rgb), 0.05);">
 							<div class="detail-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
 								<div class="detail-section-title" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 0.05em;">Delivery & Contact Details</div>
 								${editCustomerBtnHTML}
@@ -3649,7 +3651,7 @@ function showConfirm(message) {
 						</div>
 
 						<!-- Manage Order card (Moved from bottom to right column) -->
-						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+						<div class="detail-section glass-panel" style="padding: 16px; border-radius: 0; background: rgba(var(--tint-rgb), 0.02); border: 1px solid rgba(var(--hairline-rgb), 0.05);">
 							<div class="detail-section-title" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.05em;">Manage Order</div>
 							<div class="detail-actions-buttons" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
 								${actionsHTML}
@@ -4406,31 +4408,32 @@ Christy Montejo
 
 		// Render the receipt HTML structure inside tempDiv
 		tempDiv.innerHTML = `
-			<div class="receipt-container" style="background: #ffffff; padding: 48px; border-radius: 16px; font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; border: 1px solid #e2e8f0; width: 800px; box-sizing: border-box;">
+			<div class="receipt-container" style="background: #ffffff; padding: 48px; border-radius: 0; font-family: 'Jost', sans-serif; color: #3f3226; border: 1px solid #e6dccd; width: 800px; box-sizing: border-box;">
 				<style>
 					.receipt-container * {
 						box-sizing: border-box;
 						margin: 0;
 						padding: 0;
-						color: #334155 !important;
+						color: #3f3226 !important;
 					}
 					.receipt-container .header {
 						display: flex;
 						justify-content: space-between;
 						align-items: flex-start;
-						border-bottom: 2px solid #e2e8f0;
+						border-bottom: 2px solid #e6dccd;
 						padding-bottom: 24px;
 						margin-bottom: 32px;
 					}
 					.receipt-container .company-title {
-						font-size: 24px;
-						font-weight: 800;
+						font-family: 'Cormorant Garamond', Georgia, serif;
+						font-size: 30px;
+						font-weight: 600;
 						text-transform: uppercase;
-						color: #0f172a !important;
+						color: #2b1d13 !important;
 					}
 					.receipt-container .company-sub {
 						font-size: 13px;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						margin-top: 4px;
 						font-weight: 500;
 					}
@@ -4441,18 +4444,18 @@ Christy Montejo
 						font-size: 11px;
 						font-weight: 800;
 						text-transform: uppercase;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						letter-spacing: 0.05em;
 					}
 					.receipt-container .meta-value {
 						font-size: 15px;
 						font-weight: 700;
-						color: #0f172a !important;
+						color: #2b1d13 !important;
 						margin-bottom: 8px;
 					}
 					.receipt-container .meta-date {
 						font-size: 12px;
-						color: #64748b !important;
+						color: #8d7359 !important;
 					}
 					.receipt-container .details-row {
 						display: grid;
@@ -4464,10 +4467,10 @@ Christy Montejo
 						font-size: 12px;
 						font-weight: 800;
 						text-transform: uppercase;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						letter-spacing: 0.05em;
 						margin-bottom: 12px;
-						border-bottom: 1px solid #e2e8f0;
+						border-bottom: 1px solid #e6dccd;
 						padding-bottom: 6px;
 					}
 					.receipt-container .details-text {
@@ -4481,19 +4484,19 @@ Christy Montejo
 						margin-bottom: 32px;
 					}
 					.receipt-container .items-table th {
-						background: #f8fafc;
-						color: #64748b !important;
+						background: #faf6f0;
+						color: #8d7359 !important;
 						font-size: 11px;
 						font-weight: 800;
 						text-transform: uppercase;
 						letter-spacing: 0.05em;
 						padding: 12px 16px;
 						text-align: left;
-						border-bottom: 2px solid #e2e8f0;
+						border-bottom: 2px solid #e6dccd;
 					}
 					.receipt-container .items-table td {
 						padding: 14px 16px;
-						border-bottom: 1px solid #e2e8f0;
+						border-bottom: 1px solid #e6dccd;
 						font-size: 14px;
 						font-weight: 500;
 					}
@@ -4504,7 +4507,7 @@ Christy Montejo
 						display: flex;
 						justify-content: space-between;
 						align-items: flex-start;
-						border-top: 2px solid #e2e8f0;
+						border-top: 2px solid #e6dccd;
 						padding-top: 24px;
 						margin-bottom: 40px;
 					}
@@ -4515,7 +4518,7 @@ Christy Montejo
 						font-size: 12px;
 						font-weight: 800;
 						text-transform: uppercase;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						letter-spacing: 0.05em;
 						margin-bottom: 12px;
 					}
@@ -4527,7 +4530,7 @@ Christy Montejo
 						font-weight: 600;
 					}
 					.receipt-container .payment-field-label {
-						color: #64748b !important;
+						color: #8d7359 !important;
 						width: 120px;
 					}
 					.receipt-container .payment-status-badge {
@@ -4539,11 +4542,11 @@ Christy Montejo
 						text-transform: uppercase;
 					}
 					.receipt-container .status-paid { color: #10b981 !important; }
-					.receipt-container .status-partial { color: #f97316 !important; }
+					.receipt-container .status-partial { color: #d9661a !important; }
 					.receipt-container .status-unpaid { color: #ef4444 !important; }
 					.receipt-container .payment-note {
 						font-size: 12px;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						margin-top: 8px;
 						line-height: 1.4;
 						font-style: italic;
@@ -4561,15 +4564,15 @@ Christy Montejo
 					.receipt-container .financial-row.grand-total {
 						font-size: 18px;
 						font-weight: 800;
-						border-top: 1px solid #e2e8f0;
+						border-top: 1px solid #e6dccd;
 						padding-top: 12px;
 						margin-top: 8px;
 					}
 					.receipt-container .financial-row.grand-total .val {
-						color: #f97316 !important;
+						color: #d9661a !important;
 					}
 					.receipt-container .footer {
-						border-top: 1px dashed #e2e8f0;
+						border-top: 1px dashed #e6dccd;
 						padding-top: 24px;
 						display: flex;
 						justify-content: space-between;
@@ -4577,7 +4580,7 @@ Christy Montejo
 					}
 					.receipt-container .footer-left {
 						font-size: 11px;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						line-height: 1.5;
 					}
 					.receipt-container .footer-right {
@@ -4586,7 +4589,7 @@ Christy Montejo
 					.receipt-container .auth-label {
 						font-size: 10px;
 						font-weight: 700;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						text-transform: uppercase;
 						letter-spacing: 0.05em;
 					}
@@ -4598,9 +4601,9 @@ Christy Montejo
 					.receipt-container .system-note {
 						text-align: center;
 						font-size: 11px;
-						color: #64748b !important;
+						color: #8d7359 !important;
 						margin-top: 32px;
-						border-top: 1px solid #e2e8f0;
+						border-top: 1px solid #e6dccd;
 						padding-top: 16px;
 					}
 				</style>
@@ -4650,7 +4653,7 @@ Christy Montejo
 						${order.items.map(it => {
 							const inclusions = getInclusions(it);
 							const inclusionsHtml = (inclusions && inclusions.length > 0) ? `
-								<div style="margin-top: 4px; font-size: 11px; color: #64748b !important; font-style: italic; line-height: 1.4;">
+								<div style="margin-top: 4px; font-size: 11px; color: #8d7359 !important; font-style: italic; line-height: 1.4;">
 									<strong>Inclusions:</strong> ${inclusions.join(', ')}
 								</div>
 							` : '';
@@ -4678,7 +4681,7 @@ Christy Montejo
 						</div>
 						<div class="payment-field">
 							<span class="payment-field-label">Balance:</span>
-							<span style="color: ${balanceDue > 0 ? '#f97316' : 'inherit'}">₱${balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
+							<span style="color: ${balanceDue > 0 ? '#d9661a' : 'inherit'}">₱${balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
 						</div>
 						<div class="payment-status-badge ${paymentStatusClass}">
 							${paymentStatusText}
@@ -4852,6 +4855,8 @@ Christy Montejo
 		const btnAddInclusion = document.getElementById('btn-add-inclusion') as HTMLButtonElement;
 
 		let formCustomInclusions: string[] = [];
+		// Index of the package's dessert row inside formCustomInclusions, or -1.
+		let dessertInclusionIdx = -1;
 		let selectedTraySize: 'Full' | 'Half' = 'Full';
 
 		const setTraySize = (val: 'Full' | 'Half') => {
@@ -4890,7 +4895,7 @@ Christy Montejo
 			if (!customInclusionsList) return;
 			customInclusionsList.innerHTML = formCustomInclusions.map((inc, idx) => `
 				<div class="inclusion-edit-row" style="display: flex; align-items: center; gap: 8px;">
-					<input type="text" class="custom-inclusion-input" data-idx="${idx}" value="${inc.replace(/"/g, '&quot;')}" placeholder="Inclusion item description..." style="flex: 1; padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: var(--text-primary);" />
+					<input type="text" class="custom-inclusion-input" data-idx="${idx}" value="${inc.replace(/"/g, '&quot;')}" placeholder="Inclusion item description..." style="flex: 1; padding: 8px 12px; font-size: 0.85rem; border-radius: 0; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-primary);" />
 					<button type="button" class="btn-delete-inclusion" data-idx="${idx}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; transition: color 0.2s;" title="Remove Inclusion">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
 					</button>
@@ -4913,11 +4918,35 @@ Christy Montejo
 					if (idxStr !== null) {
 						const idx = parseInt(idxStr);
 						formCustomInclusions.splice(idx, 1);
+						if (idx === dessertInclusionIdx) dessertInclusionIdx = -1;
+						else if (idx < dessertInclusionIdx) dessertInclusionIdx--;
 						renderCustomInclusions();
 					}
 				});
 			});
 		};
+
+		// Packages ship with a "1 tray Chosen Dessert" placeholder. Resolve it from the
+		// dropdown so the ticket never carries the placeholder and the choice separately.
+		const markDessertInclusion = () => {
+			dessertInclusionIdx = formCustomInclusions.findIndex(inc => /chosen dessert/i.test(inc));
+		};
+
+		const syncDessertInclusion = () => {
+			if (dessertInclusionIdx < 0 || dessertInclusionIdx >= formCustomInclusions.length) return;
+			const sel = document.getElementById('belly-dessert') as HTMLSelectElement | null;
+			const chosen = sel && sel.value ? sel.value.trim() : '';
+			formCustomInclusions[dessertInclusionIdx] = chosen ? `1 tray ${chosen}` : '1 tray Chosen Dessert';
+			renderCustomInclusions();
+		};
+
+		// The inclusions editor earns a second column, so the dialog widens with it.
+		const setCustomizationVisible = (on: boolean) => {
+			if (itemCustomizationSection) itemCustomizationSection.style.display = on ? 'block' : 'none';
+			document.getElementById('item-config-panel')?.classList.toggle('is-wide', on);
+		};
+
+		document.getElementById('belly-dessert')?.addEventListener('change', syncDessertInclusion);
 
 		btnAddInclusion?.addEventListener('click', () => {
 			formCustomInclusions.push('');
@@ -4926,14 +4955,16 @@ Christy Montejo
 
 		customizeItemCheckbox?.addEventListener('change', () => {
 			if (customizeItemCheckbox.checked) {
-				if (itemCustomizationSection) itemCustomizationSection.style.display = 'block';
+				setCustomizationVisible(true);
 				if (formCustomInclusions.length === 0) {
 					const selectedOption = foodItemSelect.options[foodItemSelect.selectedIndex];
 					formCustomInclusions = getInclusionsForForm(selectedOption.value) || [];
+					markDessertInclusion();
 				}
 				renderCustomInclusions();
+				syncDessertInclusion();
 			} else {
-				if (itemCustomizationSection) itemCustomizationSection.style.display = 'none';
+				setCustomizationVisible(false);
 			}
 		});
 
@@ -5060,14 +5091,17 @@ Christy Montejo
 			if (defaultInclusions && defaultInclusions.length > 0) {
 				if (customizeItemToggleGroup) customizeItemToggleGroup.style.display = 'block';
 				if (customizeItemCheckbox) customizeItemCheckbox.checked = true;
-				if (itemCustomizationSection) itemCustomizationSection.style.display = 'block';
+				setCustomizationVisible(true);
 				formCustomInclusions = [...defaultInclusions];
+				markDessertInclusion();
 				renderCustomInclusions();
+				syncDessertInclusion();
 			} else {
 				if (customizeItemToggleGroup) customizeItemToggleGroup.style.display = 'none';
 				if (customizeItemCheckbox) customizeItemCheckbox.checked = false;
-				if (itemCustomizationSection) itemCustomizationSection.style.display = 'none';
+				setCustomizationVisible(false);
 				formCustomInclusions = [];
+				dessertInclusionIdx = -1;
 			}
 
 			// Food Tray Size Toggle
@@ -5138,8 +5172,9 @@ Christy Montejo
 			// Reset customization
 			if (customizeItemCheckbox) customizeItemCheckbox.checked = false;
 			if (customizeItemToggleGroup) customizeItemToggleGroup.style.display = 'none';
-			if (itemCustomizationSection) itemCustomizationSection.style.display = 'none';
+			setCustomizationVisible(false);
 			formCustomInclusions = [];
+			dessertInclusionIdx = -1;
 
 			// Reset foodtray size toggle
 			const foodtraySizeGroup = document.getElementById('foodtray-size-group') as HTMLDivElement;
@@ -5256,7 +5291,11 @@ Christy Montejo
 			// Append dessert choice if it is a belly package
 			const isBellyPackage = ['P1 Package (Bilao)', 'P2 Package (Bilao)', 'P3 Package (Bilao)', 'P4 Package (Bilao)', 'P5 Package (Bilao)', 'P6 Package (Bilao)'].includes(selectedOption.value);
 			const bellyDessertSelect = document.getElementById('belly-dessert') as HTMLSelectElement;
-			if (isBellyPackage && bellyDessertSelect && bellyDessertSelect.value) {
+			// The resolved inclusion row already names the dessert; only tag the item
+			// name when the inclusions are not being saved, so the choice is never lost.
+			const inclusionsCarryDessert = !!(customizeItemCheckbox && customizeItemCheckbox.checked)
+				&& dessertInclusionIdx >= 0;
+			if (isBellyPackage && bellyDessertSelect && bellyDessertSelect.value && !inclusionsCarryDessert) {
 				itemName = `${itemName} [Dessert: ${bellyDessertSelect.value}]`;
 			}
 
@@ -5489,7 +5528,7 @@ Christy Montejo
 				</div>
 			` : '';
 			return `
-				<div class="ticket-item-wrapper" style="border-bottom: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: 8px; margin-bottom: 8px;">
+				<div class="ticket-item-wrapper" style="border-bottom: 1px solid rgba(var(--hairline-rgb), 0.03); padding-bottom: 8px; margin-bottom: 8px;">
 					<div class="ticket-item-row" style="border-bottom: none; padding-bottom: 0;">
 						<div class="ticket-item-info">
 							<span class="ticket-item-name">${item.name}</span>
@@ -6195,7 +6234,7 @@ Christy Montejo
 		if (donutEl && legendEl) {
 			const statusMap: Record<string, { count: number; color: string }> = {
 				Pending: { count: 0, color: '#f59e0b' },
-				Preparing: { count: 0, color: '#f97316' },
+				Preparing: { count: 0, color: '#d9661a' },
 				Completed: { count: 0, color: '#10b981' },
 				Cancelled: { count: 0, color: '#ef4444' },
 			};

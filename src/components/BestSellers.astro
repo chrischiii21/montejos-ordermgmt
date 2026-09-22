@@ -42,8 +42,10 @@
 	}
 
 	.panel-title {
-		font-size: 1.125rem;
-		font-weight: 700;
+		font-family: var(--font-display);
+		font-size: 1.45rem;
+		font-weight: 600;
+		letter-spacing: 0.015em;
 		color: var(--text-primary);
 	}
 
@@ -59,7 +61,7 @@
 		background: var(--accent-primary-light);
 		color: var(--accent-primary);
 		padding: 4px 10px;
-		border-radius: 20px;
+		border-radius: 0;
 		font-size: 0.75rem;
 		font-weight: 600;
 	}
@@ -90,7 +92,7 @@
 
 	.empty-state-icon {
 		font-size: 2.5rem;
-		filter: drop-shadow(0 0 12px rgba(255, 94, 0, 0.35));
+		filter: drop-shadow(0 0 12px rgba(228, 94, 27, 0.35));
 		animation: pulseGlow 2.5s infinite ease-in-out;
 		line-height: 1;
 		margin-bottom: 4px;
@@ -115,16 +117,16 @@
 		flex-direction: column;
 		gap: 4px;
 		padding: 10px 12px;
-		border-radius: 10px;
-		background: rgba(255, 255, 255, 0.01);
+		border-radius: 0;
+		background: rgba(var(--tint-rgb), 0.01);
 		border: 1px solid var(--border-color);
 		transition: var(--transition-smooth);
 		min-width: 0; /* allows text truncation */
 	}
 
 	:global(.category-seller-card:hover) {
-		background: rgba(255, 255, 255, 0.03);
-		border-color: rgba(255, 255, 255, 0.1);
+		background: rgba(var(--tint-rgb), 0.03);
+		border-color: rgba(var(--hairline-rgb), 0.1);
 		transform: translateY(-1px);
 	}
 

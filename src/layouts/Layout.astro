@@ -6,13 +6,13 @@
 		<link rel="icon" type="image/jpeg" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Montejo's Lechon & Food Trays - Argao</title>
-		<!-- Google Fonts for premium typography -->
+		<!-- Google Fonts: Jost (interface) + Cormorant Garamond (display) -->
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 		<script is:inline>
 			(function() {
-				const savedTheme = localStorage.getItem('theme') || 'dark';
+				const savedTheme = localStorage.getItem('theme') || 'light';
 				document.documentElement.setAttribute('data-theme', savedTheme);
 			})();
 		</script>
@@ -23,92 +23,111 @@
 </html>
 
 <style is:global>
+
 	:root {
+		color-scheme: light;
+		/* Colors - LIGHT MODE (Default) â warm nude / beige */
+		--bg-primary: #f3e9dc;
+		--bg-secondary: #e9dcc9;
+		--bg-card: rgba(255, 251, 245, 0.92);
+		--bg-card-hover: #fffdf9;
+		--border-color: rgba(150, 110, 74, 0.26);
+		--border-color-hover: rgba(196, 78, 21, 0.55);
+
+		--text-primary: #2b1d13;
+		--text-secondary: #5b4531;
+		--text-muted: #8d7359;
+
+		--accent-primary: #c44e15;
+		--accent-primary-hover: #a63f0f;
+		--accent-primary-light: rgba(196, 78, 21, 0.12);
+		--accent-deep: #dd5903;
+		--accent-soft: #d9661a;
+
+		--status-pending: #b45309;
+		--status-pending-light: rgba(180, 83, 9, 0.12);
+		--status-preparing: #c44e15;
+		--status-preparing-light: rgba(196, 78, 21, 0.12);
+		--status-completed: #047857;
+		--status-completed-light: rgba(4, 120, 87, 0.12);
+		--status-cancelled: #b91c1c;
+		--status-cancelled-light: rgba(185, 28, 28, 0.1);
+
+		--bg-sidebar: rgba(236, 224, 208, 0.95);
+		--bg-modal: #fffbf5;
+		--bg-elevated: rgba(255, 251, 245, 0.96);
+		/* Surface tints: --tint-rgb lifts a surface, --hairline-rgb draws on it */
+		--tint-rgb: 255, 255, 255;
+		--hairline-rgb: 150, 110, 74;
+		--input-bg: #fffdf9;
+		--bg-well: rgba(150, 110, 74, 0.09);
+		--ambient-light-1: rgba(196, 78, 21, 0.07);
+		--ambient-light-2: rgba(180, 83, 9, 0.05);
+
+		--scrollbar-track: #e9dcc9;
+		--scrollbar-thumb: rgba(120, 88, 60, 0.28);
+		--scrollbar-thumb-hover: rgba(196, 78, 21, 0.6);
+
+		/* Shadow & Glow */
+		--glow-effect: 0 4px 20px rgba(196, 78, 21, 0.1);
+		--card-shadow: 0 8px 26px -12px rgba(92, 64, 40, 0.28);
+		--shadow-strong: rgba(92, 64, 40, 0.35);
+		/* Typography */
+		--font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		--font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+
+		/* Transitions */
+		--transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	:root[data-theme="dark"] {
 		color-scheme: dark;
-		/* Colors - DARK MODE (Default) */
-		--bg-primary: #0a0706;
-		--bg-secondary: #120e0d;
-		--bg-card: rgba(24, 18, 16, 0.72);
-		--bg-card-hover: rgba(36, 27, 24, 0.88);
-		--border-color: rgba(255, 90, 0, 0.12);
-		--border-color-hover: rgba(255, 90, 0, 0.38);
-		
+		/* Colors - DARK MODE */
+		--bg-primary: #0d0d0d;
+		--bg-secondary: #171717;
+		--bg-card: rgba(23, 23, 23, 0.74);
+		--bg-card-hover: rgba(38, 38, 38, 0.9);
+		--border-color: rgba(228, 94, 27, 0.14);
+		--border-color-hover: rgba(228, 94, 27, 0.42);
+
 		--text-primary: #ffffff;
-		--text-secondary: #ebdcd7;
-		--text-muted: #a6958e;
-		
-		--accent-primary: #ff5e00;
-		--accent-primary-hover: #e04d00;
-		--accent-primary-light: rgba(255, 94, 0, 0.15);
-		
+		--text-secondary: #e5e7eb;
+		--text-muted: #9ca3af;
+
+		--accent-primary: #e45e1b;
+		--accent-primary-hover: #c44e15;
+		--accent-primary-light: rgba(228, 94, 27, 0.15);
+		--accent-deep: #dd5903;
+		--accent-soft: #d9661a;
+
 		--status-pending: #f59e0b;
 		--status-pending-light: rgba(245, 158, 11, 0.12);
-		--status-preparing: #ff8800;
-		--status-preparing-light: rgba(255, 136, 0, 0.12);
+		--status-preparing: #e45e1b;
+		--status-preparing-light: rgba(228, 94, 27, 0.12);
 		--status-completed: #10b981;
 		--status-completed-light: rgba(16, 185, 129, 0.12);
 		--status-cancelled: #ef4444;
 		--status-cancelled-light: rgba(239, 68, 68, 0.12);
 
-		--bg-sidebar: rgba(11, 17, 32, 0.9);
-		--bg-modal: #0f172a;
-		--ambient-light-1: rgba(255, 90, 0, 0.09);
-		--ambient-light-2: rgba(245, 158, 11, 0.06);
+		--bg-sidebar: rgba(13, 13, 13, 0.92);
+		--bg-modal: #171717;
+		--bg-elevated: rgba(38, 38, 38, 0.7);
+		/* Surface tints: --tint-rgb lifts a surface, --hairline-rgb draws on it */
+		--tint-rgb: 255, 255, 255;
+		--hairline-rgb: 255, 255, 255;
+		--input-bg: rgba(0, 0, 0, 0.3);
+		--bg-well: rgba(0, 0, 0, 0.25);
+		--ambient-light-1: rgba(228, 94, 27, 0.10);
+		--ambient-light-2: rgba(221, 89, 3, 0.05);
 
-		--scrollbar-track: #0a0706;
-		--scrollbar-thumb: rgba(255, 255, 255, 0.1);
-		--scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
-
-		/* Typography */
-		--font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-		
-		/* Shadow & Glow */
-		--glow-effect: 0 0 20px rgba(255, 94, 0, 0.2);
-		--card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.75);
-		
-		/* Transitions */
-		--transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	:root[data-theme="light"] {
-		color-scheme: light;
-		/* Colors - LIGHT MODE */
-		--bg-primary: #fbf9f8;
-		--bg-secondary: #f4efed;
-		--bg-card: rgba(255, 255, 255, 0.75);
-		--bg-card-hover: rgba(255, 255, 255, 0.95);
-		--border-color: rgba(255, 90, 0, 0.16);
-		--border-color-hover: rgba(255, 90, 0, 0.45);
-		
-		--text-primary: #1c110d;
-		--text-secondary: #4a362f;
-		--text-muted: #7d655c;
-		
-		--accent-primary: #ff5e00;
-		--accent-primary-hover: #e04d00;
-		--accent-primary-light: rgba(255, 94, 0, 0.1);
-		
-		--status-pending: #d97706;
-		--status-pending-light: rgba(217, 119, 6, 0.1);
-		--status-preparing: #ea580c;
-		--status-preparing-light: rgba(234, 88, 12, 0.1);
-		--status-completed: #059669;
-		--status-completed-light: rgba(5, 150, 105, 0.1);
-		--status-cancelled: #dc2626;
-		--status-cancelled-light: rgba(220, 38, 38, 0.1);
-
-		--bg-sidebar: rgba(244, 239, 237, 0.95);
-		--bg-modal: #ffffff;
-		--ambient-light-1: rgba(255, 90, 0, 0.04);
-		--ambient-light-2: rgba(245, 158, 11, 0.04);
-
-		--scrollbar-track: #fbf9f8;
-		--scrollbar-thumb: rgba(74, 54, 47, 0.15);
-		--scrollbar-thumb-hover: rgba(74, 54, 47, 0.3);
+		--scrollbar-track: #0d0d0d;
+		--scrollbar-thumb: rgba(255, 255, 255, 0.12);
+		--scrollbar-thumb-hover: rgba(228, 94, 27, 0.5);
 
 		/* Shadow & Glow */
-		--glow-effect: 0 4px 20px rgba(255, 94, 0, 0.06);
-		--card-shadow: 0 10px 30px -10px rgba(74, 54, 47, 0.15);
+		--glow-effect: 0 0 20px rgba(228, 94, 27, 0.22);
+		--card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+		--shadow-strong: rgba(0, 0, 0, 0.8);
 	}
 
 	*, *::before, *::after {
@@ -137,11 +156,28 @@
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		/* Background ambient lights */
-		background-image: 
+		background-image:
 			radial-gradient(circle at 10% 20%, var(--ambient-light-1) 0%, transparent 40%),
 			radial-gradient(circle at 90% 80%, var(--ambient-light-2) 0%, transparent 40%);
 		background-attachment: fixed;
 		transition: background-color 0.3s ease, color 0.3s ease;
+	}
+
+	/* Display typography — the serif carries headings, the sans carries data */
+	.font-display {
+		font-family: var(--font-display);
+		font-weight: 600;
+		letter-spacing: 0.01em;
+	}
+
+	/* Small uppercase label, used for eyebrows and column headers */
+	.eyebrow {
+		font-family: var(--font-family);
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		font-size: 0.68rem;
+		font-weight: 500;
+		color: var(--text-muted);
 	}
 
 	/* Scrollbars */
@@ -156,7 +192,7 @@
 
 	::-webkit-scrollbar-thumb {
 		background: var(--scrollbar-thumb);
-		border-radius: 4px;
+		border-radius: 0;
 	}
 
 	::-webkit-scrollbar-thumb:hover {
@@ -167,7 +203,7 @@
 	.glass-panel {
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 16px;
+		border-radius: 0;
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		box-shadow: var(--card-shadow);
@@ -176,7 +212,7 @@
 
 	.glass-panel:hover {
 		border-color: var(--border-color-hover);
-		box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 94, 0, 0.05);
+		box-shadow: var(--card-shadow), 0 0 20px rgba(228, 94, 27, 0.08);
 	}
 
 	/* Keyframe Animations */

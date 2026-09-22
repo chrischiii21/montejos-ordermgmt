@@ -5,7 +5,7 @@ import { defineMiddleware } from 'astro:middleware';
 const PROTECTED_PREFIXES = ['/'];
 
 // Paths (or prefixes) that should always be allowed (assets, API, public files)
-const EXEMPT_PREFIXES = ['/_astro', '/assets', '/favicon', '/api', '/.netlify/functions'];
+const EXEMPT_PREFIXES = ['/_astro', '/assets', '/favicon', '/api', '/.netlify/functions', '/robots.txt'];
 
 export const onRequest = defineMiddleware(({ request, cookies, redirect }, next) => {
   const url = new URL(request.url);
