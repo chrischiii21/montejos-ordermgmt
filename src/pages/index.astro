@@ -3977,7 +3977,12 @@ Christy Montejo
 		let paymentStatusClass = 'status-unpaid';
 		let paymentNote = 'Please make a downpayment to confirm your order.';
 
-		if (order.downpayment >= order.total) {
+		// Completed orders are settled on pickup/delivery: paid in full, nothing outstanding
+		const isSettled = order.status === 'Completed' || order.downpayment >= order.total;
+		const amountPaid = isSettled ? order.total : order.downpayment;
+		const balanceDue = isSettled ? 0 : order.balance;
+
+		if (isSettled) {
 			paymentStatusText = 'PAID';
 			paymentStatusClass = 'status-paid';
 			paymentNote = 'Order has been fully paid. Thank you!';
@@ -4264,12 +4269,12 @@ Christy Montejo
 					<div class="payment-summary">
 						<h4>Payment Summary</h4>
 						<div class="payment-field">
-							<span class="payment-field-label">Downpayment:</span>
-							<span>₱${order.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+							<span class="payment-field-label">${isSettled ? 'Amount Paid' : 'Downpayment'}:</span>
+							<span>₱${amountPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
 						</div>
 						<div class="payment-field">
 							<span class="payment-field-label">Balance:</span>
-							<span style="color: ${order.balance > 0 ? '#f97316' : 'inherit'}">₱${order.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
+							<span style="color: ${balanceDue > 0 ? '#f97316' : 'inherit'}">₱${balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}${order.status === 'Completed' ? ' (Settled)' : ''}</span>
 						</div>
 						<div class="payment-status-badge ${paymentStatusClass}">
 							${paymentStatusText}
