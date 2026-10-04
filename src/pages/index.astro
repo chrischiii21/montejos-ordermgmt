@@ -3835,10 +3835,23 @@ function showConfirm(message) {
 			const itemsTotal = updatedItems.reduce((s, it) => s + it.total, 0);
 			const deliveryFee = order.deliveryFee || 0;
 			const total = parseFloat((itemsTotal + deliveryFee).toFixed(2));
-			const balance = parseFloat((total - order.downpayment).toFixed(2));
+
+			// While awaiting customer details, the downpayment is still the requested default %
+			// (not yet paid), so keep it in sync with the new total.
+			const isPendingCustomer = (order.customer || '').trim() === 'Pending Customer Details' ||
+				(order.customer || '').trim() === '' ||
+				!order.deliveryDateTime;
+			let downpayment = order.downpayment;
+			if (isPendingCustomer) {
+				const s = loadSettings();
+				const factor = (s.dpPct !== undefined ? s.dpPct : 50) / 100;
+				downpayment = parseFloat((total * factor).toFixed(2));
+			}
+			const balance = parseFloat((total - downpayment).toFixed(2));
 
 			const orderUpdates = {
 				total: total,
+				downpayment: downpayment,
 				balance: balance
 			};
 
@@ -3855,6 +3868,7 @@ function showConfirm(message) {
 				// Update local state
 				order.items = updatedItems;
 				order.total = total;
+				order.downpayment = downpayment;
 				order.balance = balance;
 
 				activeEditSection = null;

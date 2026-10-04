@@ -165,7 +165,17 @@ export const POST: APIRoute = async ({ request }) => {
         }
       }
     } else {
-      // Flow 3b: Admin manual update comparison and notification
+      // Flow 3b: Admin manual update comparison and notification.
+      // Skip while the order is still awaiting customer details — the customer's
+      // form submission sends the confirmation slip; only edits after that notify.
+      const isPendingCustomer = !oldOrder.customer ||
+        oldOrder.customer.trim() === 'Pending Customer Details' ||
+        oldOrder.customer.trim() === '' ||
+        !oldOrder.delivery_date_time;
+      if (isPendingCustomer) {
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      }
+
       const { data: newOrder, error: newFetchErr } = await supabase
         .from('orders')
         .select('*, order_items(*)')

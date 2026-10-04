@@ -193,7 +193,7 @@ export const handler = async (event) => {
 
   try {
     const payload = JSON.parse(event.body || '{}');
-    const { id, orderUpdates, items } = payload;
+    const { id, orderUpdates, items, isCustomerVerification } = payload;
 
     if (!id) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing order ID' }) };
@@ -255,7 +255,75 @@ export const handler = async (event) => {
       }
     }
 
-    // 3. Compare and send Telegram notification
+    // 3a. Customer verification: send the confirmation slip
+    if (isCustomerVerification) {
+      const { data: orderData, error: fetchErr } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('id', id)
+        .single();
+
+      if (!fetchErr && orderData) {
+        try {
+          const itemsText = (orderData.order_items || []).map(it => {
+            let text = `<b>${it.quantity}x ${escapeHtml(it.name)}</b>`;
+            const inclusions = getInclusionsForTelegram(it.name, it.custom_inclusions ?? it.customInclusions);
+            if (inclusions.length > 0) {
+              text += `\n  (Inclusions:\n` + inclusions.map(inc => `   - ${escapeHtml(inc)}`).join('\n') + `)`;
+            }
+            return text;
+          }).join('\n');
+
+          const idNumber = orderData.id.replace('ORD-', '');
+          const formattedDateTime = formatDateTime12h(orderData.delivery_date_time);
+          const deliveryFee = parseFloat(orderData.delivery_fee ?? 0);
+          const total = parseFloat(orderData.total ?? 0);
+          const downpayment = parseFloat(orderData.downpayment ?? 0);
+          const balance = parseFloat(orderData.balance ?? 0);
+          const subtotal = total - deliveryFee;
+
+          const formattedSubtotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedDeliveryFee = deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedTotal = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedDownpayment = downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formattedBalance = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+          const fbName = orderData.facebook_name ?? orderData.facebookName;
+          const fbSuffix = fbName ? ` (FB: <b>${escapeHtml(fbName)}</b>)` : '';
+
+          const message = `🎉 <b>Order ID - ${idNumber} link is successfully fulfilled.</b>\n\n` +
+            `📋 <b>C O N F I R M A T I O N   S L I P</b>\n\n` +
+            `👤 Name: <b>${escapeHtml(orderData.customer || '')}</b>${fbSuffix}\n` +
+            `📦 Fulfillment: <b>${escapeHtml(orderData.fulfillment_type || 'Delivery')}</b>\n` +
+            `📍 Exact Address: ${escapeHtml(orderData.address || '')}\n` +
+            `📞 Contact Number of the Receiver/s: ${escapeHtml(orderData.contact || '')}\n` +
+            `⏰ Time & Date: <b>${escapeHtml(formattedDateTime)}</b>\n` +
+            `🛒 List of Order/s:\n` +
+            `${itemsText || 'No items'}\n\n` +
+            `💰 Subtotal: <b>₱${formattedSubtotal}</b>\n` +
+            `🛵 Delivery/Meetup Fee: <b>₱${formattedDeliveryFee}</b>\n` +
+            `💵 TOTAL: <b>₱${formattedTotal}</b>\n` +
+            `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
+            `⚖️ BALANCE: <b>₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}</b>`;
+
+          await sendTelegramMessage(message);
+        } catch (teleErr) {
+          console.error('Failed to send Telegram confirmation slip:', teleErr);
+        }
+      }
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
+    // 3b. Admin edit: compare and send Telegram notification.
+    // Skip while the order is still awaiting customer details — only edits after the form is filled notify.
+    const isPendingCustomer = !oldOrder.customer ||
+      oldOrder.customer.trim() === 'Pending Customer Details' ||
+      oldOrder.customer.trim() === '' ||
+      !oldOrder.delivery_date_time;
+    if (isPendingCustomer) {
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
     const { data: newOrder, error: newFetchErr } = await supabase
       .from('orders')
       .select('*, order_items(*)')
