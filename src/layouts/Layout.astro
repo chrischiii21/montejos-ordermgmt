@@ -6,10 +6,10 @@
 		<link rel="icon" type="image/jpeg" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Montejo's Lechon & Food Trays - Argao</title>
-		<!-- Google Fonts: Jost (interface) + Cormorant Garamond (display) -->
+		<!-- Google Fonts: Poppins everywhere -->
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 		<script is:inline>
 			(function() {
 				const savedTheme = localStorage.getItem('theme') || 'light';
@@ -26,55 +26,70 @@
 
 	:root {
 		color-scheme: light;
-		/* Colors - LIGHT MODE (Default) â warm nude / beige */
-		--bg-primary: #f3e9dc;
-		--bg-secondary: #e9dcc9;
-		--bg-card: rgba(255, 251, 245, 0.92);
-		--bg-card-hover: #fffdf9;
-		--border-color: rgba(150, 110, 74, 0.26);
-		--border-color-hover: rgba(196, 78, 21, 0.55);
+		/* Colors - LIGHT MODE (Default) — warm cream surface, charred chrome, ember red + flame amber from the logo */
+		--bg-primary: #f6efe9;
+		--bg-secondary: #ecdfd6;
+		--bg-card: #ffffff;
+		--bg-card-hover: #fffbf8;
+		--border-color: rgba(74, 13, 10, 0.1);
+		--border-color-hover: rgba(214, 54, 31, 0.45);
 
-		--text-primary: #2b1d13;
-		--text-secondary: #5b4531;
-		--text-muted: #8d7359;
+		--text-primary: #2a1510;
+		--text-secondary: #5c3b32;
+		--text-muted: #9a7d74;
 
-		--accent-primary: #c44e15;
-		--accent-primary-hover: #a63f0f;
-		--accent-primary-light: rgba(196, 78, 21, 0.12);
-		--accent-deep: #dd5903;
-		--accent-soft: #d9661a;
+		--accent-primary: #d6361f;
+		--accent-primary-hover: #b52a16;
+		--accent-primary-light: rgba(214, 54, 31, 0.1);
+		--accent-deep: #4a0d0a;
+		--accent-soft: #f5a524;
+		/* Flame amber from the logo's sparks, for icons and small highlights */
+		--accent-gold: #f5a524;
+		/* Ember-to-flame fill for primary buttons */
+		--accent-gradient: linear-gradient(135deg, #d6361f 0%, #f0602a 100%);
 
 		--status-pending: #b45309;
 		--status-pending-light: rgba(180, 83, 9, 0.12);
-		--status-preparing: #c44e15;
-		--status-preparing-light: rgba(196, 78, 21, 0.12);
+		--status-preparing: #d6361f;
+		--status-preparing-light: rgba(214, 54, 31, 0.1);
 		--status-completed: #047857;
 		--status-completed-light: rgba(4, 120, 87, 0.12);
-		--status-cancelled: #b91c1c;
-		--status-cancelled-light: rgba(185, 28, 28, 0.1);
+		--status-cancelled: #7f1d1d;
+		--status-cancelled-light: rgba(127, 29, 29, 0.1);
 
-		--bg-sidebar: rgba(236, 224, 208, 0.95);
-		--bg-modal: #fffbf5;
-		--bg-elevated: rgba(255, 251, 245, 0.96);
+		--bg-sidebar: #4a0d0a;
+		--bg-modal: #ffffff;
+		--bg-elevated: #ffffff;
 		/* Surface tints: --tint-rgb lifts a surface, --hairline-rgb draws on it */
 		--tint-rgb: 255, 255, 255;
-		--hairline-rgb: 150, 110, 74;
-		--input-bg: #fffdf9;
-		--bg-well: rgba(150, 110, 74, 0.09);
-		--ambient-light-1: rgba(196, 78, 21, 0.07);
-		--ambient-light-2: rgba(180, 83, 9, 0.05);
+		--hairline-rgb: 74, 13, 10;
+		--input-bg: #f8f2ee;
+		--bg-well: rgba(74, 13, 10, 0.05);
+		--ambient-light-1: rgba(214, 54, 31, 0.08);
+		--ambient-light-2: rgba(245, 165, 36, 0.12);
 
-		--scrollbar-track: #e9dcc9;
-		--scrollbar-thumb: rgba(120, 88, 60, 0.28);
-		--scrollbar-thumb-hover: rgba(196, 78, 21, 0.6);
+		--scrollbar-track: #ecdfd6;
+		--scrollbar-thumb: rgba(74, 13, 10, 0.22);
+		--scrollbar-thumb-hover: rgba(214, 54, 31, 0.55);
 
 		/* Shadow & Glow */
-		--glow-effect: 0 4px 20px rgba(196, 78, 21, 0.1);
-		--card-shadow: 0 8px 26px -12px rgba(92, 64, 40, 0.28);
-		--shadow-strong: rgba(92, 64, 40, 0.35);
-		/* Typography */
-		--font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-		--font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+		--glow-effect: 0 4px 20px rgba(214, 54, 31, 0.18);
+		--card-shadow: 0 10px 30px -14px rgba(80, 20, 24, 0.22);
+		--shadow-strong: rgba(80, 20, 24, 0.35);
+
+		/* Page glow, shared with anything that must blend into the page (sidebar's active tab) */
+		--page-glow:
+			radial-gradient(circle at 10% 20%, var(--ambient-light-1) 0%, transparent 40%),
+			radial-gradient(circle at 90% 80%, var(--ambient-light-2) 0%, transparent 40%);
+
+		/* Shape: soft corners everywhere, larger on panels, pills on controls */
+		--radius: 14px;
+		--radius-lg: 24px;
+		--radius-pill: 999px;
+
+		/* Typography: Poppins for everything, its geometric weight echoes the "M" mark */
+		--font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		--font-display: var(--font-family);
 
 		/* Transitions */
 		--transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -82,52 +97,54 @@
 
 	:root[data-theme="dark"] {
 		color-scheme: dark;
-		/* Colors - DARK MODE */
-		--bg-primary: #0d0d0d;
-		--bg-secondary: #171717;
-		--bg-card: rgba(23, 23, 23, 0.74);
-		--bg-card-hover: rgba(38, 38, 38, 0.9);
-		--border-color: rgba(228, 94, 27, 0.14);
-		--border-color-hover: rgba(228, 94, 27, 0.42);
+		/* Colors - DARK MODE — neutral charcoal content, ember lives in the sidebar and accents */
+		--bg-primary: #121113;
+		--bg-secondary: #19181b;
+		--bg-card: #1d1c1f;
+		--bg-card-hover: #252327;
+		--border-color: rgba(255, 255, 255, 0.06);
+		--border-color-hover: rgba(240, 80, 46, 0.45);
 
-		--text-primary: #ffffff;
-		--text-secondary: #e5e7eb;
-		--text-muted: #9ca3af;
+		--text-primary: #f5f1ef;
+		--text-secondary: #cfc8c5;
+		--text-muted: #8f8885;
 
-		--accent-primary: #e45e1b;
-		--accent-primary-hover: #c44e15;
-		--accent-primary-light: rgba(228, 94, 27, 0.15);
-		--accent-deep: #dd5903;
-		--accent-soft: #d9661a;
+		--accent-primary: #f0502e;
+		--accent-primary-hover: #d6361f;
+		--accent-primary-light: rgba(240, 80, 46, 0.15);
+		--accent-deep: #4a0d0a;
+		--accent-soft: #f7b23b;
+		--accent-gold: #f7b23b;
+		--accent-gradient: linear-gradient(135deg, #e0401f 0%, #f7702e 100%);
 
 		--status-pending: #f59e0b;
 		--status-pending-light: rgba(245, 158, 11, 0.12);
-		--status-preparing: #e45e1b;
-		--status-preparing-light: rgba(228, 94, 27, 0.12);
+		--status-preparing: #f0502e;
+		--status-preparing-light: rgba(240, 80, 46, 0.14);
 		--status-completed: #10b981;
 		--status-completed-light: rgba(16, 185, 129, 0.12);
-		--status-cancelled: #ef4444;
-		--status-cancelled-light: rgba(239, 68, 68, 0.12);
+		--status-cancelled: #f87171;
+		--status-cancelled-light: rgba(248, 113, 113, 0.12);
 
-		--bg-sidebar: rgba(13, 13, 13, 0.92);
-		--bg-modal: #171717;
-		--bg-elevated: rgba(38, 38, 38, 0.7);
+		--bg-sidebar: linear-gradient(165deg, #5a120b 0%, #2e0907 100%);
+		--bg-modal: #1d1c1f;
+		--bg-elevated: rgba(37, 35, 39, 0.9);
 		/* Surface tints: --tint-rgb lifts a surface, --hairline-rgb draws on it */
 		--tint-rgb: 255, 255, 255;
 		--hairline-rgb: 255, 255, 255;
-		--input-bg: rgba(0, 0, 0, 0.3);
-		--bg-well: rgba(0, 0, 0, 0.25);
-		--ambient-light-1: rgba(228, 94, 27, 0.10);
-		--ambient-light-2: rgba(221, 89, 3, 0.05);
+		--input-bg: rgba(0, 0, 0, 0.25);
+		--bg-well: rgba(0, 0, 0, 0.22);
+		--ambient-light-1: rgba(214, 54, 31, 0.06);
+		--ambient-light-2: rgba(245, 165, 36, 0.03);
 
-		--scrollbar-track: #0d0d0d;
+		--scrollbar-track: #121113;
 		--scrollbar-thumb: rgba(255, 255, 255, 0.12);
-		--scrollbar-thumb-hover: rgba(228, 94, 27, 0.5);
+		--scrollbar-thumb-hover: rgba(240, 80, 46, 0.5);
 
 		/* Shadow & Glow */
-		--glow-effect: 0 0 20px rgba(228, 94, 27, 0.22);
-		--card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
-		--shadow-strong: rgba(0, 0, 0, 0.8);
+		--glow-effect: 0 0 20px rgba(240, 80, 46, 0.25);
+		--card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+		--shadow-strong: rgba(0, 0, 0, 0.75);
 	}
 
 	*, *::before, *::after {
@@ -156,9 +173,7 @@
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		/* Background ambient lights */
-		background-image:
-			radial-gradient(circle at 10% 20%, var(--ambient-light-1) 0%, transparent 40%),
-			radial-gradient(circle at 90% 80%, var(--ambient-light-2) 0%, transparent 40%);
+		background-image: var(--page-glow);
 		background-attachment: fixed;
 		transition: background-color 0.3s ease, color 0.3s ease;
 	}
@@ -192,7 +207,7 @@
 
 	::-webkit-scrollbar-thumb {
 		background: var(--scrollbar-thumb);
-		border-radius: 0;
+		border-radius: var(--radius);
 	}
 
 	::-webkit-scrollbar-thumb:hover {
@@ -203,16 +218,16 @@
 	.glass-panel {
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		box-shadow: var(--card-shadow);
 		transition: var(--transition-smooth);
+		border-radius: var(--radius-lg);
 	}
 
 	.glass-panel:hover {
 		border-color: var(--border-color-hover);
-		box-shadow: var(--card-shadow), 0 0 20px rgba(228, 94, 27, 0.08);
+		box-shadow: var(--card-shadow), 0 0 20px rgba(214, 54, 31, 0.08);
 	}
 
 	/* Keyframe Animations */

@@ -300,7 +300,7 @@
 					</div>
 
 					<!-- Customization Section -->
-					<div id="item-customization-section" style="display: none; margin-top: 4px; padding: 14px; background: var(--bg-well); border: 1px solid var(--border-color); border-radius: 0;">
+					<div id="item-customization-section" style="display: none; margin-top: 4px; padding: 14px; background: var(--bg-well); border: 1px solid var(--border-color); border-radius: var(--radius);">
 						<label style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Customize Inclusions</label>
 						<div id="custom-inclusions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
 							<!-- Dynamic list of inclusion inputs -->
@@ -361,7 +361,7 @@
 		width: 95vw;
 		max-width: 1440px;
 		height: 92vh;
-		border-radius: 0;
+		border-radius: var(--radius);
 		border: 1px solid var(--border-color);
 		overflow: hidden;
 		transform: scale(0.97) translateY(8px);
@@ -406,7 +406,7 @@
 		justify-content: center;
 		width: 36px;
 		height: 36px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		border: 1px solid var(--border-color);
 		transition: var(--transition-smooth);
 		flex-shrink: 0;
@@ -461,7 +461,7 @@
 	:global(.category-tab) {
 		flex-shrink: 0;
 		padding: 8px 14px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		font-size: 0.75rem;
 		font-weight: 600;
 		white-space: nowrap;
@@ -504,7 +504,7 @@
 		min-height: 92px;
 		background: rgba(var(--tint-rgb), 0.02);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		cursor: pointer;
 		transition: var(--transition-smooth);
 		font-family: var(--font-family);
@@ -625,7 +625,7 @@
 		padding: 12px 14px;
 		background: var(--input-bg);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		color: var(--text-primary);
 		font-family: var(--font-family);
 		font-size: 0.9rem;
@@ -651,7 +651,7 @@
 	select:focus {
 		border-color: var(--accent-primary);
 		background: var(--input-bg);
-		box-shadow: 0 0 10px rgba(228, 94, 27, 0.15);
+		box-shadow: 0 0 10px rgba(214, 54, 31, 0.15);
 	}
 
 	.address-wrapper {
@@ -722,7 +722,7 @@
 		display: block;
 		text-align: center;
 		padding: 10px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		font-size: 0.8rem;
 		font-weight: 600;
 		border: 1px solid var(--border-color);
@@ -741,7 +741,7 @@
 		background: var(--status-preparing-light);
 		color: var(--status-preparing);
 		border-color: var(--status-preparing);
-		box-shadow: 0 0 10px rgba(228, 94, 27, 0.2);
+		box-shadow: 0 0 10px rgba(214, 54, 31, 0.2);
 	}
 
 	.status-radio-label input:checked + .radio-btn.badge-completed {
@@ -760,7 +760,7 @@
 	.summary-box {
 		background: rgba(var(--tint-rgb), 0.01);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
@@ -795,7 +795,7 @@
 	.btn {
 		flex: 1;
 		padding: 12px 14px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		font-family: var(--font-family);
 		font-weight: 600;
 		font-size: 0.85rem;
@@ -825,15 +825,15 @@
 	}
 
 	.btn-primary {
-		background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+		background: var(--accent-gradient);
 		border: none;
 		color: white;
-		box-shadow: 0 4px 15px rgba(228, 94, 27, 0.35);
+		box-shadow: 0 4px 15px rgba(214, 54, 31, 0.35);
 	}
 
 	.btn-primary:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 6px 20px rgba(228, 94, 27, 0.45);
+		box-shadow: 0 6px 20px rgba(214, 54, 31, 0.45);
 	}
 
 	.btn-primary:active {
@@ -850,7 +850,7 @@
 	.ticket-items-list {
 		background: var(--bg-well);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		min-height: 80px;
 		max-height: 260px;
 		overflow-y: auto;
@@ -928,7 +928,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 4px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		transition: var(--transition-smooth);
 	}
 
@@ -942,7 +942,7 @@
 		align-items: center;
 		gap: 0;
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		overflow: hidden;
 		flex-shrink: 0;
 	}
@@ -984,7 +984,7 @@
 	.payment-info-box {
 		background: rgba(var(--tint-rgb), 0.02);
 		border: 1px dashed rgba(var(--hairline-rgb), 0.1);
-		border-radius: 0;
+		border-radius: var(--radius);
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
@@ -1038,7 +1038,7 @@
 		display: flex;
 		background: rgba(var(--tint-rgb), 0.02);
 		border: 1px solid rgba(var(--hairline-rgb), 0.08);
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		padding: 4px;
 		gap: 4px;
 	}
@@ -1047,7 +1047,7 @@
 		flex: 1;
 		text-align: center;
 		padding: 8px 12px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		cursor: pointer;
 		font-size: 0.8rem;
 		font-weight: 600;
@@ -1064,7 +1064,7 @@
 	.toggle-option.active {
 		color: #ffffff;
 		background: var(--accent-primary);
-		box-shadow: 0 4px 12px rgba(228, 94, 27, 0.2);
+		box-shadow: 0 4px 12px rgba(214, 54, 31, 0.2);
 	}
 
 	/* ===== Quick-config popover ===== */
@@ -1094,7 +1094,7 @@
 		max-width: 100%;
 		max-height: 92vh;
 		overflow-y: auto;
-		border-radius: 0;
+		border-radius: var(--radius);
 		padding: 20px;
 		background: var(--bg-modal);
 		border: 1px solid var(--border-color);
@@ -1174,7 +1174,7 @@
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		overflow: hidden;
 		background: rgba(var(--tint-rgb), 0.02);
 	}
@@ -1266,7 +1266,7 @@
 			height: 100vh;
 			height: 100dvh;
 			max-width: none;
-			border-radius: 0;
+			border-radius: var(--radius);
 		}
 
 		.pos-body {
@@ -1362,7 +1362,7 @@
 			padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)) 18px;
 			gap: 14px;
 			max-height: 85vh;
-			border-radius: 0;
+			border-radius: var(--radius);
 			transform: translateY(100%);
 		}
 
@@ -1436,7 +1436,7 @@
 			height: 100vh;
 			height: 100dvh;
 			max-width: none;
-			border-radius: 0;
+			border-radius: var(--radius);
 		}
 
 		.modal-header {

@@ -93,7 +93,7 @@
 		padding: 0 12px 0 38px;
 		background: var(--input-bg);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		color: var(--text-primary);
 		font-family: var(--font-family);
 		font-size: 0.875rem;
@@ -104,7 +104,7 @@
 	.search-box input:focus {
 		border-color: var(--accent-primary);
 		background: var(--input-bg);
-		box-shadow: 0 0 10px rgba(228, 94, 27, 0.15);
+		box-shadow: 0 0 10px rgba(214, 54, 31, 0.15);
 	}
 
 	.filter-tabs {
@@ -146,7 +146,7 @@
 		border: 1px solid var(--border-color);
 		height: 36px;
 		padding: 0 14px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		color: var(--text-secondary);
 		font-family: var(--font-family);
 		font-size: 0.8rem;
@@ -177,7 +177,7 @@
 		background: rgba(var(--tint-rgb), 0.08);
 		color: var(--text-secondary);
 		padding: 1px 6px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		font-weight: 700;
 	}
 
@@ -189,12 +189,12 @@
 	/* View All Orders button — sits after Cancelled tab, accent-styled */
 	:global(#tab-view-all-btn),
 	.tab-view-all-btn {
-		background: rgba(228, 94, 27, 0.12);
-		border: 1px solid rgba(228, 94, 27, 0.45);
+		background: rgba(214, 54, 31, 0.12);
+		border: 1px solid rgba(214, 54, 31, 0.45);
 		height: 36px;
 		padding: 0 14px 0 12px;
-		border-radius: 0;
-		color: #e45e1b;
+		border-radius: var(--radius-pill);
+		color: #d6361f;
 		font-family: var(--font-family);
 		font-size: 0.8rem;
 		font-weight: 700;
@@ -210,10 +210,10 @@
 	}
 	:global(#tab-view-all-btn:hover),
 	.tab-view-all-btn:hover {
-		background: #e45e1b;
-		border-color: #e45e1b;
+		background: #d6361f;
+		border-color: #d6361f;
 		color: #fff;
-		box-shadow: 0 0 14px rgba(228, 94, 27, 0.35);
+		box-shadow: 0 0 14px rgba(214, 54, 31, 0.35);
 	}
 	:global(#tab-view-all-btn svg),
 	.tab-view-all-btn svg {
@@ -236,7 +236,7 @@
 		position: relative;
 		overflow-x: auto;
 		min-height: 250px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		border: 1px solid var(--border-color);
 		background: rgba(var(--tint-rgb), 0.005);
 	}
@@ -325,11 +325,11 @@
 	:global(.table-item-entry-qty) {
 		font-weight: 700;
 		color: var(--accent-primary);
-		background: rgba(228, 94, 27, 0.15);
+		background: rgba(214, 54, 31, 0.15);
 		padding: 1px 6px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		font-size: 0.725rem;
-		border: 1px solid rgba(228, 94, 27, 0.25);
+		border: 1px solid rgba(214, 54, 31, 0.25);
 	}
 
 	:global(.table-item-entry-name) {
@@ -352,7 +352,7 @@
 		align-items: center;
 		gap: 6px;
 		padding: 4px 10px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		font-size: 0.75rem;
 		font-weight: 600;
 		text-transform: capitalize;
@@ -368,7 +368,7 @@
 	:global(.badge-preparing) {
 		background: var(--status-preparing-light);
 		color: var(--status-preparing);
-		border-color: rgba(228, 94, 27, 0.2);
+		border-color: rgba(214, 54, 31, 0.2);
 	}
 
 	:global(.badge-completed) {
@@ -400,7 +400,7 @@
 		justify-content: center;
 		width: 28px;
 		height: 28px;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 		transition: var(--transition-smooth);
 	}
 
@@ -485,7 +485,7 @@
 		color: var(--text-secondary) !important;
 		background: rgba(var(--tint-rgb), 0.03) !important;
 		border: 1px solid var(--border-color) !important;
-		border-radius: 0 !important;
+		border-radius: var(--radius-pill) !important;
 		width: 32px !important;
 		height: 32px !important;
 	}
@@ -535,7 +535,7 @@
 	:global(.detail-section) {
 		background: rgba(var(--tint-rgb), 0.01);
 		border: 1px solid var(--border-color);
-		border-radius: 0;
+		border-radius: var(--radius);
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
@@ -575,9 +575,9 @@
 	:global(.detail-item-qty) {
 		font-weight: 700;
 		color: var(--accent-primary);
-		background: rgba(228, 94, 27, 0.15);
+		background: rgba(214, 54, 31, 0.15);
 		padding: 1px 5px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		margin-right: 6px;
 		font-size: 0.725rem;
 	}
@@ -647,7 +647,7 @@
 		color: var(--text-muted);
 		background: rgba(var(--tint-rgb), 0.05);
 		padding: 1px 6px;
-		border-radius: 0;
+		border-radius: var(--radius);
 		border: 1px solid rgba(var(--hairline-rgb), 0.08);
 	}
 
@@ -684,7 +684,7 @@
 		gap: 8px;
 		font-size: 0.8rem;
 		font-weight: 600;
-		border-radius: 0;
+		border-radius: var(--radius-pill);
 	}
 </style>
 
