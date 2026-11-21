@@ -44,7 +44,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 			</div>
 			<div class="fam-grid" id="fam-grid"></div>
 			<div class="fam-legend" aria-hidden="true">
-				<span><i class="lg-orders"></i>Has orders</span>
+				<span><i class="lg-orders">1</i>Number of orders</span>
 				<span><i class="lg-today"></i>Today</span>
 				<span><i class="lg-selected"></i>Selected</span>
 			</div>
@@ -136,19 +136,17 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		color: var(--text-muted);
 		padding: 6px 0;
 	}
-	/* Calendar colors, chosen for older eyes: strong contrast and three looks that are easy to tell apart.
-	   - No orders: plain, grey number
-	   - Has orders: very soft tint, dark bold number, solid red count (the count does the work)
-	   - Selected: solid red tile, white number, white count
-	   - Today: thin blue ring, no fill (a different color family, so it never blends with the reds) */
+	/* Calendar look, kept calm for older eyes: no filled tiles.
+	   - No orders: plain grey number
+	   - Has orders: bold dark number + red count underneath
+	   - Today: thin blue ring, blue number
+	   - Selected: thin red ring (today + selected: red ring, blue number) */
 	:global(.fam-cell) {
-		--cal-ring: 0 0 0 0 transparent;
 		position: relative;
 		min-height: 58px;
 		border-radius: 12px;
 		border: 2px solid transparent;
 		background: none;
-		box-shadow: var(--cal-ring);
 		font: inherit;
 		color: #7d6a65;
 		display: flex;
@@ -161,22 +159,20 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 	:global(.fam-cell-num) { font-size: 1.25rem; font-weight: 500; line-height: 1; }
 	:global(.fam-cell-badge) {
-		min-width: 28px;
-		padding: 1px 7px;
+		min-width: 26px;
+		padding: 0 7px;
 		border-radius: 999px;
 		background: #b3261e;
 		color: #fff;
-		font-size: 1rem;
+		font-size: 0.95rem;
 		font-weight: 800;
-		line-height: 1.35;
+		line-height: 1.4;
 	}
-	:global(.fam-cell.has-orders) { background: #fdf0e6; color: #3b0d08; }
+	:global(.fam-cell.has-orders) { color: #3b0d08; }
 	:global(.fam-cell.has-orders .fam-cell-num) { font-weight: 800; }
-	:global(.fam-cell.is-today) { --cal-ring: inset 0 0 0 2px #1d4ed8; background: none; color: #1d4ed8; }
+	:global(.fam-cell.is-today) { border-color: #1d4ed8; color: #1d4ed8; }
 	:global(.fam-cell.is-today .fam-cell-num) { font-weight: 800; }
-	:global(.fam-cell.is-selected) { background: #b3261e; border-color: #b3261e; color: #fff; }
-	:global(.fam-cell.is-selected .fam-cell-badge) { background: #fff; color: #b3261e; }
-	:global(.fam-cell.is-selected.is-today) { --cal-ring: inset 0 0 0 2px #1d4ed8, inset 0 0 0 4px #fff; }
+	:global(.fam-cell.is-selected) { border-color: #b3261e; }
 	:global(.fam-cell-empty) { min-height: 58px; }
 
 	.fam-legend {
@@ -190,9 +186,9 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 	.fam-legend span { display: inline-flex; align-items: center; gap: 6px; }
 	.fam-legend i { width: 20px; height: 20px; border-radius: 6px; display: inline-block; }
-	.lg-orders { background: #fdf0e6; box-shadow: inset 0 0 0 1px #ead3c3; }
-	.lg-today { box-shadow: inset 0 0 0 2px #1d4ed8; }
-	.lg-selected { background: #b3261e; }
+	.fam-legend .lg-orders { width: auto; min-width: 20px; height: auto; padding: 0 6px; background: #b3261e; color: #fff; font-style: normal; font-size: 0.8rem; font-weight: 800; line-height: 1.4; text-align: center; border-radius: 999px; }
+	.lg-today { border: 2px solid #1d4ed8; }
+	.lg-selected { border: 2px solid #b3261e; }
 
 	.fam-today-btn {
 		width: 100%;
