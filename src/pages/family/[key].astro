@@ -138,7 +138,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 	/* Calendar colors, chosen for older eyes: strong contrast and three looks that are easy to tell apart.
 	   - No orders: plain, grey number
-	   - Has orders: warm orange tile, dark bold number, solid red count
+	   - Has orders: very soft tint, dark bold number, solid red count (the count does the work)
 	   - Selected: solid red tile, white number, white count
 	   - Today: thick blue ring (a different color family, so it never blends with the reds) */
 	:global(.fam-cell) {
@@ -170,7 +170,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		font-weight: 800;
 		line-height: 1.35;
 	}
-	:global(.fam-cell.has-orders) { background: #ffe1c7; border-color: #f0a46b; color: #3b0d08; }
+	:global(.fam-cell.has-orders) { background: #fdf0e6; color: #3b0d08; }
 	:global(.fam-cell.has-orders .fam-cell-num) { font-weight: 800; }
 	:global(.fam-cell.is-today) { --cal-ring: inset 0 0 0 3px #1d4ed8; color: #1d4ed8; }
 	:global(.fam-cell.is-today .fam-cell-num) { font-weight: 800; }
@@ -190,7 +190,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 	.fam-legend span { display: inline-flex; align-items: center; gap: 6px; }
 	.fam-legend i { width: 20px; height: 20px; border-radius: 6px; display: inline-block; }
-	.lg-orders { background: #ffe1c7; border: 2px solid #f0a46b; }
+	.lg-orders { background: #fdf0e6; box-shadow: inset 0 0 0 1px #ead3c3; }
 	.lg-today { box-shadow: inset 0 0 0 3px #1d4ed8; }
 	.lg-selected { background: #b3261e; }
 
