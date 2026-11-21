@@ -6,7 +6,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { isValidFamilyKey } from '../../lib/family-link';
 
-if (!isValidFamilyKey(Astro.params.key)) {
+if (!(await isValidFamilyKey(Astro.params.key))) {
 	return new Response('Not found', { status: 404 });
 }
 
@@ -237,7 +237,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	:global(.fam-status.s-Preparing) { background: var(--status-preparing-light); color: var(--status-preparing); }
 	:global(.fam-status.s-Completed) { background: var(--status-completed-light); color: var(--status-completed); }
 	:global(.fam-order-top) { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
-	:global(.fam-money) { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; border-top: 1px solid var(--border-color); }
+	:global(.fam-money) { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 4px; border-top: 1px solid var(--border-color); }
 	:global(.fam-money-val) { font-size: 1.35rem; font-weight: 800; margin-top: 2px; }
 	:global(.fam-money-val.is-due) { color: var(--status-pending); }
 	:global(.fam-money-val.is-paid) { color: var(--status-completed); }
@@ -293,7 +293,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 
 	// This page mirrors the Telegram "Daily Reminder" (src/pages/api/daily-reminder.ts):
 	// same orders (scheduled on that day by delivery_date_time, not Cancelled), same order
-	// (delivery_date_time, then id), same numbering, same fields (incl. Total/Balance), plus a status badge.
+	// (delivery_date_time, then id), same numbering, same fields (incl. Total/Downpayment/Balance), plus a status badge.
 	type Status = 'Pending' | 'Preparing' | 'Completed' | 'Cancelled';
 	interface FamItem { name: string; quantity: number; customInclusions: string[] | null }
 	interface FamOrder {
@@ -306,6 +306,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		fulfillmentType: string;
 		status: Status;
 		total: number;
+		downpayment: number;
 		balance: number;
 		items: FamItem[];
 	}
@@ -358,7 +359,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		btn?.classList.add('spinning');
 				const { data, error } = await supabase
 			.from('orders')
-			.select('id, customer, facebook_name, address, contact, delivery_date_time, fulfillment_type, status, total, balance, order_items(name, quantity, custom_inclusions)')
+			.select('id, customer, facebook_name, address, contact, delivery_date_time, fulfillment_type, status, total, downpayment, balance, order_items(name, quantity, custom_inclusions)')
 			.not('status', 'eq', 'Cancelled')
 			.not('delivery_date_time', 'is', null)
 			.order('delivery_date_time', { ascending: true })
@@ -378,6 +379,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 			fulfillmentType: row.fulfillment_type || 'Delivery',
 			status: displayStatus(row.status, row.delivery_date_time),
 			total: parseFloat(row.total || 0),
+			downpayment: parseFloat(row.downpayment || 0),
 			balance: parseFloat(row.balance || 0),
 			items: (row.order_items ?? []).map((it: any) => ({
 				name: it.name,
@@ -488,6 +490,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 			<ul class="fam-items">${items}</ul>
 			<div class="fam-money">
 				<div><span class="fam-label">💵 Total</span><div class="fam-money-val">${peso(o.total)}</div></div>
+				<div><span class="fam-label">💳 Downpayment</span><div class="fam-money-val">${peso(o.downpayment)}</div></div>
 				<div><span class="fam-label">⚖️ Balance</span><div class="fam-money-val ${o.balance > 0 ? 'is-due' : 'is-paid'}">${o.balance > 0 ? peso(o.balance) : 'Fully paid'}</div></div>
 			</div>
 		</article>`;

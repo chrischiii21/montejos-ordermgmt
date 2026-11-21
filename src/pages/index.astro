@@ -4,10 +4,12 @@ import StatsCard from '../components/StatsCard.astro';
 import BestSellers from '../components/BestSellers.astro';
 import OrderForm from '../components/OrderForm.astro';
 import OrderTable from '../components/OrderTable.astro';
-import { getFamilyKey } from '../lib/family-link';
+import { getFamilyKey, canGenerateFamilyKey } from '../lib/family-link';
 
 // Safe to render: this page is behind the dashboard password (see middleware).
-const familyPath = `/family/${getFamilyKey()}`;
+const familyPath = `/family/${await getFamilyKey()}`;
+// The Generate button needs the Supabase app_settings table; hide it until that exists.
+const canGenerateFamilyLink = await canGenerateFamilyKey();
 ---
 
 <Layout>
@@ -366,7 +368,13 @@ const familyPath = `/family/${getFamilyKey()}`;
 						<div class="settings-actions settings-family-actions">
 							<button type="button" class="btn-save-settings" id="copy-family-link-btn">Copy Link</button>
 							<a class="btn-family-open" id="open-family-link" href={familyPath} target="_blank" rel="noopener noreferrer">Open</a>
+							{canGenerateFamilyLink && (
+								<button type="button" class="btn-family-open" id="generate-family-link-btn">Generate New Link</button>
+							)}
 						</div>
+						{!canGenerateFamilyLink && (
+							<p class="settings-family-hint">To change this link, set or change <code>FAMILY_LINK_KEY</code> in your Netlify/Vercel environment variables and redeploy. The old link then stops working.</p>
+						)}
 					</section>
 
 					<!-- Data Management -->
@@ -1356,7 +1364,11 @@ const familyPath = `/family/${getFamilyKey()}`;
 		font-family: var(--font-family); font-weight: 700; font-size: 0.875rem;
 		text-decoration: none;
 	}
+	.btn-family-open { cursor: pointer; }
 	.btn-family-open:hover { border-color: var(--border-color-hover); }
+	.btn-family-open:disabled { opacity: 0.6; cursor: wait; }
+	.settings-family-hint { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+	.settings-family-hint code { font-size: 0.75rem; padding: 1px 5px; border-radius: 4px; background: var(--bg-secondary); }
 
 	.btn-save-settings {
 		background: var(--accent-gradient);
@@ -3352,7 +3364,29 @@ function showConfirm(message) {
 		const input = document.getElementById('s-family-link') as HTMLInputElement | null;
 		const btn = document.getElementById('copy-family-link-btn') as HTMLButtonElement | null;
 		if (!input || !btn) return;
+		const openLink = document.getElementById('open-family-link') as HTMLAnchorElement | null;
+		const genBtn = document.getElementById('generate-family-link-btn') as HTMLButtonElement | null;
 		input.value = window.location.origin + (input.dataset.path || '');
+		genBtn?.addEventListener('click', async () => {
+			const ok = await showConfirm('Generate a new family link? The current link will stop working, so you will need to send the new one to your family.');
+			if (!ok) return;
+			genBtn.disabled = true;
+			genBtn.textContent = 'Generating…';
+			try {
+				const res = await fetch('/api/family-link', { method: 'POST' });
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok || !body.path) throw new Error(body.error || `Request failed (${res.status})`);
+				input.dataset.path = body.path;
+				input.value = window.location.origin + body.path;
+				if (openLink) openLink.href = body.path;
+				showToast('New family link generated. Copy it and send it again.');
+			} catch (err) {
+				showToast('Could not generate a new link: ' + (err instanceof Error ? err.message : String(err)));
+			} finally {
+				genBtn.disabled = false;
+				genBtn.textContent = 'Generate New Link';
+			}
+		});
 		input.addEventListener('focus', () => input.select());
 		btn.addEventListener('click', async () => {
 			try {
