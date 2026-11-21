@@ -29,7 +29,9 @@ const dailyReminderHandler = async (event) => {
       .select('*, order_items(*)')
       .gte('delivery_date_time', `${phtDateStr} 00:00`)
       .lte('delivery_date_time', `${phtDateStr} 23:59`)
-      .not('status', 'eq', 'Cancelled');
+      .not('status', 'eq', 'Cancelled')
+      .order('delivery_date_time', { ascending: true })
+      .order('id', { ascending: true });
 
     if (error) {
       console.error('Supabase query error:', error);

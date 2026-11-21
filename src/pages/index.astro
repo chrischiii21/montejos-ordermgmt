@@ -4,6 +4,10 @@ import StatsCard from '../components/StatsCard.astro';
 import BestSellers from '../components/BestSellers.astro';
 import OrderForm from '../components/OrderForm.astro';
 import OrderTable from '../components/OrderTable.astro';
+import { getFamilyKey } from '../lib/family-link';
+
+// Safe to render: this page is behind the dashboard password (see middleware).
+const familyPath = `/family/${getFamilyKey()}`;
 ---
 
 <Layout>
@@ -339,6 +343,29 @@ import OrderTable from '../components/OrderTable.astro';
 
 						<div class="settings-actions">
 							<button class="btn-save-settings" id="save-dp-btn">Save Downpayment</button>
+						</div>
+					</section>
+
+					<!-- Family Calendar Link -->
+					<section class="glass-panel settings-section">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Family Calendar Link</h2>
+								<p class="settings-head-sub">A view-only, large-text order calendar for family, matching the Telegram reminder. Anyone with this link can see orders, so share it privately.</p>
+							</div>
+						</header>
+
+						<div class="settings-field">
+							<label for="s-family-link">Private link</label>
+							<input type="text" id="s-family-link" readonly data-path={familyPath} value={familyPath} />
+						</div>
+
+						<div class="settings-actions settings-family-actions">
+							<button type="button" class="btn-save-settings" id="copy-family-link-btn">Copy Link</button>
+							<a class="btn-family-open" id="open-family-link" href={familyPath} target="_blank" rel="noopener noreferrer">Open</a>
 						</div>
 					</section>
 
@@ -1320,6 +1347,16 @@ import OrderTable from '../components/OrderTable.astro';
 
 	.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 4px; }
 	.settings-danger-actions { display: flex; flex-direction: column; gap: 10px; }
+	#s-family-link { font-family: ui-monospace, monospace; font-size: 0.8rem; }
+	.btn-family-open {
+		display: inline-flex; align-items: center;
+		padding: 11px 20px; border-radius: var(--radius-pill);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card); color: var(--text-primary);
+		font-family: var(--font-family); font-weight: 700; font-size: 0.875rem;
+		text-decoration: none;
+	}
+	.btn-family-open:hover { border-color: var(--border-color-hover); }
 
 	.btn-save-settings {
 		background: var(--accent-gradient);
@@ -2806,6 +2843,7 @@ function showConfirm(message) {
 		setupEventListeners();
 		setupFormListeners();
 		setupNavigation();
+		setupFamilyLink();
 
 		// Mobile Sidebar Toggle
 		const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -3306,6 +3344,26 @@ function showConfirm(message) {
 					}, 2000);
 				});
 			}
+		});
+	}
+
+	// Settings → Family Calendar Link: show the full URL for this site and copy it on tap.
+	function setupFamilyLink() {
+		const input = document.getElementById('s-family-link') as HTMLInputElement | null;
+		const btn = document.getElementById('copy-family-link-btn') as HTMLButtonElement | null;
+		if (!input || !btn) return;
+		input.value = window.location.origin + (input.dataset.path || '');
+		input.addEventListener('focus', () => input.select());
+		btn.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(input.value);
+			} catch {
+				input.select();
+				document.execCommand('copy');
+			}
+			showToast('Family calendar link copied!');
+			btn.textContent = 'Copied!';
+			setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000);
 		});
 	}
 

@@ -1,0 +1,565 @@
+---
+// Read-only, phone-first order calendar for family members.
+// Access is via a secret link: /family/<key> (see src/lib/family-link.ts). A wrong key returns 404.
+// The link is shown in the dashboard under Settings → Family Calendar Link.
+// Read-only: nothing here writes to the database.
+import Layout from '../../layouts/Layout.astro';
+import { isValidFamilyKey } from '../../lib/family-link';
+
+if (!isValidFamilyKey(Astro.params.key)) {
+	return new Response('Not found', { status: 404 });
+}
+
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+Astro.response.headers.set('Cache-Control', 'no-store');
+---
+
+<Layout>
+	<meta name="robots" content="noindex, nofollow" />
+	<meta name="theme-color" content="#4a0d0a" />
+
+	<div class="fam">
+		<header class="fam-top">
+			<img src="/logo.jpg" alt="" class="fam-logo" />
+			<div>
+				<h1 class="fam-title">Montejo's Orders</h1>
+				<p class="fam-sub" id="fam-updated">Loading…</p>
+			</div>
+			<button class="fam-refresh" id="fam-refresh" aria-label="Refresh">
+				<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+			</button>
+		</header>
+
+		<section class="fam-card fam-cal">
+			<div class="fam-cal-head">
+				<button class="fam-nav" id="fam-prev" aria-label="Previous month">‹</button>
+				<span class="fam-month" id="fam-month"></span>
+				<button class="fam-nav" id="fam-next" aria-label="Next month">›</button>
+			</div>
+			<div class="fam-weekdays">
+				<span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+			</div>
+			<div class="fam-grid" id="fam-grid"></div>
+			<button class="fam-today-btn" id="fam-today">Go to Today</button>
+		</section>
+
+		<section class="fam-day">
+			<h2 class="fam-day-title" id="fam-day-title"></h2>
+			<p class="fam-day-count" id="fam-day-count"></p>
+			<ol class="fam-list" id="fam-list"></ol>
+			<div id="fam-orders"></div>
+			<nav class="fam-pager" id="fam-pager" hidden>
+				<button class="fam-page-btn" id="fam-page-prev">‹ Previous</button>
+				<span class="fam-page-pos" id="fam-page-pos"></span>
+				<button class="fam-page-btn is-next" id="fam-page-next">Next ›</button>
+			</nav>
+		</section>
+	</div>
+</Layout>
+
+<style is:global>
+	html, body { background: var(--bg-primary); }
+	body { font-size: 18px; }
+</style>
+
+<style>
+	.fam {
+		max-width: 640px;
+		margin: 0 auto;
+		padding: 16px 14px 48px;
+		color: var(--text-primary);
+		font-family: 'Poppins', system-ui, sans-serif;
+	}
+	.fam-top {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
+	.fam-logo { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+	.fam-title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin: 0; }
+	.fam-sub { font-size: 0.95rem; color: var(--text-muted); margin: 2px 0 0; }
+	.fam-refresh {
+		margin-left: auto;
+		width: 56px; height: 56px;
+		border-radius: 50%;
+		border: none;
+		background: var(--bg-card);
+		color: var(--accent-primary);
+		box-shadow: 0 2px 8px rgba(74, 13, 10, 0.12);
+		display: grid; place-items: center;
+		cursor: pointer;
+	}
+	.fam-refresh.spinning svg { animation: fam-spin 0.8s linear infinite; }
+	@keyframes fam-spin { to { transform: rotate(360deg); } }
+
+	.fam-card {
+		background: var(--bg-card);
+		border-radius: 20px;
+		padding: 16px 12px;
+		box-shadow: 0 2px 12px rgba(74, 13, 10, 0.08);
+	}
+	.fam-cal-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 8px;
+	}
+	.fam-month { font-size: 1.4rem; font-weight: 700; }
+	.fam-nav {
+		width: 56px; height: 56px;
+		border-radius: 14px;
+		border: none;
+		background: var(--accent-primary-light);
+		color: var(--accent-primary);
+		font-size: 2.2rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.fam-weekdays, .fam-grid {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 4px;
+		text-align: center;
+	}
+	.fam-weekdays span {
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--text-muted);
+		padding: 6px 0;
+	}
+	:global(.fam-cell) {
+		position: relative;
+		min-height: 54px;
+		border-radius: 12px;
+		border: 2px solid transparent;
+		background: none;
+		font: inherit;
+		color: var(--text-primary);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		cursor: pointer;
+		padding: 2px 0;
+	}
+	:global(.fam-cell-num) { font-size: 1.2rem; font-weight: 600; line-height: 1; }
+	:global(.fam-cell-badge) {
+		min-width: 24px;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: var(--accent-primary);
+		color: #fff;
+		font-size: 0.85rem;
+		font-weight: 700;
+		line-height: 1.4;
+	}
+	:global(.fam-cell.has-orders) { background: var(--accent-primary-light); }
+	:global(.fam-cell.is-today) { border-color: var(--accent-gold); }
+	:global(.fam-cell.is-selected) { background: var(--accent-deep); color: #fff; }
+	:global(.fam-cell.is-selected .fam-cell-badge) { background: var(--accent-gold); color: var(--accent-deep); }
+	:global(.fam-cell-empty) { min-height: 54px; }
+
+	.fam-today-btn {
+		width: 100%;
+		margin-top: 12px;
+		min-height: 52px;
+		border: none;
+		border-radius: 14px;
+		background: var(--accent-gradient);
+		color: #fff;
+		font: inherit;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.fam-day { margin-top: 24px; }
+	.fam-day-title { font-size: 1.45rem; font-weight: 700; margin: 0; }
+	.fam-day-count { font-size: 1.05rem; color: var(--text-secondary); margin: 2px 0 14px; }
+
+	:global(.fam-order) {
+		background: var(--bg-card);
+		border-radius: 18px;
+		padding: 16px;
+		margin-bottom: 14px;
+		box-shadow: 0 2px 12px rgba(74, 13, 10, 0.08);
+		border-left: 6px solid var(--accent-primary);
+	}
+	:global(.fam-order-time) { font-size: 1.6rem; font-weight: 800; color: var(--accent-deep); line-height: 1.1; }
+	:global(.fam-order-name) { font-size: 1.25rem; font-weight: 600; margin-top: 4px; }
+
+	:global(.fam-row) { font-size: 1.05rem; color: var(--text-secondary); margin-top: 8px; }
+	:global(.fam-row strong) { color: var(--text-primary); }
+	:global(.fam-call) {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		min-height: 44px;
+		padding: 0 14px;
+		margin-top: 10px;
+		border-radius: 12px;
+		background: var(--status-completed-light);
+		color: var(--status-completed);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	:global(.fam-items) { list-style: none; padding: 0; margin: 12px 0 0; }
+	:global(.fam-items li) {
+		font-size: 1.15rem;
+		padding: 8px 0;
+		border-top: 1px solid var(--border-color);
+	}
+	:global(.fam-qty) { font-weight: 800; color: var(--accent-primary); margin-right: 6px; }
+	:global(.fam-incl) { display: block; font-size: 0.95rem; color: var(--text-muted); margin-top: 2px; }
+	.fam-list { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px; }
+	:global(.fam-list-row) {
+		width: 100%;
+		display: flex; align-items: center; gap: 12px;
+		min-height: 64px;
+		padding: 10px 14px;
+		border-radius: 16px;
+		border: 2px solid transparent;
+		background: var(--bg-card);
+		box-shadow: 0 1px 6px rgba(74, 13, 10, 0.06);
+		font: inherit; color: var(--text-primary); text-align: left;
+		cursor: pointer;
+	}
+	:global(.fam-list-row.is-active) { border-color: var(--accent-primary); }
+	:global(.fam-list-num) { font-size: 1.2rem; font-weight: 800; color: var(--accent-primary); min-width: 28px; }
+	:global(.fam-list-main) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+	:global(.fam-list-name) { font-size: 1.1rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	:global(.fam-list-time) { font-size: 0.95rem; color: var(--text-secondary); }
+	:global(.fam-status) { flex-shrink: 0; font-size: 0.9rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+	:global(.fam-status.s-Pending) { background: var(--status-pending-light); color: var(--status-pending); }
+	:global(.fam-status.s-Preparing) { background: var(--status-preparing-light); color: var(--status-preparing); }
+	:global(.fam-status.s-Completed) { background: var(--status-completed-light); color: var(--status-completed); }
+	:global(.fam-order-top) { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+	:global(.fam-money) { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; border-top: 1px solid var(--border-color); }
+	:global(.fam-money-val) { font-size: 1.35rem; font-weight: 800; margin-top: 2px; }
+	:global(.fam-money-val.is-due) { color: var(--status-pending); }
+	:global(.fam-money-val.is-paid) { color: var(--status-completed); }
+	:global(.fam-order-num) { font-size: 1rem; font-weight: 700; color: var(--text-muted); }
+	:global(.fam-order-id) { font-size: 0.95rem; color: var(--text-muted); margin-top: 2px; }
+	:global(.fam-fb) { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
+	:global(.fam-label) { display: block; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-top: 14px; }
+
+	.fam-pager {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+		gap: 10px;
+		position: sticky;
+		bottom: 0;
+		padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+		background: var(--bg-primary);
+	}
+	.fam-pager[hidden] { display: none; }
+	.fam-page-btn {
+		min-height: 60px;
+		border-radius: 16px;
+		border: 2px solid var(--accent-primary);
+		background: var(--bg-card);
+		color: var(--accent-primary);
+		font: inherit;
+		font-size: 1.15rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.fam-page-btn.is-next { background: var(--accent-gradient); border-color: transparent; color: #fff; }
+	.fam-page-btn:disabled { opacity: 0.35; cursor: default; }
+	.fam-page-pos { font-size: 1.1rem; font-weight: 700; min-width: 64px; text-align: center; }
+
+	:global(.fam-empty) {
+		text-align: center;
+		padding: 32px 16px;
+		color: var(--text-muted);
+		font-size: 1.15rem;
+		background: var(--bg-card);
+		border-radius: 18px;
+	}
+</style>
+
+<script>
+	import { createClient } from '@supabase/supabase-js';
+	import { getInclusionsForTelegram } from '../../lib/telegram';
+
+	const supabase = createClient(
+		import.meta.env.PUBLIC_SUPABASE_URL,
+		import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+	);
+
+	// This page mirrors the Telegram "Daily Reminder" (src/pages/api/daily-reminder.ts):
+	// same orders (scheduled on that day by delivery_date_time, not Cancelled), same order
+	// (delivery_date_time, then id), same numbering, same fields (incl. Total/Balance), plus a status badge.
+	type Status = 'Pending' | 'Preparing' | 'Completed' | 'Cancelled';
+	interface FamItem { name: string; quantity: number; customInclusions: string[] | null }
+	interface FamOrder {
+		id: string;
+		customer: string;
+		facebookName: string;
+		address: string;
+		contact: string;
+		deliveryDateTime: string; // 'YYYY-MM-DD HH:MM'
+		fulfillmentType: string;
+		status: Status;
+		total: number;
+		balance: number;
+		items: FamItem[];
+	}
+
+	let orders: FamOrder[] = [];
+	const now = new Date();
+	let viewYear = now.getFullYear();
+	let viewMonth = now.getMonth();
+	let selectedKey = localKey(now);
+	let pageIndex = 0;
+
+	function localKey(d: Date): string {
+		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+	}
+
+	function esc(s: unknown): string {
+		return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+	}
+
+	// Same as formatTime12h in the Telegram reminder.
+	function formatTime12h(timeStr: string): string {
+		const m = (timeStr || '').match(/^(\d{2}):(\d{2})/);
+		if (!m) return timeStr || 'N/A';
+		const h = parseInt(m[1]);
+		return `${h % 12 || 12}:${m[2]} ${h >= 12 ? 'PM' : 'AM'}`;
+	}
+
+	function peso(n: number): string {
+		return '₱' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+	}
+
+	// Same schedule-based status the dashboard shows (display-only, never saved).
+	function displayStatus(status: Status, deliveryDateTime: string): Status {
+		if (status === 'Completed' || status === 'Cancelled' || !deliveryDateTime) return status;
+		const when = new Date(deliveryDateTime.replace(' ', 'T'));
+		if (isNaN(when.getTime())) return status;
+		const hours = (when.getTime() - Date.now()) / 36e5;
+		if (hours <= 0) return 'Completed';
+		if (hours <= 4) return 'Preparing';
+		return status;
+	}
+
+	function statusBadge(s: Status): string {
+		return `<span class="fam-status s-${s}">${s === 'Completed' ? 'Done' : s}</span>`;
+	}
+
+	async function load(): Promise<void> {
+		const btn = document.getElementById('fam-refresh');
+		const updated = document.getElementById('fam-updated')!;
+		btn?.classList.add('spinning');
+				const { data, error } = await supabase
+			.from('orders')
+			.select('id, customer, facebook_name, address, contact, delivery_date_time, fulfillment_type, status, total, balance, order_items(name, quantity, custom_inclusions)')
+			.not('status', 'eq', 'Cancelled')
+			.not('delivery_date_time', 'is', null)
+			.order('delivery_date_time', { ascending: true })
+			.order('id', { ascending: true });
+		btn?.classList.remove('spinning');
+		if (error) {
+			updated.textContent = 'Could not load orders. Tap refresh to try again.';
+			return;
+		}
+		orders = (data ?? []).map((row: any) => ({
+			id: row.id,
+			customer: row.customer ?? '',
+			facebookName: row.facebook_name ?? '',
+			address: row.address ?? '',
+			contact: row.contact ?? '',
+			deliveryDateTime: row.delivery_date_time ?? '',
+			fulfillmentType: row.fulfillment_type || 'Delivery',
+			status: displayStatus(row.status, row.delivery_date_time),
+			total: parseFloat(row.total || 0),
+			balance: parseFloat(row.balance || 0),
+			items: (row.order_items ?? []).map((it: any) => ({
+				name: it.name,
+				quantity: it.quantity,
+				customInclusions: it.custom_inclusions
+			}))
+		}));
+		updated.textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+		render();
+	}
+
+	function ordersFor(key: string): FamOrder[] {
+		return orders.filter(o => o.deliveryDateTime.slice(0, 10) === key);
+	}
+
+	function render(): void {
+		renderGrid();
+		renderDay();
+	}
+
+	function renderGrid(): void {
+		const grid = document.getElementById('fam-grid')!;
+		document.getElementById('fam-month')!.textContent =
+			new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+		const counts: Record<string, number> = {};
+		for (const o of orders) {
+			const k = o.deliveryDateTime.slice(0, 10);
+			counts[k] = (counts[k] ?? 0) + 1;
+		}
+
+		const todayKey = localKey(new Date());
+		const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+		const days = new Date(viewYear, viewMonth + 1, 0).getDate();
+		let html = '<div class="fam-cell-empty"></div>'.repeat(firstDow);
+		for (let d = 1; d <= days; d++) {
+			const key = localKey(new Date(viewYear, viewMonth, d));
+			const n = counts[key] ?? 0;
+			const cls = ['fam-cell', n ? 'has-orders' : '', key === todayKey ? 'is-today' : '', key === selectedKey ? 'is-selected' : '']
+				.filter(Boolean).join(' ');
+			html += `<button class="${cls}" data-key="${key}" aria-label="${key}, ${n} order${n === 1 ? '' : 's'}">
+				<span class="fam-cell-num">${d}</span>${n ? `<span class="fam-cell-badge">${n}</span>` : ''}
+			</button>`;
+		}
+		grid.innerHTML = html;
+	}
+
+	function renderDay(): void {
+		const date = new Date(selectedKey + 'T00:00:00');
+		const todayKey = localKey(new Date());
+		const tomorrowKey = localKey(new Date(Date.now() + 864e5));
+		const prefix = selectedKey === todayKey ? 'Today, ' : selectedKey === tomorrowKey ? 'Tomorrow, ' : '';
+		document.getElementById('fam-day-title')!.textContent =
+			prefix + date.toLocaleDateString('en-US', { weekday: prefix ? undefined : 'long', month: 'long', day: 'numeric' });
+
+		const list = ordersFor(selectedKey);
+		document.getElementById('fam-day-count')!.textContent = `${list.length} order${list.length === 1 ? '' : 's'} scheduled`;
+
+		const box = document.getElementById('fam-orders')!;
+		const pager = document.getElementById('fam-pager')!;
+		const listEl = document.getElementById('fam-list')!;
+		if (!list.length) {
+			box.innerHTML = '<div class="fam-empty">No orders on this day</div>';
+			listEl.innerHTML = '';
+			pager.hidden = true;
+			return;
+		}
+
+		pageIndex = Math.min(Math.max(pageIndex, 0), list.length - 1);
+		const timeOf = (x: FamOrder) => formatTime12h(x.deliveryDateTime.split(' ')[1] || '');
+
+		// Numbered overview of the day, like the Telegram list. Tap a row to open it.
+		listEl.innerHTML = list.map((x, i) => `<li>
+			<button class="fam-list-row${i === pageIndex ? ' is-active' : ''}" data-index="${i}">
+				<span class="fam-list-num">${i + 1}.</span>
+				<span class="fam-list-main">
+					<span class="fam-list-name">${esc(x.customer || 'N/A')}</span>
+					<span class="fam-list-time">${esc(x.fulfillmentType)} @ ${esc(timeOf(x))}</span>
+				</span>
+				${statusBadge(x.status)}
+			</button>
+		</li>`).join('');
+
+		const o = list[pageIndex];
+		const time = timeOf(o);
+		const items = o.items.length
+			? o.items.map(it => {
+				const incl = getInclusionsForTelegram(it.name, it.customInclusions);
+				return `<li><span class="fam-qty">${esc(it.quantity)}×</span>${esc(it.name)}${incl.length ? `<span class="fam-incl">${incl.map(esc).join('<br>')}</span>` : ''}</li>`;
+			}).join('')
+			: '<li>No items listed</li>';
+		const tel = o.contact.replace(/[^\d+]/g, '');
+
+		box.innerHTML = `<article class="fam-order">
+			<div class="fam-order-top">
+				<div class="fam-order-num">Order ${pageIndex + 1} of ${list.length}</div>
+				${statusBadge(o.status)}
+			</div>
+			<div class="fam-order-time">${esc(o.fulfillmentType)} @ ${esc(time)}</div>
+			<div class="fam-order-name">${esc(o.customer || 'N/A')}${o.facebookName ? ` <span class="fam-fb">(FB: ${esc(o.facebookName)})</span>` : ''}</div>
+			<div class="fam-order-id">ORD-${esc(o.id.replace('ORD-', ''))}</div>
+			<span class="fam-label">📍 Address</span>
+			<div class="fam-row">${esc(o.address || 'N/A')}</div>
+			<span class="fam-label">📞 Contact</span>
+			<div class="fam-row">${esc(o.contact || 'N/A')}</div>
+			${tel ? `<a class="fam-call" href="tel:${esc(tel)}">Call ${esc(o.contact)}</a>` : ''}
+			<span class="fam-label">🛒 Items</span>
+			<ul class="fam-items">${items}</ul>
+			<div class="fam-money">
+				<div><span class="fam-label">💵 Total</span><div class="fam-money-val">${peso(o.total)}</div></div>
+				<div><span class="fam-label">⚖️ Balance</span><div class="fam-money-val ${o.balance > 0 ? 'is-due' : 'is-paid'}">${o.balance > 0 ? peso(o.balance) : 'Fully paid'}</div></div>
+			</div>
+		</article>`;
+
+		pager.hidden = list.length < 2;
+		document.getElementById('fam-page-pos')!.textContent = `${pageIndex + 1} / ${list.length}`;
+		(document.getElementById('fam-page-prev') as HTMLButtonElement).disabled = pageIndex === 0;
+		(document.getElementById('fam-page-next') as HTMLButtonElement).disabled = pageIndex === list.length - 1;
+	}
+
+	function goPage(delta: number): void {
+		const n = ordersFor(selectedKey).length;
+		const next = pageIndex + delta;
+		if (next < 0 || next >= n) return;
+		pageIndex = next;
+		renderDay();
+		document.getElementById('fam-orders')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function shiftMonth(delta: number): void {
+		viewMonth += delta;
+		if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+		if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+		renderGrid();
+	}
+
+	function selectDay(key: string): void {
+		selectedKey = key;
+		pageIndex = 0;
+		render();
+	}
+
+	document.getElementById('fam-prev')!.addEventListener('click', () => shiftMonth(-1));
+	document.getElementById('fam-next')!.addEventListener('click', () => shiftMonth(1));
+	document.getElementById('fam-page-prev')!.addEventListener('click', () => goPage(-1));
+	document.getElementById('fam-page-next')!.addEventListener('click', () => goPage(1));
+	document.getElementById('fam-refresh')!.addEventListener('click', load);
+	document.getElementById('fam-today')!.addEventListener('click', () => {
+		const t = new Date();
+		viewYear = t.getFullYear();
+		viewMonth = t.getMonth();
+		selectDay(localKey(t));
+	});
+	document.getElementById('fam-grid')!.addEventListener('click', e => {
+		const cell = (e.target as HTMLElement).closest<HTMLElement>('.fam-cell[data-key]');
+		if (!cell) return;
+		selectDay(cell.dataset.key!);
+		document.querySelector('.fam-day')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	});
+
+	document.getElementById('fam-list')!.addEventListener('click', e => {
+		const row = (e.target as HTMLElement).closest<HTMLElement>('.fam-list-row[data-index]');
+		if (!row) return;
+		pageIndex = Number(row.dataset.index);
+		renderDay();
+		document.getElementById('fam-orders')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	});
+
+	// Swipe left/right on the order card to go next/previous.
+	let touchX: number | null = null;
+	const ordersBox = document.getElementById('fam-orders')!;
+	ordersBox.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+	ordersBox.addEventListener('touchend', e => {
+		if (touchX === null) return;
+		const dx = e.changedTouches[0].clientX - touchX;
+		touchX = null;
+		if (Math.abs(dx) > 60) goPage(dx < 0 ? 1 : -1);
+	});
+
+	// Keep it fresh without anyone having to tap anything.
+	setInterval(load, 2 * 60 * 1000);
+	document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+
+	load();
+</script>
