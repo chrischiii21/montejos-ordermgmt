@@ -45,55 +45,36 @@ All commands are run from the root of the project, from a terminal:
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
 
-## Netlify Deployment
+## Deployment (Vercel)
 
-Quick steps to prepare and deploy this Astro app to Netlify:
+The app is deployed on Vercel with the `@astrojs/vercel` adapter (`astro.config.mjs`). Pushing to `main` deploys automatically.
 
-- Install Netlify CLI (optional but recommended for manual deploys):
+### Environment variables
 
-```bash
-npm install -g netlify-cli
-```
+Set these in Vercel → Project → Settings → Environment Variables (tick **Production**), then redeploy. Never commit them.
 
-- (Optional) Install the Astro Netlify adapter to enable server-side routes:
+| Variable | Used for |
+|---|---|
+| `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY` | Loading orders in the browser (must be set before the build) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side saves (`src/pages/api/*`), settings, drafts, visit log |
+| `DASHBOARD_PASSWORD` | Dashboard login |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Telegram alerts and reminders (group chat IDs start with `-`) |
+| `CRON_SECRET` | Optional: protects the reminder routes; Vercel cron sends it automatically |
+| `GROQ_API_KEY` (+ optional `GROQ_MODEL`) | AI delivery-fee suggestions in Settings |
+| `FAMILY_LINK_KEY` | Optional: fixed family calendar link key |
 
-```bash
-npm install -D @astrojs/netlify
-```
+Settings → **Telegram Alerts** on the live site shows which of the Telegram/Supabase settings the server can see and can send a test message.
 
-Then update `astro.config.mjs` to use the Netlify adapter instead of Vercel. Example:
+### Scheduled reminders
 
-```js
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
+`vercel.json` runs `/api/daily-reminder` (20:00 UTC = 4:00 AM PH) and `/api/tomorrow-reminder` (10:00 UTC = 6:00 PM PH). On the Hobby plan a cron may run any time within its hour.
 
-export default defineConfig({
-	output: 'server',
-	adapter: netlify(),
-});
-```
-
-- Build and deploy:
+### Local development
 
 ```bash
-npm run build
-npm run netlify:deploy
+npm install
+npm run dev        # http://localhost:4321
+npm run build      # same build Vercel runs
 ```
 
-Notes:
-- If you keep using the Vercel adapter locally, Netlify will still be able to deploy a static build. For server routes under `src/pages/api` you should install and configure the Netlify adapter above.
-- The `netlify.toml` at the project root contains defaults (`command = "npm run build"`, `publish = "dist"`).
-
-Important: secure server-side inserts
-
-- This project uses Supabase row-level security. To allow safe server-side inserts from the deployed site, set the `SUPABASE_SERVICE_ROLE_KEY` as a Netlify environment variable (not committed to the repo):
-
-1. In Netlify dashboard > Site settings > Build & deploy > Environment > Environment variables, add:
-
-	- `PUBLIC_SUPABASE_URL` = your Supabase project URL
-	- `SUPABASE_SERVICE_ROLE_KEY` = your Supabase service role key (server-side only)
-
-2. The project includes a Netlify Function at `netlify/functions/create-order.js` which uses the service role key to insert into `orders` and `order_items` securely. The front-end calls this function instead of inserting directly with the public anon key.
-
-Do NOT commit your service role key to source control. Keep it as an environment variable in Netlify.
 

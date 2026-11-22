@@ -1,6 +1,6 @@
 // Shared logic for the scheduled Telegram order reminders.
 // Plain JavaScript so it can be imported by both the Astro API routes (Vercel crons)
-// and the Netlify scheduled functions in netlify/functions/.
+// (src/pages/api/daily-reminder.ts, tomorrow-reminder.ts), scheduled by vercel.json.
 
 export const PACKAGE_INCLUSIONS = {
 	"Set A Lechon Package": [
@@ -212,7 +212,7 @@ export function buildReminderMessages(orders, text) {
 
 /**
  * Sends every message to every chat ID. Throws if any send fails, so the failure shows up
- * as an error in the Vercel/Netlify logs instead of a false "sent successfully".
+ * as an error in the Vercel logs instead of a false "sent successfully".
  */
 export async function sendTelegramMessages(token, chatIdList, messages) {
 	const chatIds = String(chatIdList).split(',').map((id) => id.trim()).filter(Boolean);

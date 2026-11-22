@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { isDashboardSession } from '../../lib/family-link';
 
-// Settings → Telegram Alerts: checks what THIS server (Netlify, Vercel or local) can see and,
+// Settings → Telegram Alerts: checks what THIS server (Vercel or local) can see and,
 // on POST, sends a test message to every chat ID, reporting Telegram's answer per chat.
 // Dashboard session only (/api is exempt from the middleware). Never returns secret values.
 
@@ -16,7 +16,7 @@ function status() {
 	const token = env('TELEGRAM_BOT_TOKEN') || '';
 	const chatIds = (env('TELEGRAM_CHAT_ID') || '').split(',').map(s => s.trim()).filter(Boolean);
 	return {
-		host: process.env.VERCEL ? 'Vercel' : process.env.NETLIFY ? 'Netlify' : 'Local / other',
+		host: process.env.VERCEL ? 'Vercel' : 'Local / other',
 		vercelEnv: process.env.VERCEL_ENV || null, // production / preview / development
 		hasTelegramToken: !!token,
 		tokenLooksValid: /^\d+:[\w-]{30,}$/.test(token),

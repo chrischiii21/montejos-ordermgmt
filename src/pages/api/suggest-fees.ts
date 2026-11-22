@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	if (!isDashboardSession(cookies.get('dashboard_token')?.value)) return json({ error: 'Unauthorized' }, 401);
 
 	const apiKey = env('GROQ_API_KEY');
-	if (!apiKey) return json({ error: 'GROQ_API_KEY is not set on the server. Add it to .env (and Netlify/Vercel) to use AI suggestions.' }, 500);
+	if (!apiKey) return json({ error: 'GROQ_API_KEY is not set on the server. Add it to .env (and Vercel) to use AI suggestions.' }, 500);
 
 	const body = await request.json().catch(() => null);
 	const num = (v: unknown) => (typeof v === 'number' && isFinite(v) ? v : NaN);

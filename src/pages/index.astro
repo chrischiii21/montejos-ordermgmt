@@ -404,7 +404,7 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 							)}
 						</div>
 						{!canGenerateFamilyLink && (
-							<p class="settings-family-hint">To change this link, set or change <code>FAMILY_LINK_KEY</code> in your Netlify/Vercel environment variables and redeploy. The old link then stops working.</p>
+							<p class="settings-family-hint">To change this link, set or change <code>FAMILY_LINK_KEY</code> in your Vercel environment variables and redeploy. The old link then stops working.</p>
 						)}
 					</section>
 					</div>
@@ -417,7 +417,7 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 							</span>
 							<div class="settings-head-text">
 								<h2 class="settings-head-title">Telegram Alerts</h2>
-								<p class="settings-head-sub">New orders, customer confirmations, updates and the daily reminders are sent to Telegram. Use the test after moving hosts (e.g. Netlify to Vercel) to check the server has the Telegram settings.</p>
+								<p class="settings-head-sub">New orders, customer confirmations, updates and the daily reminders are sent to Telegram. Use the test to check the live server has the Telegram settings (e.g. after changing them in Vercel).</p>
 							</div>
 						</header>
 						<div class="tg-status" id="tg-status">Checking…</div>

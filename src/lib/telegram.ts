@@ -33,5 +33,5 @@ export async function sendTelegramMessage(message: string): Promise<void> {
   }
 }
 
-// Package inclusions live in reminders.js so the Netlify functions can share them.
+// Package inclusions live in reminders.js, shared with the reminder routes.
 export { PACKAGE_INCLUSIONS, getInclusionsForTelegram } from './reminders.js';
