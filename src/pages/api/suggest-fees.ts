@@ -55,6 +55,9 @@ async function chat(apiKey: string, model: string, messages: unknown[], jsonMode
 		body: JSON.stringify({
 			model,
 			temperature: 0.1,
+			max_completion_tokens: 8000,
+			// gpt-oss models "think" before answering; keep that short so the answer fits.
+			...(/gpt-oss/i.test(model) ? { reasoning_effort: 'low' } : {}),
 			...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
 			messages
 		})
@@ -87,30 +90,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	if (priced.length < 2) return json({ error: 'Set fees for at least 2 areas first, so the AI can follow your pricing.' }, 400);
 	if (!unpriced.length) return json({ error: 'No areas without a fee to suggest for.' }, 400);
 
-	const prompt = [
-		'You help a small lechon and food tray shop in Argao, Cebu, Philippines set delivery fees in Philippine pesos.',
-		'Below are the fees the owner already set for some service areas, with each area\'s road distance and driving time from the shop.',
-		'Driving time matters: a long time for a short distance means steep or rough mountain roads, which this owner charges much more for.',
-		'Suggest a fee for each area in the second list that follows the owner\'s own pricing pattern',
-		'(how the fee grows with distance and driving time, any minimum fee, and the way they round). Do not invent a different pricing style.',
-		'Base each suggestion mostly on the owner\'s areas with the most similar distance AND driving time.',
-		'Round every fee to the nearest 10 pesos.',
-		'',
-		'Owner\'s fees (area | km | minutes | fee):',
-		...priced.map(p => `${p.label} | ${p.km} km | ${isFinite(p.min) ? p.min : '?'} min | ₱${p.fee}`),
-		'',
-		'Suggest fees for (area | km | minutes):',
-		...unpriced.map(u => `${u.label} | ${u.km} km | ${isFinite(u.min) ? u.min : '?'} min`),
-		'',
-		'Reply with JSON only, exactly in this shape:',
-		'{"rule": "<one short sentence describing the pricing pattern you followed>", "suggestions": [{"label": "<area exactly as given>", "fee": <number>}]}'
-	].join('\n');
-
-	const messages = [
-		{ role: 'system', content: 'You are a careful pricing assistant. You reply with valid JSON only.' },
-		{ role: 'user', content: prompt }
-	];
-
 	// Model: GROQ_MODEL if set and available, otherwise the best one this key can use (Groq retires
 	// models over time, so a fixed name eventually breaks).
 	let model: string;
@@ -120,38 +99,80 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		return json({ error: `Could not reach Groq: ${err instanceof Error ? err.message : String(err)}` }, 502);
 	}
 
-	let content = '';
-	try {
-		let result = await chat(apiKey, model, messages, true);
-		// Some models don't support JSON mode: ask again without it and read the JSON from the text.
-		if (!result.ok && /response_format|json/i.test(result.error)) result = await chat(apiKey, model, messages, false);
-		// The chosen model just went away: refresh the list once and retry.
-		if (!result.ok && /does not exist|decommissioned|not have access|model_not_found/i.test(result.error)) {
-			cachedModel = null;
-			model = await pickModel(apiKey, model);
-			result = await chat(apiKey, model, messages, true);
-		}
-		if (!result.ok) return json({ error: `Groq error (${model}): ${result.error}` }, 502);
-		content = result.content;
-	} catch (err) {
-		return json({ error: `Could not reach Groq: ${err instanceof Error ? err.message : String(err)}` }, 502);
-	}
+	// The owner's fees go in every request; the areas to price are sent in small numbered batches.
+	// (One big request makes the reply long enough that Groq's JSON mode fails: "Failed to validate JSON".)
+	const ownerLines = priced.map(p => `${p.label} | ${p.km} km | ${isFinite(p.min) ? p.min : '?'} min | ₱${p.fee}`);
+	const BATCH = 20;
+	const batches: Unpriced[][] = [];
+	for (let i = 0; i < unpriced.length; i += BATCH) batches.push(unpriced.slice(i, i + BATCH));
 
-	let parsed: any;
-	try {
-		parsed = JSON.parse(content);
-	} catch {
-		const match = content.match(/\{[\s\S]*\}/);
-		try { parsed = match ? JSON.parse(match[0]) : null; } catch { parsed = null; }
-		if (!parsed) return json({ error: 'The AI reply could not be read. Please try again.' }, 502);
-	}
-
-	// Keep only areas we asked about, with sane fees, rounded to ₱10.
-	const wanted = new Set(unpriced.map(u => u.label));
 	const maxFee = Math.max(...priced.map(p => p.fee)) * 4 + 500;
-	const suggestions = (Array.isArray(parsed?.suggestions) ? parsed.suggestions : [])
-		.map((s: any) => ({ label: String(s?.label ?? ''), fee: Math.round(Number(s?.fee) / 10) * 10 }))
-		.filter((s: { label: string; fee: number }) => wanted.has(s.label) && isFinite(s.fee) && s.fee >= 0 && s.fee <= maxFee);
+	const results = await Promise.all(batches.map(batch => suggestBatch(apiKey, model, ownerLines, batch, maxFee)));
 
-	return json({ rule: typeof parsed?.rule === 'string' ? parsed.rule.slice(0, 300) : '', suggestions, model });
+	const suggestions = results.flatMap(r => r.suggestions);
+	const failed = results.filter(r => r.error);
+	if (!suggestions.length) {
+		return json({ error: failed[0]?.error || 'The AI did not return any suggestions. Please try again.' }, 502);
+	}
+	const rule = results.find(r => r.rule)?.rule ?? '';
+	return json({
+		rule,
+		suggestions,
+		model,
+		// Some batches failed: the page still fills what came back and says how many are missing.
+		missing: failed.reduce((n, r) => n + r.size, 0)
+	});
 };
+
+/** Ask for one batch; areas are numbered so the reply is short ({"fees": {"1": 120, ...}}). Retries once. */
+async function suggestBatch(apiKey: string, model: string, ownerLines: string[], batch: Unpriced[], maxFee: number) {
+	const prompt = [
+		'You help a small lechon and food tray shop in Argao, Cebu, Philippines set delivery fees in Philippine pesos.',
+		'Below are the fees the owner already set for some service areas, with each area\'s road distance and driving time from the shop.',
+		'Driving time matters: a long time for a short distance means steep or rough mountain roads, which this owner charges much more for.',
+		'Suggest a fee for each numbered area that follows the owner\'s own pricing pattern',
+		'(how the fee grows with distance and driving time, any minimum fee, and the way they round). Do not invent a different pricing style.',
+		'Base each suggestion mostly on the owner\'s areas with the most similar distance AND driving time.',
+		'Round every fee to the nearest 10 pesos.',
+		'',
+		'Owner\'s fees (area | km | minutes | fee):',
+		...ownerLines,
+		'',
+		'Areas to price (number. area | km | minutes):',
+		...batch.map((u, i) => `${i + 1}. ${u.label} | ${u.km} km | ${isFinite(u.min) ? u.min : '?'} min`),
+		'',
+		'Reply with JSON only, in exactly this shape, one entry per number:',
+		'{"rule": "<one short sentence describing the pricing pattern>", "fees": {"1": <number>, "2": <number>}}'
+	].join('\n');
+	const messages = [
+		{ role: 'system', content: 'You are a careful pricing assistant. You reply with valid JSON only, no other text.' },
+		{ role: 'user', content: prompt }
+	];
+
+	let lastError = '';
+	for (let attempt = 0; attempt < 2; attempt++) {
+		try {
+			let result = await chat(apiKey, model, messages, true);
+			// JSON mode refused (model doesn't support it, or its own validation failed): ask without it.
+			if (!result.ok && /response_format|json/i.test(result.error)) result = await chat(apiKey, model, messages, false);
+			if (!result.ok) { lastError = `Groq error (${model}): ${result.error}`; continue; }
+			const parsed = readJson(result.content);
+			if (!parsed || typeof parsed.fees !== 'object' || !parsed.fees) { lastError = 'The AI reply could not be read. Please try again.'; continue; }
+			const suggestions = batch
+				.map((u, i) => ({ label: u.label, fee: Math.round(Number(parsed.fees[String(i + 1)]) / 10) * 10 }))
+				.filter(s => isFinite(s.fee) && s.fee >= 0 && s.fee <= maxFee);
+			return { suggestions, rule: typeof parsed.rule === 'string' ? parsed.rule.slice(0, 300) : '', error: '', size: 0 };
+		} catch (err) {
+			lastError = `Could not reach Groq: ${err instanceof Error ? err.message : String(err)}`;
+		}
+	}
+	return { suggestions: [] as { label: string; fee: number }[], rule: '', error: lastError, size: batch.length };
+}
+
+/** Parse JSON from a reply, tolerating text or <think> blocks around it. */
+function readJson(content: string): any {
+	try { return JSON.parse(content); } catch { /* fall through */ }
+	const cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+	const match = cleaned.match(/\{[\s\S]*\}/);
+	try { return match ? JSON.parse(match[0]) : null; } catch { return null; }
+}
