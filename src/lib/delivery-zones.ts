@@ -57,16 +57,18 @@ export async function saveDeliveryZones(list: unknown): Promise<DeliveryZone[]> 
 export interface PickupInfo { address: string; mapUrl: string }
 const PICKUP_KEY = 'pickup_info';
 export const DEFAULT_PICKUP_ADDRESS = 'Poblacion, Argao, Cebu';
+/** The shop on Google Maps (Montejo's Lechon & Food Trays – ARGAO), used until another link is saved. */
+export const DEFAULT_PICKUP_MAP = 'https://maps.app.goo.gl/tpPZND67MFNe7EAu5';
 
 export async function getPickupInfo(): Promise<PickupInfo> {
 	const db = serviceClient();
-	const fallback = { address: DEFAULT_PICKUP_ADDRESS, mapUrl: '' };
+	const fallback = { address: DEFAULT_PICKUP_ADDRESS, mapUrl: DEFAULT_PICKUP_MAP };
 	if (!db) return fallback;
 	const { data, error } = await db.from('app_settings').select('value').eq('key', PICKUP_KEY).maybeSingle();
 	if (error || !data?.value) return fallback;
 	try {
 		const v = JSON.parse(data.value);
-		return { address: String(v.address || '').trim() || DEFAULT_PICKUP_ADDRESS, mapUrl: String(v.mapUrl || '').trim() };
+		return { address: String(v.address || '').trim() || DEFAULT_PICKUP_ADDRESS, mapUrl: String(v.mapUrl || '').trim() || DEFAULT_PICKUP_MAP };
 	} catch { return fallback; }
 }
 
@@ -83,7 +85,7 @@ export async function savePickupInfo(info: unknown): Promise<PickupInfo> {
 		.from('app_settings')
 		.upsert({ key: PICKUP_KEY, value: JSON.stringify(clean), updated_at: new Date().toISOString() });
 	if (error) throw new Error(error.message);
-	return { address: clean.address || DEFAULT_PICKUP_ADDRESS, mapUrl: clean.mapUrl };
+	return { address: clean.address || DEFAULT_PICKUP_ADDRESS, mapUrl: clean.mapUrl || DEFAULT_PICKUP_MAP };
 }
 
 export async function findZone(name: unknown): Promise<DeliveryZone | null> {

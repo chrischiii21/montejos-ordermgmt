@@ -446,7 +446,9 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 								<button type="button" class="area-filter" data-town="__custom">Other areas</button>
 							</div>
 							<label class="area-only"><input type="checkbox" id="area-only-priced" /> Only areas with a fee</label>
+							<label class="area-only"><input type="checkbox" id="area-sort-km" /> Nearest first</label>
 						</div>
+						<p class="area-help">Distances are by road from the shop, estimated from map data.</p>
 						<p class="area-count" id="area-count"></p>
 
 						<div id="area-groups"></div>
@@ -458,7 +460,10 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 							<button type="button" class="btn-family-open area-add" id="add-zone-btn">+ Add other area</button>
 						</div>
 
+						<p class="area-ai-note" id="area-ai-note" hidden></p>
 						<div class="settings-actions">
+							<button type="button" class="btn-family-open" id="ai-suggest-btn" title="Uses your fees and the distances to suggest fees for the areas shown without a fee">✨ Suggest prices (AI)</button>
+							<button type="button" class="btn-family-open" id="ai-clear-btn" hidden>Clear AI suggestions</button>
 							<button type="button" class="btn-save-settings" id="save-zones-btn">Save Pickup &amp; Delivery</button>
 						</div>
 					</section>
@@ -1543,6 +1548,31 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	}
 	:global(.area-row input:focus) { border-color: var(--accent-primary); }
 	.area-add { margin-top: 8px; align-self: flex-start; }
+	:global(.area-label) { display: flex; flex-direction: column; min-width: 0; }
+	:global(.area-km) { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+	/* Fee filled by the AI, not yet reviewed: dashed amber outline + "AI" tag */
+	:global(.area-row.is-suggested) { border: 1.5px dashed var(--accent-gold, #f5a524); background: rgba(245, 165, 36, 0.1); }
+	:global(.area-row.is-suggested .area-name::after) {
+		content: 'AI';
+		margin-left: 6px;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: var(--accent-gold, #f5a524);
+		color: #3b2600;
+		font-size: 0.62rem;
+		font-weight: 800;
+		vertical-align: middle;
+	}
+	.area-ai-note {
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		background: rgba(245, 165, 36, 0.12);
+		border: 1px solid rgba(245, 165, 36, 0.4);
+		font-size: 0.82rem;
+		line-height: 1.45;
+		color: var(--text-primary);
+	}
+	.area-ai-note[hidden] { display: none; }
 	#area-custom-group { display: flex; flex-direction: column; }
 	.pickup-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px 16px; }
 	.zone-list-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: -10px; }
@@ -2753,7 +2783,7 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 <script>
 	import { createClient } from '@supabase/supabase-js';
 	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm, getInclusionOptions, resolveChosenDessert } from '../lib/menu';
-	import { SERVICE_AREA_TOWNS } from '../lib/service-areas';
+	import { SERVICE_AREA_TOWNS, areaDistance } from '../lib/service-areas';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,
@@ -3756,11 +3786,17 @@ function showConfirm(message) {
 			<div class="area-group" data-town="${escAttr(t.town)}">
 				<h4 class="area-group-title">${escAttr(t.town)} <span class="area-group-sub" data-count-for="${escAttr(t.town)}"></span></h4>
 				<div class="area-grid">
-					${t.barangays.map(b => `
-						<label class="area-row" data-name="${escAttr(b)}" data-town="${escAttr(t.town)}">
-							<span class="area-name">${escAttr(b)}</span>
+					${t.barangays.map(b => {
+						const dist = areaDistance(b, t.town);
+						return `
+						<label class="area-row" data-name="${escAttr(b)}" data-town="${escAttr(t.town)}" data-km="${dist ? dist.km : ''}" data-min="${dist ? dist.min : ''}">
+							<span class="area-label">
+								<span class="area-name">${escAttr(b)}</span>
+								<span class="area-km">${dist ? `${dist.km} km · ~${dist.min} min` : 'distance unknown'}</span>
+							</span>
 							<span class="zone-fee-wrap"><input type="number" class="area-fee" min="0" step="1" placeholder="—" aria-label="Delivery fee for ${escAttr(b)}, ${escAttr(t.town)}" /></span>
-						</label>`).join('')}
+						</label>`;
+					}).join('')}
 				</div>
 			</div>`).join('');
 
@@ -3811,9 +3847,87 @@ function showConfirm(message) {
 			if (countEl) countEl.textContent = `${priced} of ${total} listed areas have a fee${customCount ? ` · ${customCount} other area${customCount === 1 ? '' : 's'}` : ''}. Customers only see areas with a fee.`;
 		}
 
-		groupsEl.addEventListener('input', refresh);
+		// Typing in a fee box accepts it as your own (drops the AI mark).
+		groupsEl.addEventListener('input', e => {
+			(e.target as HTMLElement).closest('.area-row')?.classList.remove('is-suggested');
+			syncAiClear();
+			refresh();
+		});
 		searchEl?.addEventListener('input', refresh);
 		onlyPricedEl?.addEventListener('change', refresh);
+
+		// Nearest first: reorder each town's rows by road distance (unknown distance last); otherwise A–Z.
+		const sortKmEl = document.getElementById('area-sort-km') as HTMLInputElement | null;
+		sortKmEl?.addEventListener('change', () => {
+			for (const grid of groupsEl.querySelectorAll<HTMLElement>('.area-grid')) {
+				const rows = [...grid.querySelectorAll<HTMLElement>('.area-row')];
+				rows.sort((a, b) => sortKmEl.checked
+					? (parseFloat(a.dataset.km || '') || 9999) - (parseFloat(b.dataset.km || '') || 9999)
+					: a.dataset.name!.localeCompare(b.dataset.name!));
+				rows.forEach(r => grid.appendChild(r));
+			}
+		});
+
+		// ---------- AI fee suggestions (Groq, via /api/suggest-fees) ----------
+		const aiBtn = document.getElementById('ai-suggest-btn') as HTMLButtonElement | null;
+		const aiClearBtn = document.getElementById('ai-clear-btn') as HTMLButtonElement | null;
+		const aiNote = document.getElementById('area-ai-note');
+		const rowLabel = (r: HTMLElement) => `${r.dataset.name}, ${r.dataset.town}`;
+		function syncAiClear() {
+			if (aiClearBtn) aiClearBtn.hidden = !groupsEl!.querySelector('.area-row.is-suggested');
+		}
+
+		aiBtn?.addEventListener('click', async () => {
+			const rows = presetRows();
+			const priced = rows
+				.filter(r => feeInput(r).value.trim() !== '' && !r.classList.contains('is-suggested') && r.dataset.km)
+				.map(r => ({ label: rowLabel(r), km: parseFloat(r.dataset.km!), min: parseFloat(r.dataset.min || ''), fee: parseFloat(feeInput(r).value) || 0 }));
+			// Only the areas you can currently see (use the town filter / search to choose), with a known distance.
+			const targets = rows.filter(r => !r.hidden && feeInput(r).value.trim() === '' && r.dataset.km);
+			if (priced.length < 2) { showToast('Type fees for at least 2 areas first, so the AI can follow your pricing.'); return; }
+			if (!targets.length) { showToast('No areas shown without a fee. Use the town filter or search to pick which areas to fill.'); return; }
+
+			aiBtn.disabled = true;
+			aiBtn.textContent = 'Thinking…';
+			try {
+				const res = await fetch('/api/suggest-fees', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ priced, unpriced: targets.map(r => ({ label: rowLabel(r), km: parseFloat(r.dataset.km!), min: parseFloat(r.dataset.min || '') })) })
+				});
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+				let filled = 0;
+				for (const s of body.suggestions ?? []) {
+					const row = targets.find(r => rowLabel(r) === s.label);
+					if (!row || feeInput(row).value.trim() !== '') continue;
+					feeInput(row).value = String(s.fee);
+					row.classList.add('is-suggested');
+					filled++;
+				}
+				if (aiNote) {
+					aiNote.hidden = false;
+					aiNote.textContent = `AI filled ${filled} fee${filled === 1 ? '' : 's'} (marked "AI"). ${body.rule ? `Pattern used: ${body.rule} ` : ''}Check them, change any you like, remove the ones you don't deliver to, then tap Save.`;
+				}
+				syncAiClear();
+				refresh();
+			} catch (err) {
+				showToast('Could not get suggestions: ' + (err instanceof Error ? err.message : String(err)));
+			} finally {
+				aiBtn.disabled = false;
+				aiBtn.textContent = '✨ Suggest prices (AI)';
+			}
+		});
+
+		aiClearBtn?.addEventListener('click', () => {
+			groupsEl.querySelectorAll<HTMLElement>('.area-row.is-suggested').forEach(r => {
+				feeInput(r).value = '';
+				r.classList.remove('is-suggested');
+			});
+			if (aiNote) aiNote.hidden = true;
+			syncAiClear();
+			refresh();
+		});
 		document.querySelectorAll<HTMLButtonElement>('.area-filter').forEach(btn => {
 			btn.addEventListener('click', () => {
 				townFilter = btn.dataset.town || '';
@@ -3828,7 +3942,11 @@ function showConfirm(message) {
 
 		// 4. Fill from saved data
 		function applySaved(zones: { name: string; town?: string; fee: number }[]) {
-			presetRows().forEach(r => { feeInput(r).value = ''; });
+			presetRows().forEach(r => { feeInput(r).value = ''; r.classList.remove('is-suggested'); });
+			const note = document.getElementById('area-ai-note');
+			if (note) note.hidden = true;
+			const clearBtn = document.getElementById('ai-clear-btn');
+			if (clearBtn) clearBtn.hidden = true;
 			customList!.innerHTML = '';
 			for (const z of zones) {
 				const row = z.town
