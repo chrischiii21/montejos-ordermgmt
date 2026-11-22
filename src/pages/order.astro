@@ -140,6 +140,8 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 					<span><strong>Notice:</strong> The payment details (GCash/Maribank mode of payment options) will be displayed on-screen at the end of the form once you submit your details.</span>
 				</div>
 
+				<p class="draft-restored-note" id="draft-restored-note" hidden>We restored what you filled in earlier. You can continue where you left off.</p>
+
 				<div class="order-items-summary" id="customer-items-list">
 					<!-- Dynamic items list -->
 				</div>
@@ -945,6 +947,19 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 	}
 	.zone-fee-note:empty { display: none; }
 	.zone-fee-note.is-pending { color: var(--accent-primary); font-weight: 600; }
+
+	.draft-restored-note {
+		margin: 0 0 14px;
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		background: rgba(4, 120, 87, 0.1);
+		border: 1px solid rgba(4, 120, 87, 0.3);
+		color: var(--status-completed, #047857);
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-align: left;
+	}
+	.draft-restored-note[hidden] { display: none; }
 
 	.dessert-required-note {
 		margin: 12px 0 0;
@@ -2307,6 +2322,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 			input.addEventListener('blur', () => setTimeout(() => { options = []; render(); }, 150));
 		}
 		applyMethod();
+		void setupDraft(); // restore/save the customer's progress (needs the area list loaded)
 	}
 
 	let otherAreaText = '';           // what the customer typed when their area isn't on the list
@@ -2396,6 +2412,138 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 		set('cust-total-bill', peso(currentOrder.total) + (pending ? ' + fee' : ''));
 		set('cust-balance', peso(Math.max(0, currentOrder.total - (currentOrder.downpayment || 0))) + (pending ? ' + fee' : ''));
 		updateLiveCalculation();
+	}
+
+	// ---------- Draft: save progress so the customer can close the link and continue later ----------
+	// Saved on this phone right away and on the server a moment after they stop typing (so it also
+	// works on another device and the shop's dashboard can show "Customer filling in").
+	// Deleted by the server once they submit. See src/lib/order-drafts.ts.
+	let draftTimer: ReturnType<typeof setTimeout> | null = null;
+	let draftSubmitted = false;
+	let draftReady = false;
+
+	function draftKey() { return currentOrder ? `order_draft_${currentOrder.id}` : ''; }
+
+	function collectDraft() {
+		const desserts: Record<string, string> = {};
+		for (const i of dessertPending) if (dessertPicks[i]) desserts[String(i)] = dessertPicks[i];
+		return {
+			step: currentStep,
+			fields: {
+				customer: custInputName?.value || '',
+				contact: custInputContact?.value || '',
+				facebookName: custInputFb?.value || '',
+				address: custInputAddress?.value || '',
+				deliveryDateTime: custInputDatetime?.value || '',
+				downpayment: custInputDownpayment?.value || '',
+				method: methodLocked ? '' : chosenMethod,
+				zone: selectedZone,
+				otherAreaText,
+				desserts
+			}
+		};
+	}
+
+	function saveDraftNow(sendToServer: boolean) {
+		if (!currentOrder || draftSubmitted || !draftReady) return;
+		const draft = { ...collectDraft(), updatedAt: new Date().toISOString() };
+		try { localStorage.setItem(draftKey(), JSON.stringify(draft)); } catch { /* private mode: server copy still works */ }
+		if (!sendToServer) return;
+		fetch('/api/order-draft', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: currentOrder.id, t: new URLSearchParams(window.location.search).get('t'), step: draft.step, fields: draft.fields }),
+			keepalive: true
+		}).catch(() => {});
+	}
+
+	function scheduleDraftSave() {
+		if (!draftReady || draftSubmitted) return;
+		saveDraftNow(false);
+		if (draftTimer) clearTimeout(draftTimer);
+		draftTimer = setTimeout(() => saveDraftNow(true), 1500);
+	}
+
+	function stopDrafts() {
+		draftSubmitted = true;
+		if (draftTimer) clearTimeout(draftTimer);
+		try { localStorage.removeItem(draftKey()); } catch { /* ignore */ }
+	}
+
+	function restoreDraft(fields: Record<string, any>) {
+		if (!currentOrder || !fields) return false;
+		let restored = false;
+		const put = (el: HTMLInputElement | HTMLTextAreaElement | null, v: unknown) => {
+			if (el && typeof v === 'string' && v.trim()) { el.value = v; restored = true; }
+		};
+		put(custInputName, fields.customer);
+		put(custInputContact, typeof fields.contact === 'string' ? normalizePhMobile(fields.contact) : '');
+		put(custInputFb, fields.facebookName);
+		put(custInputAddress, fields.address);
+		put(custInputDatetime, fields.deliveryDateTime);
+		put(custInputDownpayment, fields.downpayment);
+
+		if (!methodLocked && ['Pickup', 'Meetup', 'Delivery'].includes(fields.method)) {
+			chosenMethod = fields.method;
+			restored = true;
+		}
+		const zoneInput = document.getElementById('cust-input-zone') as HTMLInputElement | null;
+		if (typeof fields.zone === 'string' && fields.zone) {
+			if (fields.zone === OTHER_ZONE && typeof fields.otherAreaText === 'string' && fields.otherAreaText) {
+				selectedZone = OTHER_ZONE;
+				otherAreaText = fields.otherAreaText;
+				if (zoneInput) zoneInput.value = otherAreaText;
+			} else if (fields.zone in zoneFees) {
+				selectedZone = fields.zone;
+				if (zoneInput) zoneInput.value = fields.zone;
+			}
+		}
+		if (fields.desserts && typeof fields.desserts === 'object') {
+			for (const [k, d] of Object.entries(fields.desserts)) {
+				const i = Number(k);
+				if (!dessertPending.includes(i) || typeof d !== 'string' || !DESSERT_OPTIONS.includes(d)) continue;
+				dessertPicks[i] = d;
+				const orig = originalItems[i];
+				currentOrder.items[i] = { ...orig, ...applyDessertChoice(orig.name, orig.customInclusions, d) };
+				restored = true;
+			}
+			renderStep1Items();
+		}
+		applyMethod();
+		updateContinueState();
+		updateLiveCalculation();
+		return restored;
+	}
+
+	async function setupDraft() {
+		if (!currentOrder) return;
+		const t = new URLSearchParams(window.location.search).get('t');
+
+		// Newest of: this phone's copy, the server's copy.
+		let local: any = null;
+		try { local = JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch { local = null; }
+		let server: any = null;
+		try {
+			const res = await fetch(`/api/order-draft?id=${encodeURIComponent(currentOrder.id)}&t=${encodeURIComponent(t || '')}`, { cache: 'no-store' });
+			server = (await res.json()).draft ?? null;
+		} catch { server = null; }
+		const pick = [local, server].filter(Boolean).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+
+		if (pick?.fields && restoreDraft(pick.fields)) {
+			const note = document.getElementById('draft-restored-note');
+			if (note) note.hidden = false;
+		}
+		draftReady = true;
+
+		// Tells the dashboard the link was opened (and keeps the server copy current).
+		saveDraftNow(true);
+
+		const wizard = document.getElementById('portal-wizard');
+		wizard?.addEventListener('input', scheduleDraftSave);
+		wizard?.addEventListener('change', scheduleDraftSave);
+		wizard?.addEventListener('click', () => setTimeout(scheduleDraftSave, 0));
+		// Last save when they leave or switch apps.
+		document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraftNow(true); });
 	}
 
 	// ---------- Dessert choice (Bilao packages) ----------
@@ -2776,6 +2924,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 
 				// Save verified flag to localStorage
 				localStorage.setItem('verified_order_' + currentOrder.id, 'true');
+				stopDrafts(); // the server deletes its copy when the submit succeeds
 
 				// Save updated order via serverless function to bypass RLS
 				const resp = await fetch('/api/update-order', {
@@ -2805,6 +2954,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 				const result = await resp.json().catch(() => ({}));
 				if (!resp.ok) {
 					console.error('Failed to save customer details (server):', result);
+					draftSubmitted = false; // keep autosaving after a failed submit
 					alert('Failed to save your details. Please try again.');
 					btnSubmitOrder.removeAttribute('disabled');
 					btnSubmitOrder.innerHTML = oldBtnHtml;
@@ -2818,7 +2968,8 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 				goToStep(4);
 			} catch (e) {
 				console.error('Failed to save customer details:', e);
-				alert('Failed to save your details. Please try again.');
+				draftSubmitted = false; // keep autosaving after a failed submit
+					alert('Failed to save your details. Please try again.');
 				btnSubmitOrder.removeAttribute('disabled');
 				btnSubmitOrder.innerHTML = oldBtnHtml;
 			}

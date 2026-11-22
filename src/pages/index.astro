@@ -2097,6 +2097,20 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 		border: 1px solid rgba(214, 54, 31, 0.3);
 	}
 
+	/* Customer link progress, next to the awaiting badge */
+	:global(.draft-badge) {
+		padding: 4px 8px;
+		border-radius: var(--radius-pill);
+		font-size: 0.7rem;
+		font-weight: 800;
+		margin-left: 6px;
+		display: inline-block;
+		color: #2563eb;
+		background: rgba(37, 99, 235, 0.08);
+		border: 1px solid rgba(37, 99, 235, 0.2);
+	}
+	:global(.draft-badge.is-filling) { color: var(--status-completed); background: var(--status-completed-light); border-color: rgba(4, 120, 87, 0.25); }
+
 	/* Small awaiting badge for orders missing customer details */
 	.awaiting-badge {
 		padding: 4px 8px;
@@ -3236,7 +3250,10 @@ function showConfirm(message) {
 		// Set up event listeners
 		setupEventListeners();
 		setupGlanceAndPrep();
+		loadCustomerDrafts();
+		setInterval(loadCustomerDrafts, 60 * 1000); // keep "Customer filling in" current
 		setupFormListeners();
+		setupFormDraft();
 		setupNavigation();
 		setupFamilyLink();
 
@@ -3298,6 +3315,36 @@ function showConfirm(message) {
 		if (document.getElementById('view-calendar')?.style.display !== 'none') {
 			renderCalendarView();
 		}
+	}
+
+	// ---------- Customer link progress (drafts saved from the order link, see src/lib/order-drafts.ts) ----------
+	let customerDrafts: Record<string, { step: number; filled: number; openedAt: string; updatedAt: string }> = {};
+	function timeAgo(iso: string): string {
+		const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+		if (mins < 1) return 'just now';
+		if (mins < 60) return `${mins} min ago`;
+		const hrs = Math.round(mins / 60);
+		if (hrs < 24) return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
+		const days = Math.round(hrs / 24);
+		return `${days} day${days === 1 ? '' : 's'} ago`;
+	}
+	/** Badge next to "Awaiting customer details": link opened / customer filling in (step, last activity). */
+	function draftBadge(orderId: string): string {
+		const d = customerDrafts[orderId];
+		if (!d) return '';
+		const ago = timeAgo(d.updatedAt);
+		const title = `Link first opened ${new Date(d.openedAt).toLocaleString('en-US')}`;
+		return d.filled > 0
+			? `<span class="draft-badge is-filling" title="${title}">Customer filling in · step ${d.step} of 3 · ${ago}</span>`
+			: `<span class="draft-badge" title="${title}">Link opened · ${ago}</span>`;
+	}
+	async function loadCustomerDrafts() {
+		try {
+			const res = await fetch('/api/order-draft', { cache: 'no-store' });
+			if (!res.ok) return;
+			customerDrafts = (await res.json()).drafts ?? {};
+			updateDashboard();
+		} catch { /* badges are optional */ }
 	}
 
 	// Helper: return active orders excluding placeholder customer rows
@@ -3603,7 +3650,7 @@ function showConfirm(message) {
 					<td class="customer-cell">
 						<div class="customer-cell-inner">
 							<span class="customer-name">${(order.customer && order.customer !== 'Pending Customer Details') ? escapeHtml(order.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
-							${(order.customer === 'Pending Customer Details' || !order.customer || !order.deliveryDateTime) ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+							${(order.customer === 'Pending Customer Details' || !order.customer || !order.deliveryDateTime) ? `<span class="awaiting-badge">Awaiting customer details</span>${draftBadge(order.id)}` : ''}
 						</div>
 						${(order.contact && order.contact.trim()) ? `<div class="customer-contact" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(order.contact)}</div>` : ''}
 						${noteHtml}
@@ -6380,6 +6427,7 @@ Christy Montejo
 			}
 
 			orders.unshift(newOrder);
+			clearFormDraft(); // saved: the draft is no longer needed
 			updateDashboard();
 
 			// Close Form Drawer
@@ -6634,6 +6682,103 @@ Christy Montejo
 		}
 
 		return isValid;
+	}
+
+	// ---------- New Order form draft (this device) ----------
+	// Saved while you build an order, so closing the form (or the tab) doesn't lose it.
+	// Opening "Add New Order" again offers to restore it. Cleared once the order is saved or discarded.
+	const FORM_DRAFT_KEY = 'new_order_form_draft';
+	let formDraftTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function formVal(id: string): string {
+		return (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
+	}
+
+	function saveFormDraft() {
+		const fields = {
+			name: formVal('customer-name'),
+			contact: formVal('customer-contact'),
+			fb: formVal('customer-fb'),
+			address: formVal('customer-address'),
+			dateTime: formVal('delivery-date-time'),
+			downpayment: formVal('order-downpayment'),
+			fee: formVal('delivery-fee')
+		};
+		// Nothing worth keeping yet: leave any earlier draft alone.
+		if (!tempOrderItems.length && !fields.name.trim() && !fields.contact.trim()) return;
+		const draft = {
+			fields,
+			items: tempOrderItems,
+			chooser: fulfillmentChooser,
+			fulfillment: selectedFulfillment,
+			ownerFill: !!document.getElementById('toggle-owner-label')?.classList.contains('active'),
+			savedAt: new Date().toISOString()
+		};
+		try { localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(draft)); } catch { /* storage full/blocked */ }
+	}
+
+	function scheduleFormDraftSave() {
+		if (formDraftTimer) clearTimeout(formDraftTimer);
+		formDraftTimer = setTimeout(saveFormDraft, 400);
+	}
+
+	function readFormDraft(): any {
+		try { return JSON.parse(localStorage.getItem(FORM_DRAFT_KEY) || 'null'); } catch { return null; }
+	}
+
+	function clearFormDraft() {
+		if (formDraftTimer) clearTimeout(formDraftTimer);
+		try { localStorage.removeItem(FORM_DRAFT_KEY); } catch { /* ignore */ }
+		const banner = document.getElementById('form-draft-banner');
+		if (banner) banner.hidden = true;
+	}
+
+	/** On opening the form: offer the saved draft if the form is still empty. */
+	function offerFormDraft() {
+		const banner = document.getElementById('form-draft-banner');
+		const draft = readFormDraft();
+		const formEmpty = !tempOrderItems.length && !formVal('customer-name').trim();
+		if (!banner || !draft || !formEmpty) { if (banner) banner.hidden = true; return; }
+		const n = Array.isArray(draft.items) ? draft.items.length : 0;
+		const who = draft.fields?.name?.trim() ? ` for ${draft.fields.name.trim()}` : '';
+		const text = document.getElementById('form-draft-text');
+		if (text) text.textContent = `Unsaved order draft${who} · ${n} item${n === 1 ? '' : 's'} · ${timeAgo(draft.savedAt)}`;
+		banner.hidden = false;
+	}
+
+	function restoreFormDraft() {
+		const d = readFormDraft();
+		if (!d) return;
+		// Re-use the form's own toggles so everything shows/hides as usual.
+		document.getElementById(d.ownerFill ? 'toggle-owner-label' : 'toggle-customer-label')?.click();
+		document.getElementById(d.chooser === 'owner' ? 'chooser-owner-label' : 'chooser-customer-label')?.click();
+		if (d.chooser === 'owner' && d.fulfillment) document.getElementById(`toggle-${String(d.fulfillment).toLowerCase()}-label`)?.click();
+		const set = (id: string, v: unknown) => { const el = document.getElementById(id) as HTMLInputElement | null; if (el && typeof v === 'string') el.value = v; };
+		set('customer-name', d.fields?.name);
+		set('customer-contact', d.fields?.contact);
+		set('customer-fb', d.fields?.fb);
+		set('customer-address', d.fields?.address);
+		set('delivery-date-time', d.fields?.dateTime);
+		set('delivery-fee', d.fields?.fee);
+		tempOrderItems = Array.isArray(d.items) ? d.items : [];
+		renderTicketItems();
+		calculateFormTotals(false);
+		set('order-downpayment', d.fields?.downpayment);
+		calculateFormTotals(false);
+		const banner = document.getElementById('form-draft-banner');
+		if (banner) banner.hidden = true;
+		showToast('Draft restored.');
+	}
+
+	function setupFormDraft() {
+		const form = document.getElementById('create-order-form');
+		form?.addEventListener('input', scheduleFormDraftSave);
+		form?.addEventListener('change', scheduleFormDraftSave);
+		form?.addEventListener('click', scheduleFormDraftSave); // menu items, toggles, remove buttons
+		document.getElementById('form-draft-restore')?.addEventListener('click', restoreFormDraft);
+		document.getElementById('form-draft-discard')?.addEventListener('click', () => { clearFormDraft(); showToast('Draft discarded.'); });
+		document.getElementById('open-order-modal-btn')?.addEventListener('click', () => setTimeout(offerFormDraft, 0));
+		window.addEventListener('beforeunload', saveFormDraft);
 	}
 
 	function resetForm() {
@@ -6910,7 +7055,7 @@ Christy Montejo
 					<td class="customer-cell">
 						<div class="customer-cell-inner">
 							<span class="customer-name">${(o.customer && o.customer !== 'Pending Customer Details') ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
-							${(o.customer === 'Pending Customer Details' || !o.customer || !o.deliveryDateTime) ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+							${(o.customer === 'Pending Customer Details' || !o.customer || !o.deliveryDateTime) ? `<span class="awaiting-badge">Awaiting customer details</span>${draftBadge(o.id)}` : ''}
 						</div>
 						${(o.contact && o.contact.trim()) ? `<div class="customer-contact" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(o.contact)}</div>` : ''}
 					</td>
@@ -6940,7 +7085,7 @@ Christy Montejo
 						<div class="hcard-who">
 							<span class="hcard-name">${named ? escapeHtml(o.customer) : '<span class="text-muted">Pending Customer Details</span>'}</span>
 							${(o.contact && o.contact.trim()) ? `<span class="hcard-contact">${escapeHtml(o.contact)}</span>` : ''}
-							${awaiting ? '<span class="awaiting-badge">Awaiting customer details</span>' : ''}
+							${awaiting ? `<span class="awaiting-badge">Awaiting customer details</span>${draftBadge(o.id)}` : ''}
 						</div>
 						<div class="hcard-date">
 							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>

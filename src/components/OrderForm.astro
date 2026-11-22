@@ -13,6 +13,15 @@
 			</button>
 		</div>
 
+		<!-- Unsaved order from last time (kept on this device): restore or discard -->
+		<div class="form-draft-banner" id="form-draft-banner" hidden>
+			<span id="form-draft-text">You have an unsaved order draft.</span>
+			<div class="form-draft-actions">
+				<button type="button" class="form-draft-btn is-primary" id="form-draft-restore">Restore draft</button>
+				<button type="button" class="form-draft-btn" id="form-draft-discard">Discard</button>
+			</div>
+		</div>
+
 		<form class="pos-body" id="create-order-form" autocomplete="off" novalidate>
 			<!-- LEFT: menu catalog -->
 			<div class="pos-catalog">
@@ -341,6 +350,23 @@
 </div>
 
 <style>
+	.form-draft-banner {
+		display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+		margin: 0 24px 12px;
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		background: rgba(37, 99, 235, 0.08);
+		border: 1px solid rgba(37, 99, 235, 0.25);
+		font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+	}
+	.form-draft-banner[hidden] { display: none; }
+	.form-draft-actions { display: flex; gap: 8px; }
+	.form-draft-btn {
+		padding: 7px 14px; border-radius: var(--radius-pill);
+		border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary);
+		font-family: var(--font-family); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+	}
+	.form-draft-btn.is-primary { background: var(--accent-gradient); border-color: transparent; color: #fff; }
 	.form-hint { display: block; margin-top: 6px; font-size: 0.75rem; line-height: 1.4; color: var(--text-muted); }
 	.modal-overlay {
 		position: fixed;
