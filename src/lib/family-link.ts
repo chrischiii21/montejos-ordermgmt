@@ -20,7 +20,7 @@ function env(name: string): string | undefined {
 	return (import.meta.env as Record<string, string | undefined>)[name] ?? process.env[name];
 }
 
-function serviceClient() {
+export function serviceClient() {
 	const url = env('PUBLIC_SUPABASE_URL');
 	const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
 	if (!url || !serviceKey) return null;

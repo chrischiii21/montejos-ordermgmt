@@ -13,15 +13,37 @@ if (!(await isValidFamilyKey(Astro.params.key))) {
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 Astro.response.headers.set('Cache-Control', 'no-store');
+
+const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.webmanifest`;
 ---
 
 <Layout>
-	<meta name="robots" content="noindex, nofollow" />
-	<meta name="theme-color" content="#4a0d0a" />
+	<Fragment slot="head">
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="theme-color" content="#4a0d0a" />
+		<!-- Home-screen install: Android uses the manifest, iPhone uses the apple-* tags -->
+		<link rel="manifest" href={manifestHref} />
+		<link rel="apple-touch-icon" href="/icons/family-180.png" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-title" content="Montejo's" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+	</Fragment>
 	<!-- This page is designed for light mode only, so the calendar colors stay readable. -->
 	<script is:inline>document.documentElement.setAttribute('data-theme', 'light');</script>
 
 	<div class="fam">
+		<!-- "Add to Home Screen" helper. Filled in by the script below depending on the phone/browser. -->
+		<aside class="fam-install" id="fam-install" hidden>
+			<img src="/icons/family-192.png" alt="" class="fam-install-icon" />
+			<div class="fam-install-body">
+				<strong class="fam-install-title" id="fam-install-title">Add to Home Screen</strong>
+				<p class="fam-install-text" id="fam-install-text"></p>
+				<div class="fam-install-actions" id="fam-install-actions"></div>
+			</div>
+			<button class="fam-install-close" id="fam-install-close" aria-label="Hide">×</button>
+		</aside>
+
 		<header class="fam-top">
 			<img src="/logo.jpg" alt="" class="fam-logo" />
 			<div>
@@ -32,6 +54,24 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 				<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
 			</button>
 		</header>
+
+		<!-- Today / Tomorrow at a glance. Tap one to open that day's orders below. -->
+		<section class="fam-glance" aria-label="Today and tomorrow">
+			<button type="button" class="fam-glance-card" id="fam-glance-today" data-day="today">
+				<span class="fam-glance-label">Today</span>
+				<span class="fam-glance-date" id="fam-glance-today-date"></span>
+				<span class="fam-glance-count"><b id="fam-glance-today-num">0</b> <span id="fam-glance-today-word">orders</span></span>
+				<span class="fam-glance-next" id="fam-glance-today-next"></span>
+				<span class="fam-glance-tap">Tap to see ›</span>
+			</button>
+			<button type="button" class="fam-glance-card" id="fam-glance-tomorrow" data-day="tomorrow">
+				<span class="fam-glance-label">Tomorrow</span>
+				<span class="fam-glance-date" id="fam-glance-tomorrow-date"></span>
+				<span class="fam-glance-count"><b id="fam-glance-tomorrow-num">0</b> <span id="fam-glance-tomorrow-word">orders</span></span>
+				<span class="fam-glance-next" id="fam-glance-tomorrow-next"></span>
+				<span class="fam-glance-tap">Tap to see ›</span>
+			</button>
+		</section>
 
 		<section class="fam-card fam-cal">
 			<div class="fam-cal-head">
@@ -51,17 +91,34 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 			<button class="fam-today-btn" id="fam-today">Go to Today</button>
 		</section>
 
-		<section class="fam-day">
-			<h2 class="fam-day-title" id="fam-day-title"></h2>
-			<p class="fam-day-count" id="fam-day-count"></p>
-			<ol class="fam-list" id="fam-list"></ol>
-			<div id="fam-orders"></div>
-			<nav class="fam-pager" id="fam-pager" hidden>
-				<button class="fam-page-btn" id="fam-page-prev">‹ Previous</button>
-				<span class="fam-page-pos" id="fam-page-pos"></span>
-				<button class="fam-page-btn is-next" id="fam-page-next">Next ›</button>
-			</nav>
-		</section>
+		<!-- Full-screen panel with one day's orders. Opens from the Today/Tomorrow cards and calendar days.
+		     Closes with the big Close button at the top or the phone's back button. -->
+		<div class="fam-sheet" id="fam-sheet" role="dialog" aria-modal="true" aria-labelledby="fam-day-title" hidden>
+			<header class="fam-sheet-bar">
+				<div class="fam-sheet-heading">
+					<h2 class="fam-day-title" id="fam-day-title"></h2>
+					<p class="fam-day-count" id="fam-day-count"></p>
+				</div>
+				<button type="button" class="fam-close" id="fam-close-top" aria-label="Close">
+					<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+					<span>Close</span>
+				</button>
+			</header>
+			<!-- Only this middle part scrolls; the Close bar above and the Previous/Next bar below stay put. -->
+			<div class="fam-sheet-body" id="fam-sheet-body">
+				<section class="fam-day">
+					<ol class="fam-list" id="fam-list"></ol>
+					<div id="fam-orders"></div>
+				</section>
+			</div>
+			<footer class="fam-sheet-foot" hidden>
+				<nav class="fam-pager" id="fam-pager" hidden>
+					<button class="fam-page-btn" id="fam-page-prev">‹ Previous</button>
+					<span class="fam-page-pos" id="fam-page-pos"></span>
+					<button class="fam-page-btn is-next" id="fam-page-next">Next ›</button>
+				</nav>
+			</footer>
+		</div>
 	</div>
 </Layout>
 
@@ -100,6 +157,55 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 	.fam-refresh.spinning svg { animation: fam-spin 0.8s linear infinite; }
 	@keyframes fam-spin { to { transform: rotate(360deg); } }
+
+	/* Today / Tomorrow cards: big text, big tap area, high contrast for older eyes */
+	.fam-glance {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
+	.fam-glance-card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		min-width: 0;
+		min-height: 150px;
+		padding: 16px 14px;
+		border-radius: 20px;
+		border: 3px solid transparent;
+		background: var(--bg-card);
+		box-shadow: 0 2px 12px rgba(74, 13, 10, 0.08);
+		color: var(--text-primary);
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+	.fam-glance-card.is-selected { border-color: #b3261e; }
+	.fam-glance-label {
+		font-size: 1rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #b3261e;
+	}
+	.fam-glance-date { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
+	.fam-glance-count { font-size: 1.15rem; font-weight: 600; margin-top: 4px; }
+	.fam-glance-count b { font-size: 2.6rem; font-weight: 800; line-height: 1; color: #3b0d08; }
+	.fam-glance-next {
+		font-size: 1rem;
+		font-weight: 600;
+		line-height: 1.35;
+		color: var(--text-primary);
+		overflow-wrap: anywhere;
+	}
+	.fam-glance-next:empty { display: none; }
+	.fam-glance-tap { margin-top: auto; padding-top: 6px; font-size: 0.95rem; font-weight: 700; color: #b3261e; }
+	/* Very narrow phones: stack the two cards */
+	@media (max-width: 340px) {
+		.fam-glance { grid-template-columns: 1fr; }
+	}
 
 	.fam-card {
 		background: var(--bg-card);
@@ -204,9 +310,77 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		cursor: pointer;
 	}
 
-	.fam-day { margin-top: 24px; }
-	.fam-day-title { font-size: 1.45rem; font-weight: 700; margin: 0; }
-	.fam-day-count { font-size: 1.05rem; color: var(--text-secondary); margin: 2px 0 14px; }
+	/* Full-screen day panel */
+	/* Three rows: Close bar (fixed) / scrolling orders / Previous-Next bar (fixed).
+	   No position:sticky, which phones handle unreliably inside a fixed layer. */
+	.fam-sheet {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		height: 100%;
+		height: 100dvh; /* follows the phone's moving address bar */
+		display: flex;
+		flex-direction: column;
+		background: var(--bg-primary);
+		animation: fam-sheet-in 0.22s ease-out;
+	}
+	.fam-sheet[hidden] { display: none; }
+	.fam-sheet-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: contain;
+	}
+	.fam-sheet-foot {
+		flex: 0 0 auto;
+		background: var(--bg-primary);
+		border-top: 2px solid var(--border-color);
+	}
+	.fam-sheet-foot[hidden] { display: none; }
+	@keyframes fam-sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+	@media (prefers-reduced-motion: reduce) { .fam-sheet { animation: none; } }
+	.fam-sheet-bar {
+		flex: 0 0 auto;
+		width: 100%;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		max-width: 640px;
+		margin: 0 auto;
+		padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+		background: var(--bg-primary);
+		border-bottom: 2px solid var(--border-color);
+	}
+	.fam-sheet-heading { flex: 1; min-width: 0; }
+	/* The Close button: solid red, white text + X icon, big enough to see and tap easily */
+	.fam-close {
+		flex-shrink: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		min-height: 56px;
+		padding: 0 18px 0 14px;
+		border: 3px solid #7f1d1d;
+		border-radius: 16px;
+		background: #b3261e;
+		color: #fff;
+		font: inherit;
+		font-size: 1.2rem;
+		font-weight: 800;
+		box-shadow: 0 3px 10px rgba(179, 38, 30, 0.35);
+		cursor: pointer;
+	}
+	.fam-close:active { transform: translateY(1px); }
+	.fam-close:focus-visible { outline: 4px solid #1d4ed8; outline-offset: 2px; }
+	/* Keep the order card's top clear of the sticky Close bar when jumping between orders */
+	#fam-orders { scroll-margin-top: 12px; }
+
+	.fam-day { max-width: 640px; margin: 0 auto; padding: 16px 14px calc(32px + env(safe-area-inset-bottom)); }
+	.fam-day-title { font-size: 1.35rem; font-weight: 800; line-height: 1.25; margin: 0; }
+	.fam-day-count { font-size: 1.05rem; color: var(--text-secondary); margin: 2px 0 0; }
 
 	:global(.fam-order) {
 		background: var(--bg-card);
@@ -215,6 +389,16 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		margin-bottom: 14px;
 		box-shadow: 0 2px 12px rgba(74, 13, 10, 0.08);
 		border-left: 6px solid var(--accent-primary);
+	}
+	:global(.fam-order-date) {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--text-primary);
+		background: var(--accent-primary-light);
+		border-radius: 10px;
+		padding: 6px 10px;
+		margin: 6px 0 8px;
+		display: inline-block;
 	}
 	:global(.fam-order-time) { font-size: 1.6rem; font-weight: 800; color: var(--accent-deep); line-height: 1.1; }
 	:global(.fam-order-name) { font-size: 1.25rem; font-weight: 600; margin-top: 4px; }
@@ -279,10 +463,9 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
 		gap: 10px;
-		position: sticky;
-		bottom: 0;
-		padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-		background: var(--bg-primary);
+		max-width: 640px;
+		margin: 0 auto;
+		padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
 	}
 	.fam-pager[hidden] { display: none; }
 	.fam-page-btn {
@@ -299,6 +482,52 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	.fam-page-btn.is-next { background: var(--accent-gradient); border-color: transparent; color: #fff; }
 	.fam-page-btn:disabled { opacity: 0.35; cursor: default; }
 	.fam-page-pos { font-size: 1.1rem; font-weight: 700; min-width: 64px; text-align: center; }
+
+	.fam-install {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		margin-bottom: 16px;
+		padding: 14px;
+		border-radius: 18px;
+		background: var(--bg-card);
+		border: 2px solid var(--accent-primary);
+		box-shadow: 0 2px 12px rgba(74, 13, 10, 0.08);
+	}
+	.fam-install[hidden] { display: none; }
+	.fam-install-icon { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+	.fam-install-body { flex: 1; min-width: 0; }
+	.fam-install-title { display: block; font-size: 1.1rem; }
+	.fam-install-text { font-size: 1rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.45; }
+	.fam-install-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+	.fam-install-actions:empty { display: none; }
+	:global(.fam-install-btn) {
+		min-height: 48px;
+		padding: 0 18px;
+		border: none;
+		border-radius: 14px;
+		background: var(--accent-gradient);
+		color: #fff;
+		font: inherit;
+		font-size: 1.05rem;
+		font-weight: 700;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+	}
+	:global(.fam-install-btn.is-plain) { background: var(--accent-primary-light); color: var(--accent-primary); }
+	.fam-install-close {
+		width: 40px; height: 40px;
+		flex-shrink: 0;
+		border: none;
+		border-radius: 50%;
+		background: none;
+		color: var(--text-muted);
+		font-size: 1.8rem;
+		line-height: 1;
+		cursor: pointer;
+	}
 
 	:global(.fam-empty) {
 		text-align: center;
@@ -360,6 +589,13 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		if (!m) return timeStr || 'N/A';
 		const h = parseInt(m[1]);
 		return `${h % 12 || 12}:${m[2]} ${h >= 12 ? 'PM' : 'AM'}`;
+	}
+
+	// 'YYYY-MM-DD HH:MM' → 'Sunday, November 22, 2026'
+	function fullDate(deliveryDateTime: string): string {
+		const d = new Date(deliveryDateTime.slice(0, 10) + 'T00:00:00');
+		if (isNaN(d.getTime())) return deliveryDateTime.slice(0, 10) || 'N/A';
+		return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 	}
 
 	function peso(n: number): string {
@@ -424,8 +660,38 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	}
 
 	function render(): void {
+		renderGlance();
 		renderGrid();
 		renderDay();
+	}
+
+	function renderGlance(): void {
+		const now = new Date();
+		const days: [string, Date][] = [['today', now], ['tomorrow', new Date(now.getTime() + 864e5)]];
+		for (const [id, date] of days) {
+			const key = localKey(date);
+			const list = ordersFor(key);
+			document.getElementById(`fam-glance-${id}-date`)!.textContent =
+				date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+			document.getElementById(`fam-glance-${id}-num`)!.textContent = String(list.length);
+			document.getElementById(`fam-glance-${id}-word`)!.textContent = list.length === 1 ? 'order' : 'orders';
+
+			let next = '';
+			if (list.length) {
+				const upcoming = list.find(o => o.status !== 'Completed' && new Date(o.deliveryDateTime.replace(' ', 'T')).getTime() > now.getTime());
+				if (upcoming) next = `Next: ${formatTime12h(upcoming.deliveryDateTime.split(' ')[1] || '')}\n${upcoming.customer || 'N/A'}`;
+				else if (id === 'today') next = 'All done for today';
+			} else {
+				next = 'No orders';
+			}
+			const nextEl = document.getElementById(`fam-glance-${id}-next`)!;
+			nextEl.textContent = '';
+			next.split('\n').forEach((line, i) => {
+				if (i) nextEl.appendChild(document.createElement('br'));
+				nextEl.appendChild(document.createTextNode(line));
+			});
+			document.getElementById(`fam-glance-${id}`)!.classList.toggle('is-selected', selectedKey === key);
+		}
 	}
 
 	function renderGrid(): void {
@@ -473,6 +739,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 			box.innerHTML = '<div class="fam-empty">No orders on this day</div>';
 			listEl.innerHTML = '';
 			pager.hidden = true;
+			pager.parentElement!.hidden = true;
 			return;
 		}
 
@@ -506,24 +773,26 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 				<div class="fam-order-num">Order ${pageIndex + 1} of ${list.length}</div>
 				${statusBadge(o.status)}
 			</div>
+			<div class="fam-order-date">${esc(fullDate(o.deliveryDateTime))} · ${esc(time)}</div>
 			<div class="fam-order-time">${esc(o.fulfillmentType)} @ ${esc(time)}</div>
 			<div class="fam-order-name">${esc(o.customer || 'N/A')}${o.facebookName ? ` <span class="fam-fb">(FB: ${esc(o.facebookName)})</span>` : ''}</div>
 			<div class="fam-order-id">ORD-${esc(o.id.replace('ORD-', ''))}</div>
-			<span class="fam-label">📍 Address</span>
+			<span class="fam-label">Address</span>
 			<div class="fam-row">${esc(o.address || 'N/A')}</div>
-			<span class="fam-label">📞 Contact</span>
+			<span class="fam-label">Contact</span>
 			<div class="fam-row">${esc(o.contact || 'N/A')}</div>
 			${tel ? `<a class="fam-call" href="tel:${esc(tel)}">Call ${esc(o.contact)}</a>` : ''}
-			<span class="fam-label">🛒 Items</span>
+			<span class="fam-label">Items</span>
 			<ul class="fam-items">${items}</ul>
 			<div class="fam-money">
-				<div><span class="fam-label">💵 Total</span><div class="fam-money-val">${peso(o.total)}</div></div>
-				<div><span class="fam-label">💳 Downpayment</span><div class="fam-money-val">${peso(o.downpayment)}</div></div>
-				<div><span class="fam-label">⚖️ Balance</span><div class="fam-money-val ${o.balance > 0 ? 'is-due' : 'is-paid'}">${o.balance > 0 ? peso(o.balance) : 'Fully paid'}</div></div>
+				<div><span class="fam-label">Total</span><div class="fam-money-val">${peso(o.total)}</div></div>
+				<div><span class="fam-label">Downpayment</span><div class="fam-money-val">${peso(o.downpayment)}</div></div>
+				<div><span class="fam-label">Balance</span><div class="fam-money-val ${o.balance > 0 ? 'is-due' : 'is-paid'}">${o.balance > 0 ? peso(o.balance) : 'Fully paid'}</div></div>
 			</div>
 		</article>`;
 
 		pager.hidden = list.length < 2;
+		pager.parentElement!.hidden = pager.hidden;
 		document.getElementById('fam-page-pos')!.textContent = `${pageIndex + 1} / ${list.length}`;
 		(document.getElementById('fam-page-prev') as HTMLButtonElement).disabled = pageIndex === 0;
 		(document.getElementById('fam-page-next') as HTMLButtonElement).disabled = pageIndex === list.length - 1;
@@ -561,13 +830,57 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 		viewYear = t.getFullYear();
 		viewMonth = t.getMonth();
 		selectDay(localKey(t));
+		openSheet();
 	});
 	document.getElementById('fam-grid')!.addEventListener('click', e => {
 		const cell = (e.target as HTMLElement).closest<HTMLElement>('.fam-cell[data-key]');
 		if (!cell) return;
 		selectDay(cell.dataset.key!);
-		document.querySelector('.fam-day')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		openSheet();
 	});
+
+	document.querySelectorAll<HTMLElement>('.fam-glance-card').forEach(card => {
+		card.addEventListener('click', () => {
+			const d = new Date();
+			if (card.dataset.day === 'tomorrow') d.setDate(d.getDate() + 1);
+			viewYear = d.getFullYear();
+			viewMonth = d.getMonth();
+			selectDay(localKey(d));
+			openSheet();
+		});
+	});
+
+	// ---------- Day panel open/close ----------
+	// Opening adds a history entry, so the phone's back button closes the panel instead of leaving the page.
+	const sheet = document.getElementById('fam-sheet')!;
+	let lastFocus: HTMLElement | null = null;
+
+	function openSheet(): void {
+		if (!sheet.hidden) return;
+		lastFocus = document.activeElement as HTMLElement | null;
+		sheet.hidden = false;
+		document.getElementById('fam-sheet-body')!.scrollTop = 0;
+		document.body.style.overflow = 'hidden';
+		history.pushState({ famSheet: true }, '');
+		document.getElementById('fam-close-top')?.focus({ preventScroll: true });
+	}
+
+	function hideSheet(): void {
+		if (sheet.hidden) return;
+		sheet.hidden = true;
+		document.body.style.overflow = '';
+		lastFocus?.focus({ preventScroll: true });
+	}
+
+	function closeSheet(): void {
+		// Undo our history entry; the popstate handler then hides the panel.
+		if (history.state?.famSheet) history.back();
+		else hideSheet();
+	}
+
+	window.addEventListener('popstate', hideSheet);
+	document.getElementById('fam-close-top')!.addEventListener('click', closeSheet);
+	document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
 
 	document.getElementById('fam-list')!.addEventListener('click', e => {
 		const row = (e.target as HTMLElement).closest<HTMLElement>('.fam-list-row[data-index]');
@@ -593,4 +906,158 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 	document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
 
 	load();
+
+	// ---------- Visit log (Settings → Family Link Visits) ----------
+	// One entry per page open, plus one when the app comes back after 30+ minutes in the background.
+	// A random ID kept on the phone groups visits per device. On iPhone the home-screen app has
+	// its own storage, so the same iPhone can show up once for Safari and once for the home-screen icon.
+	logVisit();
+	let lastVisitLog = Date.now();
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible' && Date.now() - lastVisitLog > 30 * 60 * 1000) {
+			lastVisitLog = Date.now();
+			logVisit();
+		}
+	});
+
+	async function logVisit(): Promise<void> {
+		try {
+			let deviceId = '';
+			try {
+				deviceId = localStorage.getItem('fam-device-id') || '';
+				if (!deviceId) {
+					deviceId = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36));
+					localStorage.setItem('fam-device-id', deviceId);
+				}
+			} catch {
+				deviceId = 'nostore-' + Math.random().toString(36).slice(2);
+			}
+
+			// Android Chrome hides the model from the user agent but shares it here.
+			let model = '';
+			let platformVersion = '';
+			const uad = (navigator as any).userAgentData;
+			if (uad?.getHighEntropyValues) {
+				const hints = await uad.getHighEntropyValues(['model', 'platformVersion']).catch(() => ({}));
+				model = hints.model || '';
+				platformVersion = hints.platformVersion || '';
+			}
+
+			const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+			const key = decodeURIComponent(location.pathname.split('/')[2] || '');
+			await fetch('/api/family-visits', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ key, deviceId, model, platformVersion, standalone }),
+				keepalive: true
+			});
+		} catch {
+			// Logging must never get in the way of the calendar.
+		}
+	}
+
+	// ---------- Add to Home Screen helper ----------
+	// Browsers never let a page add itself to the home screen; the best we can do is
+	// one tap on Android (install prompt) and clear steps everywhere else.
+	setupInstallHelper();
+
+	function setupInstallHelper(): void {
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('/family-sw.js', { scope: '/family/' }).catch(() => {});
+		}
+
+		const box = document.getElementById('fam-install')!;
+		const title = document.getElementById('fam-install-title')!;
+		const text = document.getElementById('fam-install-text')!;
+		const actions = document.getElementById('fam-install-actions')!;
+		const DISMISS_KEY = 'fam-install-dismissed';
+
+		const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+		if (standalone) return; // already opened from the home screen
+
+		let dismissed = false;
+		try { dismissed = localStorage.getItem(DISMISS_KEY) === '1'; } catch {}
+
+		const ua = navigator.userAgent;
+		const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+		const isAndroid = /Android/.test(ua);
+		// Messenger, Facebook, Instagram, etc. open links in their own browser, which has no
+		// "Add to Home Screen". The link has to be opened in Chrome/Safari first.
+		const inApp = /FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\/|MicroMessenger|TikTok|Snapchat|\bwv\)/.test(ua);
+
+		function show(t: string, body: string, buttons: HTMLElement[] = []): void {
+			title.textContent = t;
+			text.innerHTML = body;
+			actions.replaceChildren(...buttons);
+			box.hidden = false;
+		}
+		function button(label: string, onClick: () => void, plain = false): HTMLButtonElement {
+			const b = document.createElement('button');
+			b.className = 'fam-install-btn' + (plain ? ' is-plain' : '');
+			b.textContent = label;
+			b.addEventListener('click', onClick);
+			return b;
+		}
+		function copyButton(): HTMLButtonElement {
+			const b = button('Copy Link', async () => {
+				try { await navigator.clipboard.writeText(location.href); b.textContent = 'Copied!'; }
+				catch { prompt('Copy this link:', location.href); }
+			}, true);
+			return b;
+		}
+
+		document.getElementById('fam-install-close')!.addEventListener('click', () => {
+			box.hidden = true;
+			try { localStorage.setItem(DISMISS_KEY, '1'); } catch {}
+		});
+
+		// The in-app browser case is shown even if dismissed before, since nothing else works there.
+		if (inApp) {
+			if (isAndroid) {
+				const chromeUrl = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;end`;
+				const open = document.createElement('a');
+				open.className = 'fam-install-btn';
+				open.href = chromeUrl;
+				open.textContent = 'Open in Chrome';
+				show('Open in Chrome first',
+					'This is opened inside Messenger/Facebook, which can’t add it to your home screen. Tap <b>Open in Chrome</b>, then add it from there.',
+					[open, copyButton()]);
+			} else {
+				show('Open in Safari first',
+					'This is opened inside Messenger/Facebook, which can’t add it to your home screen. Tap the <b>⋯</b> menu and choose <b>Open in Safari</b> (or copy the link and paste it into Safari).',
+					[copyButton()]);
+			}
+			return;
+		}
+
+		if (dismissed) return;
+
+		if (isIOS) {
+			show('Add to Home Screen',
+				'Tap the <b>Share</b> button <span aria-hidden="true">(□↑)</span>, scroll down and tap <b>Add to Home Screen</b>, then tap <b>Add</b>.');
+			return;
+		}
+
+		// Android Chrome / Edge / Samsung: one-tap install when the browser offers it.
+		window.addEventListener('beforeinstallprompt', (e: any) => {
+			e.preventDefault();
+			show('Add to Home Screen',
+				'Put this calendar on your home screen so you can open it like an app.',
+				[button('Add to Home Screen', async () => {
+					e.prompt();
+					const choice = await e.userChoice.catch(() => null);
+					if (choice?.outcome === 'accepted') box.hidden = true;
+				})]);
+		});
+		window.addEventListener('appinstalled', () => { box.hidden = true; });
+
+		// If the browser didn't offer the one-tap prompt, fall back to menu steps.
+		if (isAndroid) {
+			setTimeout(() => {
+				if (!box.hidden) return;
+				show('Add to Home Screen',
+					'Tap the <b>⋮</b> menu at the top right, then <b>Add to Home screen</b> (or <b>Install app</b>).');
+			}, 3000);
+		}
+	}
 </script>

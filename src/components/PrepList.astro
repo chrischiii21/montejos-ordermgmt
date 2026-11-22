@@ -1,0 +1,121 @@
+---
+// Prep list: every item to prepare for one day, added up across all orders (cancelled excluded).
+// Package items list their inclusions with quantities multiplied out.
+// Filled in by renderPrepList() in src/pages/index.astro.
+---
+
+<div class="glass-panel prep-container animate-fade-in">
+	<div class="prep-header">
+		<div>
+			<h3 class="prep-title">Prep List</h3>
+			<span class="prep-sub" id="prep-summary">Everything to prepare, added up</span>
+		</div>
+	</div>
+
+	<div class="prep-controls">
+		<div class="prep-seg" role="tablist" aria-label="Prep list day">
+			<button type="button" class="prep-seg-btn active" data-prep-day="today">Today</button>
+			<button type="button" class="prep-seg-btn" data-prep-day="tomorrow">Tomorrow</button>
+		</div>
+		<input type="date" id="prep-date" class="prep-date" aria-label="Pick a date" />
+	</div>
+
+	<div class="prep-day-label" id="prep-day-label"></div>
+	<ul class="prep-list" id="prep-list"></ul>
+</div>
+
+<style>
+	.prep-container {
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		min-width: 0;
+	}
+	.prep-header {
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 14px;
+	}
+	.prep-title {
+		font-family: var(--font-display);
+		font-size: 1.45rem;
+		font-weight: 600;
+		letter-spacing: 0.015em;
+		color: var(--text-primary);
+	}
+	.prep-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+	.prep-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+	.prep-seg {
+		display: inline-flex;
+		padding: 3px;
+		border-radius: var(--radius-pill);
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+	}
+	.prep-seg-btn {
+		border: none;
+		background: none;
+		padding: 7px 14px;
+		border-radius: var(--radius-pill);
+		font-family: var(--font-family);
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--text-secondary);
+		cursor: pointer;
+	}
+	.prep-seg-btn.active { background: var(--accent-gradient); color: #fff; }
+	.prep-date {
+		flex: 1 1 140px;
+		min-width: 0;
+		height: 36px;
+		padding: 0 10px;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--input-bg);
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.8rem;
+		color-scheme: light dark;
+	}
+	.prep-date.active { border-color: var(--accent-primary); }
+
+	.prep-day-label { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
+
+	.prep-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+	:global(.prep-item) {
+		padding: 12px 14px;
+		border-radius: var(--radius);
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+	}
+	:global(.prep-item-main) { display: flex; align-items: baseline; gap: 10px; }
+	:global(.prep-qty) {
+		flex-shrink: 0;
+		min-width: 38px;
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: var(--accent-primary);
+	}
+	:global(.prep-name) { flex: 1; min-width: 0; font-weight: 700; color: var(--text-primary); font-size: 0.9rem; overflow-wrap: anywhere; }
+	:global(.prep-orders) { flex-shrink: 0; font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+	:global(.prep-incl) {
+		list-style: none;
+		margin: 8px 0 0 48px;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+	}
+	:global(.prep-incl li::before) { content: '• '; color: var(--text-muted); }
+	:global(.prep-empty) {
+		text-align: center;
+		padding: 28px 12px;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		border: 1px dashed var(--border-color);
+		border-radius: var(--radius);
+	}
+</style>

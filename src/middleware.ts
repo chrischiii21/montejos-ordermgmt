@@ -6,7 +6,7 @@ const PROTECTED_PREFIXES = ['/'];
 
 // Paths (or prefixes) that should always be allowed (assets, API, public files)
 // '/family' is guarded by its own secret-link check in src/pages/family/[key].astro
-const EXEMPT_PREFIXES = ['/family', '/_astro', '/assets', '/favicon', '/api', '/.netlify/functions', '/robots.txt'];
+const EXEMPT_PREFIXES = ['/family', '/family-sw.js', '/icons','/_astro', '/assets', '/favicon', '/api', '/.netlify/functions', '/robots.txt'];
 
 export const onRequest = defineMiddleware(({ request, cookies, redirect }, next) => {
   const url = new URL(request.url);

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { isDashboardSession } from '../../lib/family-link';
 import { getInclusionsForTelegram } from '../../lib/telegram';
 
 function escapeHtml(text: string | null | undefined): string {
@@ -24,7 +25,11 @@ function formatDateTime12h(dateTimeStr: string | null | undefined): string {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
+  // Only the logged-in dashboard may create or delete orders (/api is exempt from the middleware).
+  if (!isDashboardSession(cookies.get('dashboard_token')?.value)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
   const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 

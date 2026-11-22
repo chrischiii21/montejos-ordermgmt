@@ -183,11 +183,55 @@ export const PACKAGE_INCLUSIONS: Record<string, string[]> = {
 	]
 };
 
+/**
+ * Belly packages list "1 tray Chosen Dessert". When the dessert was picked, the item name
+ * carries it as "[Dessert: Fruit Salad]", so swap the placeholder for the real dessert.
+ * (Keep in sync with the copy in src/lib/reminders.js.)
+ */
+export function resolveChosenDessert(itemName: string, inclusions: string[]): string[] {
+	const m = (itemName || '').match(/\[Dessert:\s*([^\]]+)\]/i);
+	if (!m) return inclusions;
+	const dessert = m[1].trim();
+	return inclusions.map(line => line.replace(/chosen dessert/i, dessert));
+}
+
+/** Desserts a Belly Bilao package (P1–P6) can come with. Same list as the order form dropdown. */
+export const DESSERT_OPTIONS = [
+	'Fruit Salad',
+	'Fruit Macaroni Salad',
+	'Chicken Macaroni Salad',
+	'Creamy Coffee Jelly',
+	'Creamy Buko Pandan',
+	'Creamy Mango Float',
+	'Creamy Banana Float',
+	'Creamy Maja Blanca'
+];
+
+/** True for the Belly Bilao packages (P1–P6), the only items with a dessert choice. */
+export function isBilaoPackage(itemName: string): boolean {
+	return /\bP[1-6]\s+Package\s*\(Bilao\)/i.test(itemName || '');
+}
+
+/** A Bilao package still waiting for its dessert: no "[Dessert: …]" tag and no dessert named in its inclusions. */
+export function needsDessertChoice(itemName: string, customInclusions?: string[] | null): boolean {
+	if (!isBilaoPackage(itemName)) return false;
+	if (/\[Dessert:\s*[^\]]+\]/i.test(itemName)) return false;
+	if (customInclusions && customInclusions.length > 0) return customInclusions.some(l => /chosen dessert/i.test(l));
+	return true;
+}
+
+/** The item after the customer picks a dessert: name tagged "[Dessert: X]", placeholder in inclusions replaced. */
+export function applyDessertChoice(itemName: string, customInclusions: string[] | null | undefined, dessert: string) {
+	const name = `${itemName.replace(/\s*\[Dessert:[^\]]*\]/i, '').trim()} [Dessert: ${dessert}]`;
+	const inclusions = (customInclusions ?? []).map(l => l.replace(/chosen dessert/i, dessert));
+	return { name, customInclusions: inclusions };
+}
+
 export function getInclusionsForForm(itemName: string): string[] | null {
 	for (const key in PACKAGE_INCLUSIONS) {
 		if (itemName.toLowerCase().includes(key.toLowerCase()) ||
 			(key.startsWith('P') && itemName.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
-			return [...PACKAGE_INCLUSIONS[key]];
+			return resolveChosenDessert(itemName, [...PACKAGE_INCLUSIONS[key]]);
 		}
 	}
 	return null;

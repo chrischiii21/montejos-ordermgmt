@@ -238,11 +238,12 @@
 
 					<!-- Chosen Dessert for Belly Bilao Packages -->
 					<div class="form-group" id="belly-dessert-group" style="display: none;">
-						<label for="belly-dessert">Select Chosen Dessert</label>
+						<label for="belly-dessert">Chosen Dessert</label>
 						<div class="input-wrapper">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+							<!-- Blank = the customer picks it on their order link (they can't continue without it) -->
 							<select id="belly-dessert">
-								<option value="" disabled selected>Select a dessert...</option>
+								<option value="" selected>Let the customer choose (on their order link)</option>
 								<option value="Fruit Salad">Fruit Salad</option>
 								<option value="Fruit Macaroni Salad">Fruit Macaroni Salad</option>
 								<option value="Chicken Macaroni Salad">Chicken Macaroni Salad</option>
@@ -253,7 +254,6 @@
 								<option value="Creamy Maja Blanca">Creamy Maja Blanca</option>
 							</select>
 						</div>
-						<span class="error-message" id="belly-dessert-error">Please select a dessert for this package</span>
 					</div>
 
 					<!-- Food Tray Size Toggle (Only shown for Food Trays) -->

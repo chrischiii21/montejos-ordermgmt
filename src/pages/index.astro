@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import StatsCard from '../components/StatsCard.astro';
-import BestSellers from '../components/BestSellers.astro';
+import PrepList from '../components/PrepList.astro';
 import OrderForm from '../components/OrderForm.astro';
 import OrderTable from '../components/OrderTable.astro';
 import { getFamilyKey, canGenerateFamilyKey } from '../lib/family-link';
@@ -94,28 +93,37 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 
 			<!-- DASHBOARD VIEW -->
 			<div id="view-dashboard" class="view-container">
-				<!-- Statistics Cards Row -->
-				<section class="stats-grid">
-					<StatsCard id="revenue-val" title="Total Revenue" initialValue="₱0.00" trendId="revenue-trend" initialTrend="+0.0%" isTrendPositive={true}>
-						<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
-					</StatsCard>
-					<StatsCard id="active-orders-val" title="Active Orders" initialValue="0" trendId="active-trend" initialTrend="+0%" isTrendPositive={true}>
-						<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><circle cx="12" cy="12" r="10" stroke-dasharray="4 4"/></svg>
-					</StatsCard>
-					<StatsCard id="avg-order-val" title="Avg Order Value" initialValue="₱0.00" trendId="avg-trend" initialTrend="+0.0%" isTrendPositive={true}>
-						<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg>
-					</StatsCard>
-					<StatsCard id="items-sold-val" title="Total Items Sold" initialValue="0" trendId="items-trend" initialTrend="+0%" isTrendPositive={true}>
-						<svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12H2Z"/><path d="M6.5 16H17.5M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
-					</StatsCard>
+				<!-- At a glance: today, tomorrow, money still to collect. Filled by renderGlance(). -->
+				<section class="glance-grid">
+					<button type="button" class="glass-panel glance-card" id="glance-today" data-prep-day="today" title="Show today's prep list">
+						<span class="glance-label">Today</span>
+						<span class="glance-date" id="glance-today-date"></span>
+						<span class="glance-big" id="glance-today-count">0 orders</span>
+						<span class="glance-split" id="glance-today-split"></span>
+						<span class="glance-next" id="glance-today-next"></span>
+					</button>
+					<button type="button" class="glass-panel glance-card" id="glance-tomorrow" data-prep-day="tomorrow" title="Show tomorrow's prep list">
+						<span class="glance-label">Tomorrow</span>
+						<span class="glance-date" id="glance-tomorrow-date"></span>
+						<span class="glance-big" id="glance-tomorrow-count">0 orders</span>
+						<span class="glance-split" id="glance-tomorrow-split"></span>
+						<span class="glance-next" id="glance-tomorrow-next"></span>
+					</button>
+					<div class="glass-panel glance-card glance-collect">
+						<span class="glance-label">Balance to collect · next 7 days</span>
+						<span class="glance-big" id="glance-collect-total">₱0.00</span>
+						<span class="glance-split" id="glance-collect-count"></span>
+						<ul class="glance-collect-list" id="glance-collect-list"></ul>
+					</div>
 				</section>
+
 				<!-- Main Content Grid -->
 				<section class="dashboard-grid">
 					<div class="grid-table-area">
 						<OrderTable />
 					</div>
 					<div class="grid-analytics-area">
-						<BestSellers />
+						<PrepList />
 					</div>
 				</section>
 			</div>
@@ -293,6 +301,8 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 			<!-- SETTINGS VIEW -->
 			<div id="view-settings" class="view-container" style="display:none">
 				<div class="settings-grid">
+					<!-- Left column: the bigger panels -->
+					<div class="settings-col">
 					<!-- Payment Methods -->
 					<section class="glass-panel settings-section settings-section-wide">
 						<header class="settings-head">
@@ -323,6 +333,27 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 						</div>
 					</section>
 
+					<!-- Data Management -->
+					<section class="glass-panel settings-section settings-section-danger">
+						<header class="settings-head">
+							<span class="settings-head-icon is-danger">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Data Management</h2>
+								<p class="settings-head-sub">These actions affect every order and cannot be undone.</p>
+							</div>
+						</header>
+
+						<div class="settings-danger-actions">
+							<button class="btn-danger-settings" id="reset-orders-btn">Reset to Default Orders</button>
+							<button class="btn-danger-settings" id="clear-orders-btn">Clear All Orders</button>
+						</div>
+					</section>
+					</div>
+
+					<!-- Right column: the smaller panels -->
+					<div class="settings-col">
 					<!-- Default Downpayment -->
 					<section class="glass-panel settings-section">
 						<header class="settings-head">
@@ -376,23 +407,76 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 							<p class="settings-family-hint">To change this link, set or change <code>FAMILY_LINK_KEY</code> in your Netlify/Vercel environment variables and redeploy. The old link then stops working.</p>
 						)}
 					</section>
+					</div>
 
-					<!-- Data Management -->
-					<section class="glass-panel settings-section settings-section-danger">
+					<!-- Pickup & Delivery Fees (full width): pickup address + a fee per service area (preset barangays of
+					     Argao, Sibonga, Dalaguete from src/lib/service-areas.ts, plus custom areas). Blank fee = not offered. -->
+					<section class="glass-panel settings-section settings-section-full">
 						<header class="settings-head">
-							<span class="settings-head-icon is-danger">
-								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
 							</span>
 							<div class="settings-head-text">
-								<h2 class="settings-head-title">Data Management</h2>
-								<p class="settings-head-sub">These actions affect every order and cannot be undone.</p>
+								<h2 class="settings-head-title">Pickup &amp; Delivery Fees</h2>
+								<p class="settings-head-sub">Customers choose Pickup, Meetup or Delivery on their order link. Pickup shows the address below. Delivery adds the fee of their service area to the total. Only areas with a fee are offered; "not on the list" and Meetup are agreed by message and added to their balance by you.</p>
 							</div>
 						</header>
 
-						<div class="settings-danger-actions">
-							<button class="btn-danger-settings" id="reset-orders-btn">Reset to Default Orders</button>
-							<button class="btn-danger-settings" id="clear-orders-btn">Clear All Orders</button>
+						<div class="pickup-fields">
+							<div class="settings-field">
+								<label for="s-pickup-address">Pickup address (shown to customers who choose Pickup)</label>
+								<input type="text" id="s-pickup-address" maxlength="300" placeholder="e.g. Montejo's, Poblacion, Argao, Cebu (beside the municipal hall)" />
+							</div>
+							<div class="settings-field">
+								<label for="s-pickup-map">Google Maps link (optional)</label>
+								<input type="url" id="s-pickup-map" maxlength="500" placeholder="https://maps.app.goo.gl/…" />
+							</div>
 						</div>
+
+						<label class="zone-list-label">Delivery fee per service area</label>
+						<p class="area-help">Type a fee only for the areas you deliver to. Leave the rest blank and customers won't see them.</p>
+
+						<div class="area-toolbar">
+							<input type="search" id="area-search" class="area-search" placeholder="Search service area…" aria-label="Search service area" />
+							<div class="area-filters" id="area-filters" role="tablist" aria-label="Filter by town">
+								<button type="button" class="area-filter active" data-town="">All</button>
+								<button type="button" class="area-filter" data-town="Argao">Argao</button>
+								<button type="button" class="area-filter" data-town="Sibonga">Sibonga</button>
+								<button type="button" class="area-filter" data-town="Dalaguete">Dalaguete</button>
+								<button type="button" class="area-filter" data-town="__custom">Other areas</button>
+							</div>
+							<label class="area-only"><input type="checkbox" id="area-only-priced" /> Only areas with a fee</label>
+						</div>
+						<p class="area-count" id="area-count"></p>
+
+						<div id="area-groups"></div>
+
+						<!-- Custom areas not in the preset list (e.g. a subdivision or another town) -->
+						<div class="area-group" id="area-custom-group" data-town="__custom">
+							<h4 class="area-group-title">Other areas <span class="area-group-sub">Places not in the lists above</span></h4>
+							<div class="zone-list" id="zone-list"></div>
+							<button type="button" class="btn-family-open area-add" id="add-zone-btn">+ Add other area</button>
+						</div>
+
+						<div class="settings-actions">
+							<button type="button" class="btn-save-settings" id="save-zones-btn">Save Pickup &amp; Delivery</button>
+						</div>
+					</section>
+
+					<!-- Family Link Visits: full width under both columns -->
+					<section class="glass-panel settings-section settings-section-full">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Family Link Visits</h2>
+								<p class="settings-head-sub">Phones that opened the family calendar in the last 90 days. iPhones only show as "iPhone" because Apple hides the model from websites.</p>
+							</div>
+							<button type="button" class="btn-family-open settings-visits-refresh" id="refresh-family-visits-btn">Refresh</button>
+						</header>
+						<p class="settings-visits-summary" id="family-visits-summary">Loading…</p>
+						<div class="settings-visits-list" id="family-visits-list"></div>
 					</section>
 				</div>
 			</div>
@@ -929,25 +1013,6 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 		transform: translateY(1px);
 	}
 
-	/* Stats Grid */
-	.stats-grid {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 24px;
-	}
-
-	@media (min-width: 640px) {
-		.stats-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
-	}
-
-	@media (min-width: 1200px) {
-		.stats-grid {
-			grid-template-columns: repeat(4, 1fr);
-		}
-	}
-
 	/* Dashboard Main Grid Layout */
 	.dashboard-grid {
 		display: grid;
@@ -965,6 +1030,89 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	.grid-table-area {
 		width: 100%;
 		overflow: hidden;
+	}
+
+	/* ===== AT A GLANCE (Today / Tomorrow / Balance to collect) ===== */
+	.glance-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+		gap: 24px;
+	}
+	@media (min-width: 1200px) {
+		.glance-grid { grid-template-columns: 1fr 1fr 1.4fr; }
+	}
+	.glance-card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		padding: 20px 22px;
+		min-width: 0;
+		text-align: left;
+		font-family: var(--font-family);
+		color: var(--text-primary);
+		border: 1px solid var(--border-color);
+	}
+	button.glance-card { cursor: pointer; transition: var(--transition-smooth); }
+	button.glance-card:hover { border-color: var(--border-color-hover); transform: translateY(-2px); }
+	button.glance-card.is-selected { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-primary-light); }
+	.glance-label {
+		font-size: 0.72rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--accent-primary);
+	}
+	.glance-date { font-size: 0.8rem; color: var(--text-muted); }
+	.glance-big { font-size: 1.7rem; font-weight: 800; line-height: 1.2; margin-top: 4px; }
+	.glance-split { font-size: 0.82rem; color: var(--text-secondary); }
+	.glance-next {
+		margin-top: 8px;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--text-primary);
+		overflow-wrap: anywhere;
+	}
+	.glance-next:empty { display: none; }
+	.glance-collect-list { list-style: none; margin: 8px 0 0; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 4px; }
+	.glance-collect-list:empty { display: none; }
+	:global(.glance-collect-row) {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 6px 8px;
+		margin: 0 -8px;
+		border: none;
+		border-radius: var(--radius);
+		background: none;
+		font-family: var(--font-family);
+		font-size: 0.82rem;
+		color: var(--text-secondary);
+		text-align: left;
+		cursor: pointer;
+	}
+	:global(.glance-collect-row:hover) { background: var(--accent-primary-light); }
+	:global(.glance-collect-name) { flex: 1; min-width: 0; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	:global(.glance-collect-when) { flex-shrink: 0; color: var(--text-muted); }
+	:global(.glance-collect-amt) { flex-shrink: 0; font-weight: 800; color: var(--status-pending); }
+	:global(.glance-collect-more) { font-size: 0.78rem; color: var(--text-muted); padding-top: 2px; }
+
+	/* Amount column in the dashboard order list */
+	:global(.amount-cell) { white-space: nowrap; }
+	:global(.amt-total) { font-weight: 700; color: var(--text-primary); }
+	:global(.amt-sub) { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+	:global(.amt-sub .is-due) { color: var(--status-pending); font-weight: 700; }
+	:global(.amt-sub .is-paid) { color: var(--status-completed); font-weight: 700; }
+	:global(.unpaid-dp-badge) {
+		display: inline-block;
+		margin-top: 4px;
+		font-size: 0.68rem;
+		font-weight: 800;
+		padding: 2px 8px;
+		border-radius: var(--radius-pill);
+		background: var(--status-pending-light);
+		color: var(--status-pending);
 	}
 
 	.grid-analytics-area {
@@ -1277,14 +1425,168 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	/* Scoped styles removed. Live Kitchen layouts and styles are fully defined globally under <style is:global> to ensure compatibility with dynamically rendered content. */
 
 	/* ===== SETTINGS ===== */
+	/* Two stacked columns on wide screens (Payment + Data | Downpayment + Family link),
+	   so neither side leaves a gap. On narrow screens the columns dissolve into one list,
+	   with the danger zone moved to the end. */
 	.settings-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+		display: flex;
+		flex-direction: column;
 		gap: 24px;
-		align-items: start;
 	}
-	/* Payment Methods holds two account cards, so it takes the full row when there is one */
-	@media (min-width: 1100px) { .settings-section-wide { grid-column: span 2; } }
+	.settings-col { display: contents; }
+	.settings-section-danger { order: 1; }
+	@media (min-width: 1100px) {
+		.settings-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+			align-items: start;
+		}
+		.settings-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+		.settings-section-danger { order: 0; }
+		.settings-section-full { grid-column: 1 / -1; }
+	}
+
+	/* Delivery Fees by Barangay */
+	/* Full-width card: barangay rows sit side by side on wide screens, one per line on phones */
+	.zone-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 8px 16px; }
+	.zone-list:empty { display: none; }
+	:global(.zone-row) { display: grid; grid-template-columns: minmax(0, 1fr) 130px 40px; gap: 8px; align-items: center; }
+	:global(.zone-row input) {
+		width: 100%; min-width: 0;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		padding: 10px 12px;
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		outline: none;
+	}
+	:global(.zone-row input:focus) { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-primary-light); }
+	:global(.zone-fee-wrap) { position: relative; }
+	:global(.zone-fee-wrap::before) { content: '₱'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-weight: 700; font-size: 0.85rem; }
+	:global(.zone-fee-wrap input) { padding-left: 26px; }
+	:global(.zone-remove) {
+		width: 40px; height: 40px;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-muted);
+		font-size: 1.2rem;
+		cursor: pointer;
+	}
+	:global(.zone-remove:hover) { color: var(--status-cancelled); border-color: var(--status-cancelled); }
+	.zone-empty { font-size: 0.85rem; color: var(--text-muted); }
+	.area-help { font-size: 0.8rem; color: var(--text-secondary); margin-top: -6px; }
+	.area-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+	.area-search {
+		flex: 1 1 220px;
+		min-width: 0;
+		height: 38px;
+		padding: 0 12px;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.85rem;
+		outline: none;
+	}
+	.area-search:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-primary-light); }
+	.area-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+	.area-filter {
+		padding: 7px 12px;
+		border-radius: var(--radius-pill);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-secondary);
+		font-family: var(--font-family);
+		font-size: 0.78rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.area-filter.active { background: var(--accent-gradient); border-color: transparent; color: #fff; }
+	.area-only { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+	.area-count { font-size: 0.8rem; color: var(--text-muted); }
+	#area-groups { display: flex; flex-direction: column; gap: 18px; }
+	:global(.area-group[hidden]) { display: none; }
+	.area-group-title, :global(.area-group-title) {
+		display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+		font-size: 0.85rem; font-weight: 800; color: var(--text-primary);
+		margin: 0 0 8px;
+	}
+	.area-group-sub, :global(.area-group-sub) { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+	:global(.area-grid) { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px 12px; }
+	:global(.area-row) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 110px;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 6px 6px 12px;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--bg-secondary);
+	}
+	:global(.area-row[hidden]) { display: none; }
+	:global(.area-row.has-fee) { border-color: var(--accent-primary); background: var(--accent-primary-light); }
+	:global(.area-name) { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+	:global(.area-row input) {
+		width: 100%; min-width: 0;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		padding: 8px 10px 8px 24px;
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.85rem;
+		outline: none;
+	}
+	:global(.area-row input:focus) { border-color: var(--accent-primary); }
+	.area-add { margin-top: 8px; align-self: flex-start; }
+	#area-custom-group { display: flex; flex-direction: column; }
+	.pickup-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px 16px; }
+	.zone-list-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: -10px; }
+
+	/* Family Link Visits */
+	.settings-visits-refresh { margin-left: auto; flex-shrink: 0; padding: 8px 16px; font-size: 0.8rem; }
+	.settings-visits-summary { font-size: 0.85rem; color: var(--text-secondary); }
+	.settings-visits-list { display: flex; flex-direction: column; gap: 8px; }
+	.settings-visits-list:empty { display: none; }
+	:global(.visit-row) {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 80px minmax(0, 1.2fr) 110px;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 16px;
+		border-radius: var(--radius);
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		font-size: 0.85rem;
+	}
+	:global(.visit-row.is-head) {
+		background: none; border: none; padding-top: 0; padding-bottom: 0;
+		font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);
+	}
+	:global(.visit-model) { font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+	:global(.visit-meta) { color: var(--text-secondary); overflow-wrap: anywhere; }
+	:global(.visit-count) { font-weight: 700; color: var(--text-primary); }
+	:global(.visit-badge) {
+		justify-self: start;
+		font-size: 0.7rem; font-weight: 800;
+		padding: 3px 9px; border-radius: var(--radius-pill);
+		background: var(--status-completed-light); color: var(--status-completed);
+		white-space: nowrap;
+	}
+	:global(.visit-badge.is-browser) { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); }
+	.settings-visits-hint { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+	@media (max-width: 760px) {
+		:global(.visit-row) { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; }
+		:global(.visit-row.is-head) { display: none; }
+		:global(.visit-row .visit-meta),
+		:global(.visit-row .visit-seen) { grid-column: 1; }
+		:global(.visit-row .visit-count) { grid-column: 2; grid-row: 1; justify-self: end; }
+		:global(.visit-row .visit-badge) { grid-column: 2; grid-row: 2; justify-self: end; }
+	}
 
 	.settings-section { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -1354,7 +1656,7 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	}
 
 	.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 4px; }
-	.settings-danger-actions { display: flex; flex-direction: column; gap: 10px; }
+	.settings-danger-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; }
 	#s-family-link { font-family: ui-monospace, monospace; font-size: 0.8rem; }
 	.btn-family-open {
 		display: inline-flex; align-items: center;
@@ -1367,6 +1669,10 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	.btn-family-open { cursor: pointer; }
 	.btn-family-open:hover { border-color: var(--border-color-hover); }
 	.btn-family-open:disabled { opacity: 0.6; cursor: wait; }
+	/* Copy Link · Open · Generate New Link: compact enough to share one row,
+	   and they only wrap if the card is genuinely too narrow (never overflow). */
+	.settings-family-actions { gap: 8px; }
+	.settings-family-actions > * { white-space: nowrap; padding-left: 16px; padding-right: 16px; }
 	.settings-family-hint { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
 	.settings-family-hint code { font-size: 0.75rem; padding: 1px 5px; border-radius: 4px; background: var(--bg-secondary); }
 
@@ -1407,7 +1713,6 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	.analytic-card,
 	.settings-grid,
 	.settings-section,
-	.stats-grid,
 	.header-left,
 	.header-right {
 		min-width: 0;
@@ -1418,8 +1723,10 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 		.view-container { gap: 20px; }
 		.analytics-summary,
 		.settings-grid,
-		.stats-grid,
+		.glance-grid,
 		.dashboard-grid { gap: 16px; }
+		.glance-card { padding: 16px 18px; }
+		.glance-big { font-size: 1.45rem; }
 		.chart-card { padding: 18px 14px; }
 		.chart-card-sm { padding: 18px 14px; }
 		.analytic-card { padding: 16px; }
@@ -2445,7 +2752,8 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 
 <script>
 	import { createClient } from '@supabase/supabase-js';
-	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm, getInclusionOptions } from '../lib/menu';
+	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm, getInclusionOptions, resolveChosenDessert } from '../lib/menu';
+	import { SERVICE_AREA_TOWNS } from '../lib/service-areas';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,
@@ -2529,7 +2837,7 @@ function showConfirm(message) {
 
 	function getInclusions(it: OrderItem): string[] | null {
 		if (it.customInclusions && it.customInclusions.length > 0) {
-			return it.customInclusions;
+			return resolveChosenDessert(it.name, it.customInclusions);
 		}
 		return getInclusionsForForm(it.name);
 	}
@@ -2853,6 +3161,7 @@ function showConfirm(message) {
 
 		// Set up event listeners
 		setupEventListeners();
+		setupGlanceAndPrep();
 		setupFormListeners();
 		setupNavigation();
 		setupFamilyLink();
@@ -2905,8 +3214,8 @@ function showConfirm(message) {
 	}
 
 	function updateDashboard() {
-		calculateStats();
-		calculateBestSellers();
+		renderGlance();
+		renderPrepList();
 		renderOrdersTable();
 		updateTabCounts();
 		if (document.getElementById('view-order-history')?.style.display !== 'none') {
@@ -2917,182 +3226,200 @@ function showConfirm(message) {
 		}
 	}
 
-	// 1. Calculations & Metrics
-	function calculateStats() {
-		// Filter out cancelled orders for revenue & sold item calculations
-		const validOrders = orders.filter(o => o.status !== 'Cancelled');
-		
-		// Total Revenue (only Completed or Preparing)
-		const revenue = validOrders
-			.filter(o => o.status === 'Completed' || o.status === 'Preparing')
-			.reduce((sum, o) => sum + o.total, 0);
-		
-		// Active Orders (Pending + Preparing) but exclude orders missing customer details
-		const activeCount = getActiveOrders().length;
-		
-		// Total Items Sold
-		const itemsSold = validOrders.reduce((sum, o) => sum + o.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
-
-		// Average Order Value
-		const completedAndPreparingCount = validOrders.filter(o => o.status === 'Completed' || o.status === 'Preparing').length;
-		const avgOrderVal = completedAndPreparingCount > 0 ? revenue / completedAndPreparingCount : 0;
-
-		// Update DOM elements
-		updateVal('revenue-val', `₱${revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-		updateVal('active-orders-val', activeCount.toString());
-		updateVal('avg-order-val', `₱${avgOrderVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-		updateVal('items-sold-val', itemsSold.toString());
-
-		// Optional: Trend badges calculation simulated based on order count
-		updateTrendBadge('revenue-trend', revenue > 5000 ? '+14.2%' : '+0%', revenue > 5000);
-		updateTrendBadge('active-trend', activeCount > 2 ? '+25%' : '+0%', activeCount > 2);
-		updateTrendBadge('avg-trend', avgOrderVal > 300 ? '+4.8%' : '+0%', avgOrderVal > 300);
-		updateTrendBadge('items-trend', itemsSold > 5 ? '+18%' : '+0%', itemsSold > 5);
-	}
-
 	// Helper: return active orders excluding placeholder customer rows
 	function getActiveOrders() {
 		return orders.filter(o => (o.status === 'Pending' || o.status === 'Preparing') && ((o.customer || '').toString().trim() !== 'Pending Customer Details' && (o.customer || '').toString().trim() !== '' && !!o.deliveryDateTime));
 	}
 
-	function updateVal(id: string, value: string) {
-		const el = document.getElementById(id);
-		if (el) el.textContent = value;
+
+	// 2. At a glance + Prep list (dashboard)
+	// Local 'YYYY-MM-DD' for a Date, matching the first 10 chars of deliveryDateTime.
+	function localDayKey(d: Date): string {
+		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+	}
+	function pesoAmt(n: number): string {
+		return '₱' + (n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+	}
+	function orderWhen(o: Order): Date | null {
+		if (!o.deliveryDateTime) return null;
+		const d = new Date(o.deliveryDateTime.replace(' ', 'T'));
+		return isNaN(d.getTime()) ? null : d;
+	}
+	function ordersOnDay(key: string): Order[] {
+		return orders
+			.filter(o => o.status !== 'Cancelled' && (o.deliveryDateTime || '').slice(0, 10) === key)
+			.sort((a, b) => (a.deliveryDateTime || '').localeCompare(b.deliveryDateTime || ''));
+	}
+	function displayCustomer(o: Order): string {
+		const c = (o.customer || '').trim();
+		return c && c !== 'Pending Customer Details' ? c : 'Pending customer details';
 	}
 
-	function updateTrendBadge(id: string, text: string, isPositive: boolean) {
-		const badge = document.getElementById(id);
-		if (badge) {
-			const textEl = badge.querySelector('.trend-text');
-			if (textEl) textEl.textContent = text;
-			
-			badge.className = `trend-badge ${isPositive ? 'trend-up' : 'trend-down'}`;
-			const svg = badge.querySelector('.trend-icon');
-			if (svg) {
-				svg.innerHTML = isPositive 
-					? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 5v14"/></svg>`
-					: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>`;
+	// Which day the prep list shows: 'today', 'tomorrow' or a 'YYYY-MM-DD' picked in the date box.
+	let prepDay: string = 'today';
+	function prepDayKey(): string {
+		if (prepDay === 'today') return localDayKey(new Date());
+		if (prepDay === 'tomorrow') return localDayKey(new Date(Date.now() + 864e5));
+		return prepDay;
+	}
+
+	function renderGlance() {
+		const now = new Date();
+		const days: [string, Date][] = [['today', now], ['tomorrow', new Date(now.getTime() + 864e5)]];
+		for (const [id, date] of days) {
+			const key = localDayKey(date);
+			const list = ordersOnDay(key);
+			const pickups = list.filter(o => o.fulfillmentType === 'Pickup' || o.fulfillmentType === 'Meetup').length;
+			const deliveries = list.length - pickups;
+			const set = (suffix: string, text: string) => { const el = document.getElementById(`glance-${id}-${suffix}`); if (el) el.textContent = text; };
+			set('date', date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
+			set('count', `${list.length} order${list.length === 1 ? '' : 's'}`);
+			set('split', list.length ? `${deliveries} delivery · ${pickups} pickup` : 'Nothing scheduled');
+			let next = '';
+			if (list.length) {
+				const upcoming = list.find(o => o.status !== 'Completed' && (orderWhen(o)?.getTime() ?? 0) > now.getTime());
+				if (upcoming) next = `Next: ${formatTime12h(upcoming.deliveryDateTime)} · ${displayCustomer(upcoming)}`;
+				else if (id === 'today') next = 'All of today’s orders are done';
 			}
+			set('next', next);
+			document.getElementById(`glance-${id}`)?.classList.toggle('is-selected', prepDay === id);
+		}
+
+		// Balance still owed on orders due from today through the next 7 days.
+		const start = new Date(now); start.setHours(0, 0, 0, 0);
+		const end = new Date(start.getTime() + 8 * 864e5);
+		const owing = orders
+			.filter(o => {
+				if (o.status === 'Cancelled' || o.status === 'Completed' || !(o.balance > 0)) return false;
+				const w = orderWhen(o);
+				return !!w && w >= start && w < end;
+			})
+			.sort((a, b) => (a.deliveryDateTime || '').localeCompare(b.deliveryDateTime || ''));
+		const total = owing.reduce((s, o) => s + o.balance, 0);
+		const totalEl = document.getElementById('glance-collect-total');
+		const countEl = document.getElementById('glance-collect-count');
+		const listEl = document.getElementById('glance-collect-list');
+		if (totalEl) totalEl.textContent = pesoAmt(total);
+		if (countEl) countEl.textContent = owing.length ? `from ${owing.length} order${owing.length === 1 ? '' : 's'}` : 'Nothing left to collect';
+		if (listEl) {
+			const SHOW = 4;
+			listEl.innerHTML = owing.slice(0, SHOW).map(o => {
+				const w = orderWhen(o)!;
+				const when = localDayKey(w) === localDayKey(now) ? 'Today' : localDayKey(w) === localDayKey(new Date(now.getTime() + 864e5)) ? 'Tomorrow' : w.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+				return `<li><button type="button" class="glance-collect-row" data-id="${escapeHtml(o.id)}" title="View order">
+					<span class="glance-collect-name">${escapeHtml(displayCustomer(o))}</span>
+					<span class="glance-collect-when">${escapeHtml(when)}</span>
+					<span class="glance-collect-amt">${pesoAmt(o.balance)}</span>
+				</button></li>`;
+			}).join('') + (owing.length > SHOW ? `<li class="glance-collect-more">+ ${owing.length - SHOW} more</li>` : '');
 		}
 	}
 
-	// 2. Best Sellers Detection System
-	function calculateBestSellers() {
-		const listContainer = document.getElementById('best-sellers-list');
-		if (!listContainer) return;
+	// Package name for an item; old orders stored Set A/B/C packages as "1 Whole Lechon Baboy" at the set price.
+	function prepItemName(item: OrderItem): string {
+		const name = normalizeItemName(item.name);
+		if (name === '1 Whole Lechon Baboy') {
+			if (item.price === 15999) return 'Set A Lechon Package';
+			if (item.price === 18675) return 'Set B Lechon Package';
+			if (item.price === 19999) return 'Set C Lechon Package';
+		}
+		return name;
+	}
 
-		// Filter out cancelled orders for analytics
-		const activeSales = orders.filter(o => o.status !== 'Cancelled');
+	// "1 tray Buttered Shrimps" × 3 → "3 tray Buttered Shrimps"
+	function multiplyInclusion(line: string, qty: number): string {
+		const m = line.trim().match(/^(\d+(?:\.\d+)?)\s+(.*)$/);
+		if (m) return `${Number(m[1]) * qty} ${m[2]}`;
+		return qty > 1 ? `${qty}× ${line}` : line;
+	}
 
-		const categories = [
-			{ label: 'Whole Lechon' },
-			{ label: 'Lechon Belly' },
-			{ label: 'Lechon Packages' },
-			{ label: 'Lechon Belly Packages' },
-			{ label: 'Food Trays (Pork)' },
-			{ label: 'Food Trays (Chicken)' },
-			{ label: 'Food Trays (Seafood)' },
-			{ label: 'Combo Meals' }
-		];
+	function renderPrepList() {
+		const listEl = document.getElementById('prep-list');
+		if (!listEl) return;
+		const key = prepDayKey();
+		const dayOrders = ordersOnDay(key);
 
-		const categoryAggregation: { [catName: string]: { [itemName: string]: { quantity: number; revenue: number } } } = {};
-		categories.forEach(cat => {
-			categoryAggregation[cat.label] = {};
-		});
+		// Controls reflect the current choice.
+		document.querySelectorAll<HTMLElement>('.prep-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.prepDay === prepDay));
+		const dateInput = document.getElementById('prep-date') as HTMLInputElement | null;
+		if (dateInput) {
+			dateInput.value = key;
+			dateInput.classList.toggle('active', prepDay !== 'today' && prepDay !== 'tomorrow');
+		}
+		const label = document.getElementById('prep-day-label');
+		if (label) {
+			const d = new Date(key + 'T00:00:00');
+			const prefix = prepDay === 'today' ? 'Today, ' : prepDay === 'tomorrow' ? 'Tomorrow, ' : '';
+			label.textContent = prefix + d.toLocaleDateString('en-US', { weekday: prefix ? undefined : 'long', month: 'long', day: 'numeric', year: prefix ? undefined : 'numeric' });
+		}
 
-		activeSales.forEach(order => {
-			order.items.forEach(item => {
-				if (item.price > 0) {
-					const cat = getItemCategory(item.name);
-					if (cat && categoryAggregation[cat]) {
-						let name = normalizeItemName(item.name);
-						if (name === '1 Whole Lechon Baboy') {
-							if (item.price === 15999) {
-								name = 'Set A Lechon Package';
-							} else if (item.price === 18675) {
-								name = 'Set B Lechon Package';
-							} else if (item.price === 19999) {
-								name = 'Set C Lechon Package';
-							}
-						}
-						if (!categoryAggregation[cat][name]) {
-							categoryAggregation[cat][name] = { quantity: 0, revenue: 0 };
-						}
-						categoryAggregation[cat][name].quantity += item.quantity;
-						categoryAggregation[cat][name].revenue += item.total;
-					}
+		// Add up identical items (same name + same inclusions) across the day's orders.
+		const groups = new Map<string, { name: string; qty: number; orderIds: Set<string>; incl: string[] }>();
+		for (const o of dayOrders) {
+			for (const item of o.items || []) {
+				const name = prepItemName(item);
+				const incl = (item.customInclusions && item.customInclusions.length ? resolveChosenDessert(item.name, item.customInclusions) : getInclusionsForForm(item.name) || getInclusionsForForm(name)) || [];
+				const gKey = name + '|' + incl.join(';');
+				const g = groups.get(gKey) ?? { name, qty: 0, orderIds: new Set<string>(), incl };
+				g.qty += Number(item.quantity) || 0;
+				g.orderIds.add(o.id);
+				groups.set(gKey, g);
+			}
+		}
+
+		const CATEGORY_ORDER = ['Whole Lechon', 'Lechon Packages', 'Lechon Belly', 'Lechon Belly Packages', 'Combo Meals', 'Food Trays (Pork)', 'Food Trays (Chicken)', 'Food Trays (Seafood)', 'Food Trays (Noodles/Pasta)', 'Food Trays (Veggie/Desserts)'];
+		const rank = (n: string) => { const i = CATEGORY_ORDER.indexOf(getItemCategory(n) || ''); return i < 0 ? 99 : i; };
+		const items = [...groups.values()].sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
+
+		const summary = document.getElementById('prep-summary');
+		const totalQty = items.reduce((s, g) => s + g.qty, 0);
+		if (summary) summary.textContent = dayOrders.length
+			? `${totalQty} item${totalQty === 1 ? '' : 's'} from ${dayOrders.length} order${dayOrders.length === 1 ? '' : 's'}`
+			: 'Everything to prepare, added up';
+
+		if (!items.length) {
+			listEl.innerHTML = `<li class="prep-empty">No orders on this day.</li>`;
+			return;
+		}
+		listEl.innerHTML = items.map(g => `<li class="prep-item">
+			<div class="prep-item-main">
+				<span class="prep-qty">${g.qty}×</span>
+				<span class="prep-name">${escapeHtml(g.name)}</span>
+				<span class="prep-orders">${g.orderIds.size} order${g.orderIds.size === 1 ? '' : 's'}</span>
+			</div>
+			${g.incl.length ? `<ul class="prep-incl">${g.incl.map(l => `<li>${escapeHtml(multiplyInclusion(l, g.qty))}</li>`).join('')}</ul>` : ''}
+		</li>`).join('');
+	}
+
+	function setPrepDay(day: string) {
+		prepDay = day;
+		renderPrepList();
+		renderGlance();
+	}
+
+	function setupGlanceAndPrep() {
+		document.querySelectorAll<HTMLElement>('[data-prep-day]').forEach(el => {
+			el.addEventListener('click', () => {
+				setPrepDay(el.dataset.prepDay!);
+				// On narrow screens the prep list is below the order list, so bring it into view.
+				if (el.classList.contains('glance-card') && window.innerWidth < 1200) {
+					document.querySelector('.prep-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}
 			});
 		});
-
-		const categoryBestSellers = categories.map(cat => {
-			const items = categoryAggregation[cat.label];
-			const sortedItems = Object.keys(items).map(name => ({
-				name,
-				quantity: items[name].quantity,
-				revenue: items[name].revenue
-			})).sort((a, b) => b.quantity - a.quantity);
-			
-			const topSeller = sortedItems[0] || null;
-			return {
-				categoryLabel: cat.label,
-				bestSeller: topSeller
-			};
+		document.getElementById('prep-date')?.addEventListener('change', e => {
+			const v = (e.target as HTMLInputElement).value;
+			if (!v) return;
+			const today = localDayKey(new Date());
+			const tomorrow = localDayKey(new Date(Date.now() + 864e5));
+			setPrepDay(v === today ? 'today' : v === tomorrow ? 'tomorrow' : v);
 		});
-
-		// Check if we have any sales at all
-		const hasAnySales = categoryBestSellers.some(c => c.bestSeller !== null);
-
-		if (!hasAnySales) {
-			listContainer.innerHTML = `
-				<div class="empty-state">
-					<div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
-					<p class="empty-state-title">No data yet</p>
-					<p class="empty-state-sub">Best sellers will appear here once orders are recorded.</p>
-				</div>
-			`;
-			return;
-		}
-
-		const formatCompactRevenue = (val: number) => {
-			if (val >= 1000000) {
-				return (val / 1000000).toFixed(1).replace('.0', '') + 'M';
-			}
-			if (val >= 1000) {
-				return (val / 1000).toFixed(1).replace('.0', '') + 'k';
-			}
-			return val.toString();
-		};
-
-		listContainer.innerHTML = categoryBestSellers.map(cat => {
-			if (!cat.bestSeller) {
-				return `
-					<div class="category-seller-card" style="opacity: 0.5">
-						<div class="category-header">
-							<span class="category-label" title="${cat.categoryLabel}">${cat.categoryLabel}</span>
-						</div>
-						<div class="seller-name" style="color:var(--text-muted); font-size:0.75rem; font-style:italic;">No sales</div>
-						<div class="seller-details">
-							<span class="seller-qty">-</span>
-							<span class="seller-revenue">-</span>
-						</div>
-					</div>
-				`;
-			}
-			
-			return `
-				<div class="category-seller-card">
-					<div class="category-header">
-						<span class="category-label" title="${cat.categoryLabel}">${cat.categoryLabel}</span>
-					</div>
-					<div class="seller-name" title="${cat.bestSeller.name}">${cat.bestSeller.name}</div>
-					<div class="seller-details">
-						<span class="seller-qty">${cat.bestSeller.quantity} sold</span>
-						<span class="seller-revenue">₱${formatCompactRevenue(cat.bestSeller.revenue)}</span>
-					</div>
-				</div>
-			`;
-		}).join('');
+		document.getElementById('glance-collect-list')?.addEventListener('click', e => {
+			const row = (e.target as HTMLElement).closest<HTMLElement>('.glance-collect-row[data-id]');
+			if (row) openDetailsModal(row.dataset.id!);
+		});
+		// Keep "Next:" and the day rollover current without a reload.
+		setInterval(() => { renderGlance(); renderPrepList(); }, 60 * 1000);
 	}
 
 	// 3. Render Orders Table (dashboard preview)
@@ -3208,6 +3535,11 @@ function showConfirm(message) {
 						${noteHtml}
 					</td>
 					<td class="date-cell">${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : '<span class="text-muted">Pending Customer Input</span>'}</td>
+					<td class="amount-cell">
+						<div class="amt-total">${pesoAmt(order.total)}</div>
+						<div class="amt-sub">DP ${pesoAmt(order.downpayment)} · ${order.balance > 0 ? `<span class="is-due">Bal ${pesoAmt(order.balance)}</span>` : '<span class="is-paid">Paid</span>'}</div>
+						${(!(order.downpayment > 0) && order.total > 0 && order.status !== 'Completed' && order.status !== 'Cancelled') ? '<span class="unpaid-dp-badge">No DP yet</span>' : ''}
+					</td>
 					<td><span class="status-badge ${statusClass}">${order.status}</span></td>
 				</tr>
 			`;
@@ -3399,6 +3731,219 @@ function showConfirm(message) {
 			btn.textContent = 'Copied!';
 			setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000);
 		});
+		setupFamilyVisits();
+		setupDeliveryZones();
+	}
+
+	// Settings → Pickup & Delivery Fees (saved to the server; the customer order link reads it).
+	// Every barangay of Argao, Sibonga and Dalaguete is listed (src/lib/service-areas.ts); the owner
+	// only types fees. Blank fee = area not offered. Custom areas cover places outside those lists.
+	function setupDeliveryZones() {
+		const groupsEl = document.getElementById('area-groups');
+		const customList = document.getElementById('zone-list');
+		const addBtn = document.getElementById('add-zone-btn');
+		const saveBtn = document.getElementById('save-zones-btn') as HTMLButtonElement | null;
+		const searchEl = document.getElementById('area-search') as HTMLInputElement | null;
+		const onlyPricedEl = document.getElementById('area-only-priced') as HTMLInputElement | null;
+		const countEl = document.getElementById('area-count');
+		if (!groupsEl || !customList || !addBtn || !saveBtn) return;
+
+		let townFilter = '';
+		const escAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+		// 1. Preset barangays, one group per town
+		groupsEl.innerHTML = SERVICE_AREA_TOWNS.map(t => `
+			<div class="area-group" data-town="${escAttr(t.town)}">
+				<h4 class="area-group-title">${escAttr(t.town)} <span class="area-group-sub" data-count-for="${escAttr(t.town)}"></span></h4>
+				<div class="area-grid">
+					${t.barangays.map(b => `
+						<label class="area-row" data-name="${escAttr(b)}" data-town="${escAttr(t.town)}">
+							<span class="area-name">${escAttr(b)}</span>
+							<span class="zone-fee-wrap"><input type="number" class="area-fee" min="0" step="1" placeholder="—" aria-label="Delivery fee for ${escAttr(b)}, ${escAttr(t.town)}" /></span>
+						</label>`).join('')}
+				</div>
+			</div>`).join('');
+
+		const presetRows = () => [...groupsEl.querySelectorAll<HTMLElement>('.area-row')];
+		const feeInput = (row: HTMLElement) => row.querySelector('.area-fee') as HTMLInputElement;
+
+		// 2. Custom areas (name + fee + remove)
+		function addCustomRow(name = '', fee: number | '' = '') {
+			const row = document.createElement('div');
+			row.className = 'zone-row';
+			row.innerHTML = `
+				<input type="text" class="zone-name" placeholder="Area name (e.g. Carcar City)" maxlength="80" aria-label="Area name" />
+				<div class="zone-fee-wrap"><input type="number" class="zone-fee" min="0" step="1" placeholder="Fee" aria-label="Delivery fee" /></div>
+				<button type="button" class="zone-remove" aria-label="Remove" title="Remove">×</button>`;
+			(row.querySelector('.zone-name') as HTMLInputElement).value = name;
+			(row.querySelector('.zone-fee') as HTMLInputElement).value = fee === '' ? '' : String(fee);
+			row.querySelector('.zone-remove')!.addEventListener('click', () => { row.remove(); refresh(); });
+			row.addEventListener('input', refresh);
+			customList!.appendChild(row);
+			return row;
+		}
+
+		// 3. Filtering + counts
+		function refresh() {
+			const q = (searchEl?.value || '').trim().toLowerCase();
+			const onlyPriced = !!onlyPricedEl?.checked;
+			let priced = 0;
+			for (const row of presetRows()) {
+				const hasFee = feeInput(row).value.trim() !== '';
+				if (hasFee) priced++;
+				row.classList.toggle('has-fee', hasFee);
+				const matches = (!townFilter || row.dataset.town === townFilter)
+					&& (!q || row.dataset.name!.toLowerCase().includes(q) || row.dataset.town!.toLowerCase().includes(q))
+					&& (!onlyPriced || hasFee);
+				row.hidden = !matches;
+			}
+			for (const group of groupsEl!.querySelectorAll<HTMLElement>('.area-group')) {
+				const rows = [...group.querySelectorAll<HTMLElement>('.area-row')];
+				group.hidden = rows.every(r => r.hidden);
+				const withFee = rows.filter(r => feeInput(r).value.trim() !== '').length;
+				const sub = group.querySelector('[data-count-for]');
+				if (sub) sub.textContent = `${withFee} of ${rows.length} with a fee`;
+			}
+			const customGroup = document.getElementById('area-custom-group');
+			if (customGroup) customGroup.hidden = !!townFilter && townFilter !== '__custom';
+			const customCount = [...customList!.querySelectorAll('.zone-row')].filter(r => (r.querySelector('.zone-name') as HTMLInputElement).value.trim()).length;
+			const total = presetRows().length;
+			if (countEl) countEl.textContent = `${priced} of ${total} listed areas have a fee${customCount ? ` · ${customCount} other area${customCount === 1 ? '' : 's'}` : ''}. Customers only see areas with a fee.`;
+		}
+
+		groupsEl.addEventListener('input', refresh);
+		searchEl?.addEventListener('input', refresh);
+		onlyPricedEl?.addEventListener('change', refresh);
+		document.querySelectorAll<HTMLButtonElement>('.area-filter').forEach(btn => {
+			btn.addEventListener('click', () => {
+				townFilter = btn.dataset.town || '';
+				document.querySelectorAll('.area-filter').forEach(b => b.classList.toggle('active', b === btn));
+				refresh();
+			});
+		});
+		addBtn.addEventListener('click', () => {
+			(addCustomRow().querySelector('.zone-name') as HTMLInputElement).focus();
+			refresh();
+		});
+
+		// 4. Fill from saved data
+		function applySaved(zones: { name: string; town?: string; fee: number }[]) {
+			presetRows().forEach(r => { feeInput(r).value = ''; });
+			customList!.innerHTML = '';
+			for (const z of zones) {
+				const row = z.town
+					? presetRows().find(r => r.dataset.town === z.town && r.dataset.name!.toLowerCase() === z.name.toLowerCase())
+					: undefined;
+				if (row) feeInput(row).value = String(z.fee);
+				else addCustomRow(z.town ? `${z.name}, ${z.town}` : z.name, z.fee);
+			}
+			refresh();
+		}
+
+		// 5. Save
+		saveBtn.addEventListener('click', async () => {
+			const zones = [
+				...presetRows()
+					.filter(r => feeInput(r).value.trim() !== '')
+					.map(r => ({ name: r.dataset.name!, town: r.dataset.town!, fee: parseFloat(feeInput(r).value) || 0 })),
+				...[...customList.querySelectorAll('.zone-row')].map(r => ({
+					name: (r.querySelector('.zone-name') as HTMLInputElement).value.trim(),
+					fee: parseFloat((r.querySelector('.zone-fee') as HTMLInputElement).value) || 0
+				})).filter(z => z.name)
+			];
+			const pickup = {
+				address: (document.getElementById('s-pickup-address') as HTMLInputElement | null)?.value.trim() || '',
+				mapUrl: (document.getElementById('s-pickup-map') as HTMLInputElement | null)?.value.trim() || ''
+			};
+			saveBtn.disabled = true;
+			saveBtn.textContent = 'Saving…';
+			try {
+				const res = await fetch('/api/delivery-zones', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ zones, pickup })
+				});
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+				applySaved(body.zones ?? []);
+				const n = (body.zones ?? []).length;
+				showToast(`Pickup & delivery saved (${n} service area${n === 1 ? '' : 's'} with a fee).`);
+			} catch (err) {
+				showToast('Could not save: ' + (err instanceof Error ? err.message : String(err)));
+			} finally {
+				saveBtn.disabled = false;
+				saveBtn.textContent = 'Save Pickup & Delivery';
+			}
+		});
+
+		refresh();
+		fetch('/api/delivery-zones', { cache: 'no-store' })
+			.then(r => r.json())
+			.then(body => {
+				applySaved(body.zones ?? []);
+				const addr = document.getElementById('s-pickup-address') as HTMLInputElement | null;
+				const map = document.getElementById('s-pickup-map') as HTMLInputElement | null;
+				if (addr && body.pickup?.address) addr.value = body.pickup.address;
+				if (map && body.pickup?.mapUrl) map.value = body.pickup.mapUrl;
+			})
+			.catch(() => refresh());
+	}
+
+	// Settings → Family Link Visits: one row per phone that opened the family link.
+	function setupFamilyVisits() {
+		const summary = document.getElementById('family-visits-summary');
+		const list = document.getElementById('family-visits-list');
+		const refreshBtn = document.getElementById('refresh-family-visits-btn') as HTMLButtonElement | null;
+		if (!summary || !list) return;
+
+		const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+		const ago = (iso: string) => {
+			const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+			if (mins < 1) return 'just now';
+			if (mins < 60) return `${mins} min ago`;
+			const hrs = Math.round(mins / 60);
+			if (hrs < 24) return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
+			const days = Math.round(hrs / 24);
+			if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+			return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+		};
+
+		async function load() {
+			if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.textContent = 'Loading…'; }
+			try {
+				const res = await fetch('/api/family-visits', { cache: 'no-store' });
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+				if (!body.ready) {
+					summary!.textContent = body.error || 'Visit log is not set up yet.';
+					list!.innerHTML = '';
+					return;
+				}
+				const devices: any[] = body.devices ?? [];
+				if (!devices.length) {
+					summary!.textContent = 'No visits yet. Phones will show up here after they open the family link.';
+					list!.innerHTML = '';
+					return;
+				}
+				summary!.textContent = `${devices.length} device${devices.length === 1 ? '' : 's'} · ${body.totalVisits} visit${body.totalVisits === 1 ? '' : 's'}`;
+				list!.innerHTML =
+					`<div class="visit-row is-head"><span>Phone</span><span>System · Browser</span><span>Visits</span><span>Last seen</span><span>Opened from</span></div>` +
+					devices.map(d => `<div class="visit-row" title="First seen ${esc(new Date(d.firstSeen).toLocaleString())}">
+						<span class="visit-model">${esc(d.model)}</span>
+						<span class="visit-meta">${esc(d.os)} · ${esc(d.browser)}</span>
+						<span class="visit-count">${d.visits}×</span>
+						<span class="visit-meta visit-seen">${esc(ago(d.lastSeen))}</span>
+						<span class="visit-badge${d.homeScreen ? '' : ' is-browser'}">${d.homeScreen ? 'Home screen' : 'Browser'}</span>
+					</div>`).join('');
+			} catch (err) {
+				summary!.textContent = 'Could not load visits: ' + (err instanceof Error ? err.message : String(err));
+			} finally {
+				if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.textContent = 'Refresh'; }
+			}
+		}
+
+		refreshBtn?.addEventListener('click', load);
+		load();
 	}
 
 	function bindTableActionButtons() {
@@ -5225,8 +5770,8 @@ Christy Montejo
 
 			if (bellyDessertGroup && bellyDessertSelect) {
 				if (isBellyPackage) {
+					// Optional: left blank, the customer picks the dessert on their order link.
 					bellyDessertGroup.style.display = 'block';
-					bellyDessertSelect.setAttribute('required', 'required');
 				} else {
 					bellyDessertGroup.style.display = 'none';
 					bellyDessertSelect.removeAttribute('required');
@@ -5629,17 +6174,7 @@ Christy Montejo
 			}
 		}
 
-		// Validation for belly dessert
-		const bellyDessertGroup = document.getElementById('belly-dessert-group') as HTMLDivElement;
-		const bellyDessert = document.getElementById('belly-dessert') as HTMLSelectElement;
-		if (bellyDessertGroup && bellyDessertGroup.style.display === 'block') {
-			if (!bellyDessert.value) {
-				bellyDessertGroup.classList.add('invalid');
-				isValid = false;
-			} else {
-				bellyDessertGroup.classList.remove('invalid');
-			}
-		}
+		// Belly dessert is optional: when blank, the customer chooses it on their order link.
 
 		const priceInput = document.getElementById('item-price') as HTMLInputElement;
 		const priceGroup = priceInput?.parentElement?.parentElement;

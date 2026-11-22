@@ -176,6 +176,8 @@ import Layout from '../layouts/Layout.astro';
 					</label>
 				</div>
 
+				<p class="dessert-required-note" id="dessert-required-note" role="status" style="display: none;"></p>
+
 				<div class="form-actions-right">
 					<button type="button" class="btn btn-primary" id="btn-goto-step-2" disabled>
 						<span>Verify & Continue</span>
@@ -187,8 +189,8 @@ import Layout from '../layouts/Layout.astro';
 			<!-- Step 2 Content: Customer Details -->
 			<section id="step-2-content" class="glass-panel step-content-card" style="display: none;">
 				<div class="card-header-group">
-					<h3>Complete Contact & Delivery Details</h3>
-					<p>Please enter the delivery information so we can coordinate your food prep and drop-off.</p>
+					<h3>Complete Your Contact & Order Details</h3>
+					<p>Choose Pickup, Meetup or Delivery, then fill in the details so we can prepare your order on time.</p>
 				</div>
 
 				<form id="customer-info-form" novalidate style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
@@ -237,13 +239,69 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 					</div>
 
+					<!-- How the customer gets the order: their choice (required). Sets which fields and notes show below. -->
+					<div class="form-group" id="cust-method-group">
+						<label>How will you get your order?</label>
+						<p class="field-hint"><strong>Choose one.</strong> This decides your fee and the details we need.</p>
+						<div class="method-options" role="radiogroup" aria-label="Pickup, Meetup or Delivery">
+							<button type="button" class="method-opt" role="radio" aria-checked="false" data-method="Pickup">
+								<span class="method-title">Pickup</span>
+								<span class="method-sub">Get it at our place. No fee.</span>
+							</button>
+							<button type="button" class="method-opt" role="radio" aria-checked="false" data-method="Meetup">
+								<span class="method-title">Meetup</span>
+								<span class="method-sub">Meet at an agreed place. Meetup fee applies.</span>
+							</button>
+							<button type="button" class="method-opt" role="radio" aria-checked="false" data-method="Delivery">
+								<span class="method-title">Delivery</span>
+								<span class="method-sub">We bring it to you. Fee depends on your service area.</span>
+							</button>
+						</div>
+						<span class="error-message">Please choose Pickup, Meetup or Delivery</span>
+					</div>
+
+					<div class="method-info" id="cust-pickup-info" style="display: none;">
+						<div class="method-info-title">Pickup address</div>
+						<div class="method-info-text" id="pickup-address-text">Poblacion, Argao, Cebu</div>
+						<a class="method-info-link" id="pickup-map-link" href="#" target="_blank" rel="noopener" style="display: none;">Open in Google Maps</a>
+					</div>
+
+					<div class="method-info is-warn" id="cust-meetup-info" style="display: none;">
+						<div class="method-info-title">Meetup fee applies</div>
+						<div class="method-info-text">Meetups have a meetup fee depending on the place. Please <strong>message our Facebook page</strong> to agree on the place and the fee. It will be added to your final balance.</div>
+						<a class="method-info-link" href="https://m.me/100064148257945" target="_blank" rel="noopener">Message our page</a>
+					</div>
+
+					<!-- Barangay picker: sets the delivery fee automatically (Settings → Delivery Fees by Barangay).
+					     Shown for Delivery when the shop hasn't set a delivery fee on the order. -->
+					<div class="form-group" id="cust-zone-group" style="display: none;">
+						<label for="cust-input-zone">Service Area</label>
+						<p class="field-hint"><strong>Choose your service area first.</strong> This sets your delivery fee, and it will be added to your total.</p>
+						<div class="input-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+							<select id="cust-input-zone" style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem;">
+								<option value="" disabled selected>Select your service area…</option>
+							</select>
+						</div>
+						<span class="zone-fee-note" id="cust-zone-fee-note"></span>
+						<span class="error-message">Please select your service area</span>
+					</div>
+
+					<!-- Delivery to a barangay that isn't on the list (or no list yet): fee agreed by message -->
+					<div class="method-info is-warn" id="cust-delivery-other-info" style="display: none;">
+						<div class="method-info-title">Delivery fee to be confirmed</div>
+						<div class="method-info-text">Please <strong>message our Facebook page</strong> for the delivery fee to your place. The fee will be added to your final balance.</div>
+						<a class="method-info-link" href="https://m.me/100064148257945" target="_blank" rel="noopener">Message our page</a>
+					</div>
+
 					<div class="form-group" id="cust-address-group">
-						<label for="cust-input-address">Exact Address (for Delivery/Meetup)</label>
+						<label for="cust-input-address">Full Address Details (for Delivery/Meetup)</label>
+						<p class="field-hint"><strong>Please write your full address details</strong> so our rider can find you: house no. / street, purok or sitio, and a nearby landmark.</p>
 						<div class="input-wrapper" style="align-items: flex-start; padding-top: 8px;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon" style="margin-top: 4px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-							<textarea id="cust-input-address" rows="3" placeholder="Enter complete address, landmark, block/lot, etc." style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; resize: vertical;" required></textarea>
+							<textarea id="cust-input-address" rows="3" placeholder="e.g. Purok 3, Sitio Tabay, near the chapel, blue gate beside the sari-sari store" style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; resize: vertical;" required></textarea>
 						</div>
-						<span class="error-message">Delivery address is required</span>
+						<span class="error-message">Please write your full address details: street or purok, and a nearby landmark</span>
 					</div>
 
 					<div class="form-group">
@@ -683,6 +741,143 @@ import Layout from '../layouts/Layout.astro';
 		align-items: center;
 		padding: 16px 20px;
 		width: 100%;
+	}
+
+	/* Dessert picker for Bilao packages (required before continuing) */
+	.dessert-pick {
+		margin: 0 20px 16px;
+		padding: 14px;
+		border-radius: var(--radius);
+		border: 2px dashed var(--accent-primary);
+		background: rgba(214, 54, 31, 0.06);
+	}
+	.dessert-pick.is-done {
+		border-style: solid;
+		border-color: var(--status-completed, #047857);
+		background: rgba(4, 120, 87, 0.06);
+	}
+	.dessert-pick-title {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin-bottom: 10px;
+		font-size: 0.95rem;
+		font-weight: 800;
+		color: var(--text-primary);
+	}
+	.dessert-pick-badge {
+		font-size: 0.7rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 3px 9px;
+		border-radius: 999px;
+		background: var(--accent-primary);
+		color: #fff;
+	}
+	.dessert-pick.is-done .dessert-pick-badge { background: var(--status-completed, #047857); }
+	.dessert-options {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+		gap: 8px;
+	}
+	.dessert-opt {
+		min-height: 46px;
+		padding: 10px 12px;
+		border-radius: var(--radius);
+		border: 1.5px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-primary);
+		font-family: inherit;
+		font-size: 0.88rem;
+		font-weight: 600;
+		text-align: left;
+		cursor: pointer;
+		transition: border-color 0.15s, background 0.15s;
+	}
+	.dessert-opt:hover { border-color: var(--accent-primary); }
+	.dessert-opt.is-selected {
+		border-color: var(--status-completed, #047857);
+		background: var(--status-completed, #047857);
+		color: #fff;
+	}
+	.dessert-opt.is-selected::before { content: '✓ '; font-weight: 800; }
+	.field-hint {
+		margin: -2px 0 8px;
+		font-size: 0.8rem;
+		line-height: 1.45;
+		color: var(--text-secondary);
+	}
+	.field-hint strong { color: var(--accent-primary); }
+
+	/* Pickup / Meetup / Delivery chooser */
+	.method-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px; }
+	.method-opt {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 3px;
+		min-height: 64px;
+		padding: 12px 14px;
+		border-radius: var(--radius);
+		border: 2px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-primary);
+		font-family: inherit;
+		text-align: left;
+		cursor: pointer;
+		transition: border-color 0.15s, background 0.15s;
+	}
+	.method-opt:hover { border-color: var(--accent-primary); }
+	.method-opt.is-selected { border-color: var(--accent-primary); background: rgba(214, 54, 31, 0.08); }
+	.method-opt.is-selected .method-title::before { content: '✓ '; color: var(--accent-primary); }
+	.method-title { font-size: 1rem; font-weight: 800; }
+	.method-sub { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.35; }
+	.form-group.invalid .method-opt { border-color: var(--status-cancelled); }
+
+	.method-info {
+		padding: 12px 14px;
+		border-radius: var(--radius);
+		border: 1.5px solid var(--border-color);
+		background: var(--bg-secondary, rgba(0,0,0,0.02));
+		text-align: left;
+	}
+	.method-info.is-warn { border-color: rgba(214, 54, 31, 0.35); background: rgba(214, 54, 31, 0.06); }
+	.method-info-title { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent-primary); margin-bottom: 4px; }
+	.method-info-text { font-size: 0.9rem; line-height: 1.45; color: var(--text-primary); white-space: pre-line; }
+	.method-info-link {
+		display: inline-flex;
+		align-items: center;
+		margin-top: 10px;
+		min-height: 40px;
+		padding: 0 14px;
+		border-radius: var(--radius);
+		background: var(--accent-primary);
+		color: #fff;
+		font-size: 0.85rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.zone-fee-note {
+		display: block;
+		margin-top: 6px;
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+	.zone-fee-note:empty { display: none; }
+	.zone-fee-note.is-pending { color: var(--accent-primary); font-weight: 600; }
+
+	.dessert-required-note {
+		margin: 12px 0 0;
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		background: rgba(214, 54, 31, 0.08);
+		color: var(--accent-primary);
+		font-size: 0.85rem;
+		font-weight: 700;
 	}
 
 	.item-inclusions {
@@ -1237,6 +1432,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
 	import { createClient } from '@supabase/supabase-js';
+	import { resolveChosenDessert, DESSERT_OPTIONS, needsDessertChoice, applyDessertChoice } from '../lib/menu';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,
@@ -1261,6 +1457,7 @@ import Layout from '../layouts/Layout.astro';
 
 	// 1. Script State
 	interface OrderItem {
+		id?: string;
 		name: string;
 		quantity: number;
 		price: number;
@@ -1381,12 +1578,12 @@ import Layout from '../layouts/Layout.astro';
 
 	function getInclusions(it: OrderItem): string[] | null {
 		if (it.customInclusions && it.customInclusions.length > 0) {
-			return it.customInclusions;
+			return resolveChosenDessert(it.name, it.customInclusions);
 		}
 		for (const key in PACKAGE_INCLUSIONS) {
-			if (it.name.toLowerCase().includes(key.toLowerCase()) || 
+			if (it.name.toLowerCase().includes(key.toLowerCase()) ||
 				(key.startsWith('P') && it.name.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
-				return PACKAGE_INCLUSIONS[key];
+				return resolveChosenDessert(it.name, PACKAGE_INCLUSIONS[key]);
 			}
 		}
 	}
@@ -1420,6 +1617,7 @@ import Layout from '../layouts/Layout.astro';
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					id: order.id,
+					t: new URLSearchParams(window.location.search).get('t'),
 					orderUpdates: { status: newStatus }
 				})
 			}).then(resp => {
@@ -1812,6 +2010,7 @@ import Layout from '../layouts/Layout.astro';
 			deliveryFee: parseFloat(data.delivery_fee ?? 0),
 			facebookName: data.facebook_name ?? '',
 			items: (data.order_items ?? []).map((it: any) => ({
+				id: it.id,
 				name: it.name,
 				quantity: it.quantity,
 				price: parseFloat(it.price),
@@ -1852,9 +2051,226 @@ import Layout from '../layouts/Layout.astro';
 		portalWizard.style.display = 'block';
 
 		// Step 1: Render Items & Inclusions
+		// Bilao packages without a dessert yet get a required "Choose your dessert" picker.
+		originalItems = currentOrder.items.map(it => ({ ...it, customInclusions: [...(it.customInclusions ?? [])] }));
+		dessertPending = originalItems
+			.map((it, i) => (needsDessertChoice(it.name, it.customInclusions) ? i : -1))
+			.filter(i => i >= 0);
+		renderStep1Items();
+		document.getElementById('customer-items-list')?.addEventListener('click', e => {
+			const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.dessert-opt[data-index][data-dessert]');
+			if (!btn || !currentOrder) return;
+			const i = Number(btn.dataset.index);
+			const dessert = btn.dataset.dessert!;
+			dessertPicks[i] = dessert;
+			const orig = originalItems[i];
+			currentOrder.items[i] = { ...orig, ...applyDessertChoice(orig.name, orig.customInclusions, dessert) };
+			renderStep1Items();
+			updateContinueState();
+		});
+
+		// Render totals
+		renderTotalsAndFields();
+		setupDeliveryZones();
+	}
+
+	// ---------- Pickup / Meetup / Delivery (customer's choice) ----------
+	// The customer must choose. Fees:
+	//   Pickup   → no fee (shows our pickup address)
+	//   Meetup   → fee agreed by message, added to the balance later (unless the shop already set one)
+	//   Delivery → fee from the barangay list; "not on the list" (or no list) → agreed by message
+	// A fee the shop already put on the order is kept when the customer keeps that same method.
+	// The server works the fee out again on submit, so the page can't set its own price.
+	const OTHER_ZONE = '__other__';
+	let chosenMethod: '' | 'Pickup' | 'Meetup' | 'Delivery' = '';
+	let selectedZone = '';            // '' = not picked, a barangay name, or OTHER_ZONE
+	let ownerMethod = 'Delivery';     // what the shop set when creating the order
+	let ownerFee = 0;                 // fee the shop set (0 = none)
+	let subtotal = 0;                 // order total without any delivery/meetup fee
+	let zoneFees: Record<string, number> = {};
+	let hasZones = false;
+
+	async function setupDeliveryZones() {
+		if (!currentOrder) return;
+		ownerMethod = currentOrder.fulfillmentType || 'Delivery';
+		ownerFee = currentOrder.deliveryFee || 0;
+		subtotal = parseFloat((currentOrder.total - ownerFee).toFixed(2));
+
+		document.querySelectorAll<HTMLButtonElement>('.method-opt[data-method]').forEach(btn => {
+			btn.addEventListener('click', () => {
+				chosenMethod = btn.dataset.method as typeof chosenMethod;
+				document.getElementById('cust-method-group')?.classList.remove('invalid');
+				applyMethod();
+			});
+		});
+		applyMethod(); // hide address/barangay until a method is chosen (list loads below)
+
+		let zones: { name: string; fee: number }[] = [];
+		let pickup: { address?: string; mapUrl?: string } = {};
+		try {
+			const res = await fetch('/api/delivery-zones', { cache: 'no-store' });
+			const body = await res.json();
+			zones = body.zones ?? [];
+			pickup = body.pickup ?? {};
+		} catch { /* no list: delivery fees are agreed by message */ }
+
+		if (pickup.address) document.getElementById('pickup-address-text')!.textContent = pickup.address;
+		const mapLink = document.getElementById('pickup-map-link') as HTMLAnchorElement | null;
+		if (mapLink && pickup.mapUrl && /^https?:\/\//i.test(pickup.mapUrl)) {
+			mapLink.href = pickup.mapUrl;
+			mapLink.style.display = 'inline-flex';
+		}
+
+		const select = document.getElementById('cust-input-zone') as HTMLSelectElement | null;
+		if (select && zones.length) {
+			hasZones = true;
+			// Grouped by town; the value is the area's label ("Bogo, Argao"), which the server matches.
+			const labelOf = (z: { name: string; town?: string }) => z.town ? `${z.name}, ${z.town}` : z.name;
+			zoneFees = Object.fromEntries(zones.map(z => [labelOf(z), z.fee]));
+			const groups = new Map<string, HTMLOptGroupElement>();
+			for (const z of zones) {
+				const groupName = z.town || 'Other areas';
+				let group = groups.get(groupName);
+				if (!group) {
+					group = document.createElement('optgroup');
+					group.label = groupName;
+					groups.set(groupName, group);
+					select.appendChild(group);
+				}
+				const opt = document.createElement('option');
+				opt.value = labelOf(z);
+				opt.textContent = `${z.name} — ${peso(z.fee)}`;
+				group.appendChild(opt);
+			}
+			const other = document.createElement('option');
+			other.value = OTHER_ZONE;
+			other.textContent = 'Not on the list (message us for the fee)';
+			select.appendChild(other);
+			select.addEventListener('change', () => {
+				selectedZone = select.value;
+				document.getElementById('cust-zone-group')?.classList.remove('invalid');
+				applyMethod();
+			});
+		}
+		applyMethod();
+	}
+
+	function peso(n: number): string {
+		return `₱${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+	}
+
+	/** Shop's own fee is used while the customer keeps the shop's method. */
+	function usesOwnerFee(): boolean {
+		return !!chosenMethod && chosenMethod === ownerMethod && ownerFee > 0;
+	}
+	/** Barangay dropdown applies: Delivery, a list exists, and the shop didn't already set the fee. */
+	function zonePickerActive(): boolean {
+		return chosenMethod === 'Delivery' && hasZones && !usesOwnerFee();
+	}
+	function currentFee(): number {
+		if (usesOwnerFee()) return ownerFee;
+		if (chosenMethod === 'Delivery' && selectedZone && selectedZone !== OTHER_ZONE) return zoneFees[selectedZone] ?? 0;
+		return 0;
+	}
+	/** Meetup/Delivery fee still to be agreed by message (added to the balance later). */
+	function feeToConfirm(): boolean {
+		if (!chosenMethod || chosenMethod === 'Pickup' || usesOwnerFee()) return false;
+		if (chosenMethod === 'Meetup') return true;
+		return !hasZones || selectedZone === OTHER_ZONE;
+	}
+
+	function applyMethod() {
+		if (!currentOrder) return;
+		const show = (id: string, on: boolean) => { const el = document.getElementById(id); if (el) el.style.display = on ? 'block' : 'none'; };
+
+		document.querySelectorAll<HTMLButtonElement>('.method-opt[data-method]').forEach(btn => {
+			const on = btn.dataset.method === chosenMethod;
+			btn.classList.toggle('is-selected', on);
+			btn.setAttribute('aria-checked', String(on));
+		});
+
+		const isPickup = chosenMethod === 'Pickup';
+		show('cust-pickup-info', isPickup);
+		show('cust-meetup-info', chosenMethod === 'Meetup' && !usesOwnerFee());
+		show('cust-zone-group', zonePickerActive());
+		show('cust-delivery-other-info', chosenMethod === 'Delivery' && !usesOwnerFee() && (!hasZones || selectedZone === OTHER_ZONE));
+		show('cust-address-group', !!chosenMethod && !isPickup);
+
+		// Address box wording follows the method.
+		const addrLabel = document.querySelector<HTMLLabelElement>('label[for="cust-input-address"]');
+		if (addrLabel) addrLabel.textContent = chosenMethod === 'Meetup' ? 'Preferred Meetup Place' : 'Full Address Details';
+		if (custInputAddress) {
+			custInputAddress.placeholder = chosenMethod === 'Meetup'
+				? 'e.g. Argao Public Market, in front of the church'
+				: 'e.g. Purok 3, Sitio Tabay, near the chapel, blue gate beside the sari-sari store';
+			if (isPickup || !chosenMethod) custInputAddress.removeAttribute('required');
+			else custInputAddress.setAttribute('required', 'required');
+		}
+		const dtLabel = document.getElementById('cust-datetime-label');
+		if (dtLabel) dtLabel.textContent = isPickup ? 'Pickup Date & Time' : chosenMethod === 'Meetup' ? 'Meetup Date & Time' : 'Delivery Date & Time';
+
+		// Money
+		const fee = currentFee();
+		currentOrder.fulfillmentType = (chosenMethod || ownerMethod) as Order['fulfillmentType'];
+		currentOrder.deliveryFee = chosenMethod ? fee : ownerFee;
+		currentOrder.total = parseFloat((subtotal + (currentOrder.deliveryFee || 0)).toFixed(2));
+
+		const note = document.getElementById('cust-zone-fee-note');
+		if (note) {
+			note.classList.remove('is-pending');
+			note.textContent = zonePickerActive() && selectedZone && selectedZone !== OTHER_ZONE
+				? `Delivery fee: ${peso(fee)} · New total: ${peso(currentOrder.total)}`
+				: '';
+		}
+
+		// Keep the step 1 summary in step.
+		const pending = feeToConfirm();
+		const set = (id: string, text: string) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+		set('cust-fulfillment-type', currentOrder.fulfillmentType || 'Delivery');
+		set('cust-delivery-fee', pending ? 'To be confirmed' : peso(currentOrder.deliveryFee || 0));
+		set('cust-total-bill', peso(currentOrder.total) + (pending ? ' + fee' : ''));
+		set('cust-balance', peso(Math.max(0, currentOrder.total - (currentOrder.downpayment || 0))) + (pending ? ' + fee' : ''));
+		updateLiveCalculation();
+	}
+
+	// ---------- Dessert choice (Bilao packages) ----------
+	let originalItems: OrderItem[] = [];
+	let dessertPending: number[] = [];       // indexes of items that need a dessert
+	const dessertPicks: Record<number, string> = {};
+
+	function missingDesserts(): number[] {
+		return dessertPending.filter(i => !dessertPicks[i]);
+	}
+
+	// "Verify & Continue" needs the checkbox AND a dessert for every Bilao package.
+	function updateContinueState() {
+		const missing = missingDesserts();
+		if (btnGotoStep2) btnGotoStep2.disabled = !(verifyCheckbox?.checked && missing.length === 0);
+		const note = document.getElementById('dessert-required-note');
+		if (note) {
+			note.style.display = missing.length ? 'block' : 'none';
+			note.textContent = missing.length
+				? `Please choose your dessert for: ${missing.map(i => originalItems[i].name).join(', ')}`
+				: '';
+		}
+	}
+
+	function renderStep1Items() {
+		if (!currentOrder) return;
 		const itemsContainer = document.getElementById('customer-items-list');
 		if (itemsContainer) {
-			itemsContainer.innerHTML = currentOrder.items.map(it => {
+			itemsContainer.innerHTML = currentOrder.items.map((it, index) => {
+				const picker = dessertPending.includes(index) ? `
+					<div class="dessert-pick${dessertPicks[index] ? ' is-done' : ''}">
+						<div class="dessert-pick-title">
+							Choose your dessert
+							<span class="dessert-pick-badge">${dessertPicks[index] ? 'Selected' : 'Required'}</span>
+						</div>
+						<div class="dessert-options" role="radiogroup" aria-label="Dessert for ${it.name.replace(/"/g, '&quot;')}">
+							${DESSERT_OPTIONS.map(d => `<button type="button" class="dessert-opt${dessertPicks[index] === d ? ' is-selected' : ''}" role="radio" aria-checked="${dessertPicks[index] === d}" data-index="${index}" data-dessert="${d}">${d}</button>`).join('')}
+						</div>
+					</div>
+				` : '';
 				const inclusions = getInclusions(it);
 				const inclusionsHtml = inclusions ? `
 					<div class="item-inclusions">
@@ -1873,13 +2289,16 @@ import Layout from '../layouts/Layout.astro';
 							</div>
 							<span class="summary-item-right">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
 						</div>
+						${picker}
 						${inclusionsHtml}
 					</div>
 				`;
 			}).join('');
 		}
+	}
 
-		// Render totals
+	function renderTotalsAndFields() {
+		if (!currentOrder) return;
 		const custFulfillmentRow = document.getElementById('cust-fulfillment-row');
 		const custFulfillmentType = document.getElementById('cust-fulfillment-type');
 		const custSubtotalRow = document.getElementById('cust-subtotal-row');
@@ -2035,14 +2454,17 @@ import Layout from '../layouts/Layout.astro';
 		}
 
 		// Checkbox controller
-		verifyCheckbox?.addEventListener('change', () => {
-			if (btnGotoStep2) {
-				btnGotoStep2.disabled = !verifyCheckbox.checked;
-			}
-		});
+		verifyCheckbox?.addEventListener('change', updateContinueState);
+		updateContinueState();
 
-		// Navigation Step 1 -> 2
+		// Navigation Step 1 -> 2 (blocked until every Bilao package has a dessert)
 		btnGotoStep2?.addEventListener('click', () => {
+			const missing = missingDesserts();
+			if (missing.length) {
+				updateContinueState();
+				document.querySelector('.dessert-pick:not(.is-done)')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				return;
+			}
 			goToStep(2);
 		});
 
@@ -2060,7 +2482,12 @@ import Layout from '../layouts/Layout.astro';
 				currentOrder.customer = custInputName.value.trim();
 				currentOrder.contact = custInputContact.value.trim();
 				currentOrder.facebookName = custInputFb.value.trim();
-				currentOrder.address = custInputAddress.value.trim();
+				// Pickup has no customer address; Meetup stores the preferred meetup place.
+				currentOrder.address = chosenMethod === 'Pickup' ? '' : custInputAddress.value.trim();
+				// Add the picked barangay to the address so it shows on the slip, dashboard and family calendar.
+				if (zonePickerActive() && selectedZone && selectedZone !== OTHER_ZONE && !currentOrder.address.toLowerCase().includes(selectedZone.toLowerCase())) {
+					currentOrder.address = `${currentOrder.address}, ${selectedZone}`;
+				}
 				
 				const rawDate = custInputDatetime.value;
 				currentOrder.deliveryDateTime = rawDate.replace('T', ' ');
@@ -2078,7 +2505,7 @@ import Layout from '../layouts/Layout.astro';
 				const isPickup = currentOrder.fulfillmentType === 'Pickup';
 				if (reviewFulfillmentType) reviewFulfillmentType.textContent = currentOrder.fulfillmentType || 'Delivery';
 				
-				if (reviewDatetimeLabel) reviewDatetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : 'Delivery Date & Time';
+				if (reviewDatetimeLabel) reviewDatetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : chosenMethod === 'Meetup' ? 'Meetup Date & Time' : 'Delivery Date & Time';
 				if (reviewDeliveryDatetime) {
 					reviewDeliveryDatetime.textContent = currentOrder.deliveryDateTime ? new Date(currentOrder.deliveryDateTime.replace(' ', 'T')).toLocaleString('en-US', {
 						year: 'numeric',
@@ -2108,7 +2535,9 @@ import Layout from '../layouts/Layout.astro';
 
 				if (reviewSubtotal) reviewSubtotal.textContent = `₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 				if (reviewDeliveryFeeRow) reviewDeliveryFeeRow.style.display = isPickup ? 'none' : 'flex';
-				if (reviewDeliveryFee) reviewDeliveryFee.textContent = `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewDeliveryFee) reviewDeliveryFee.textContent = feeToConfirm()
+					? 'To be confirmed (message our page), added to your balance'
+					: `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 				if (reviewTotalBill) reviewTotalBill.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 				if (reviewDownpayment) reviewDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 				if (reviewBalance) reviewBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -2182,7 +2611,13 @@ import Layout from '../layouts/Layout.astro';
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						id: currentOrder.id,
+						t: new URLSearchParams(window.location.search).get('t'),
 						isCustomerVerification: true,
+						fulfillmentType: chosenMethod || undefined,
+						deliveryZone: zonePickerActive() && selectedZone ? selectedZone : undefined,
+						dessertChoices: dessertPending
+							.filter(i => dessertPicks[i] && originalItems[i]?.id)
+							.map(i => ({ itemId: originalItems[i].id, dessert: dessertPicks[i] })),
 						orderUpdates: {
 							customer: currentOrder.customer,
 							contact: currentOrder.contact,
@@ -2321,14 +2756,34 @@ import Layout from '../layouts/Layout.astro';
 			contactGroup?.classList.remove('invalid');
 		}
 
-		// Address (Only validate if not Pickup)
+		// Pickup / Meetup / Delivery must be chosen
+		const methodGroup = document.getElementById('cust-method-group');
+		if (!chosenMethod) {
+			methodGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			methodGroup?.classList.remove('invalid');
+		}
+
+		// Address: Delivery needs full details (not just "Argao"); Meetup needs a place; Pickup needs none.
 		const addressGroup = custInputAddress.parentElement?.parentElement;
-		const isPickup = currentOrder?.fulfillmentType === 'Pickup';
-		if (!isPickup && !custInputAddress.value.trim()) {
+		const minAddress = chosenMethod === 'Delivery' ? 10 : chosenMethod === 'Meetup' ? 3 : 0;
+		if (minAddress && custInputAddress.value.trim().length < minAddress) {
 			addressGroup?.classList.add('invalid');
 			isValid = false;
 		} else {
 			addressGroup?.classList.remove('invalid');
+		}
+
+		// Barangay (only when the picker is shown)
+		const zoneGroup = document.getElementById('cust-zone-group');
+		if (zoneGroup && zoneGroup.style.display !== 'none') {
+			if (!selectedZone) {
+				zoneGroup.classList.add('invalid');
+				isValid = false;
+			} else {
+				zoneGroup.classList.remove('invalid');
+			}
 		}
 
 		// Datetime

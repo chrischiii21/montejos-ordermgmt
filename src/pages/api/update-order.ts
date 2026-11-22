@@ -1,6 +1,16 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { sendTelegramMessage, getInclusionsForTelegram } from '../../lib/telegram';
+import { DESSERT_OPTIONS, needsDessertChoice, applyDessertChoice } from '../../lib/menu';
+import { isDashboardSession } from '../../lib/family-link';
+import { isValidOrderSignature, isAwaitingCustomer, scheduledStatusAllows } from '../../lib/order-access';
+import { findZone, OTHER_ZONE } from '../../lib/delivery-zones';
+
+const deny = (error: string, status = 403) => new Response(JSON.stringify({ error }), { status });
+
+// Fields a customer may fill in from their order link. Everything else (items, totals,
+// fees, status, notes) can only be changed from the logged-in dashboard.
+const CUSTOMER_FIELDS = ['customer', 'contact', 'facebook_name', 'address', 'delivery_date_time', 'downpayment'] as const;
 
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return '';
@@ -40,7 +50,7 @@ const formatCurrency = (val: any) => {
   return isNaN(num) ? '₱0.00' : `₱${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -52,9 +62,15 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const payload = await request.json().catch(() => ({}));
-    const { id, orderUpdates, items, isCustomerVerification } = payload as any;
+    const { id, items, isCustomerVerification, dessertChoices, t, deliveryZone, fulfillmentType } = payload as any;
+    let { orderUpdates } = payload as any;
 
     if (!id) return new Response(JSON.stringify({ error: 'Missing order ID' }), { status: 400 });
+
+    // Who is calling: the logged-in dashboard can change anything; anyone else must come
+    // from a valid customer order link and may only do what a customer is meant to do.
+    const isAdmin = isDashboardSession(cookies.get('dashboard_token')?.value);
+    if (!isAdmin && !isValidOrderSignature(id, t)) return deny('Unauthorized', 401);
 
     // 1. Fetch old order details first
     const { data: oldOrder, error: oldFetchErr } = await supabase
@@ -62,10 +78,102 @@ export const POST: APIRoute = async ({ request }) => {
       .select('*, order_items(*)')
       .eq('id', id)
       .single();
-    
+
     if (oldFetchErr || !oldOrder) {
       console.error('Failed to fetch old order details', oldFetchErr);
       return new Response(JSON.stringify({ error: 'Order not found' }), { status: 404 });
+    }
+
+    if (!isAdmin) {
+      if (Array.isArray(items)) return deny('Items can only be changed by the shop.');
+      if (oldOrder.status === 'Completed' || oldOrder.status === 'Cancelled') return deny('This order is already closed.');
+      const updates = orderUpdates && typeof orderUpdates === 'object' ? orderUpdates : {};
+
+      if (isCustomerVerification) {
+        // Customer filling in their details: only once, only the allowed fields.
+        if (!isAwaitingCustomer(oldOrder)) return deny('This order has already been submitted.');
+        const clean: Record<string, unknown> = {};
+        for (const key of CUSTOMER_FIELDS) {
+          if (!(key in updates)) continue;
+          if (key === 'downpayment') continue;
+          const v = updates[key];
+          clean[key] = v === null ? null : String(v ?? '').slice(0, key === 'address' ? 500 : 200);
+        }
+        if (!String(clean.customer ?? '').trim() || !String(clean.delivery_date_time ?? '').trim()) {
+          return deny('Please fill in your name and the date & time.', 400);
+        }
+        // Money is worked out here, never taken from the page.
+        const total = parseFloat(oldOrder.total ?? 0) || 0;
+        const dp = Math.min(Math.max(parseFloat(updates.downpayment) || 0, 0), total);
+        clean.downpayment = dp;
+        clean.balance = Math.max(0, parseFloat((total - dp).toFixed(2)));
+        orderUpdates = clean;
+      } else {
+        // The order page moving the status forward as the delivery time approaches.
+        const keys = Object.keys(updates);
+        if (keys.length !== 1 || keys[0] !== 'status' || !scheduledStatusAllows(oldOrder.delivery_date_time, updates.status)) {
+          return deny('Not allowed.');
+        }
+        orderUpdates = { status: updates.status };
+      }
+    }
+
+    // Pickup / Meetup / Delivery chosen by the customer on the order link, and the fee that goes with it:
+    //   - same method the shop set, and the shop set a fee → keep the shop's fee
+    //   - Pickup → no fee;  Meetup → 0 for now (agreed by message, added later)
+    //   - Delivery → fee of the chosen barangay (Settings → Delivery Fees); "not on the list" → 0 for now
+    // Total and balance are recalculated here; the downpayment stays as entered.
+    if (isCustomerVerification && orderUpdates) {
+      const METHODS = ['Pickup', 'Meetup', 'Delivery'];
+      const oldMethod = oldOrder.fulfillment_type || 'Delivery';
+      const method = METHODS.includes(fulfillmentType) ? fulfillmentType : oldMethod;
+      const oldFee = parseFloat(oldOrder.delivery_fee ?? 0) || 0;
+      const subtotal = (parseFloat(oldOrder.total ?? 0) || 0) - oldFee;
+
+      let fee = 0;
+      if (method === oldMethod && oldFee > 0) {
+        fee = oldFee;
+      } else if (method === 'Delivery' && deliveryZone && deliveryZone !== OTHER_ZONE) {
+        const zone = await findZone(deliveryZone);
+        if (!zone) return deny('Please choose your service area from the list.', 400);
+        fee = zone.fee;
+      }
+
+      const total = parseFloat((subtotal + fee).toFixed(2));
+      const dp = Math.min(Math.max(parseFloat(orderUpdates.downpayment) || 0, 0), total);
+      orderUpdates = {
+        ...orderUpdates,
+        fulfillment_type: method,
+        delivery_fee: fee,
+        total,
+        downpayment: dp,
+        balance: Math.max(0, parseFloat((total - dp).toFixed(2))),
+        ...(method === 'Pickup' ? { address: '' } : {})
+      };
+    }
+
+    // 2a. Customer's dessert picks for Bilao packages (from the order link).
+    // Only applied to this order's Bilao items that still need a dessert, and only with a dessert from the menu.
+    if (isCustomerVerification && Array.isArray(dessertChoices) && dessertChoices.length) {
+      const stillNeeded = (oldOrder.order_items || []).filter((it: any) => needsDessertChoice(it.name, it.custom_inclusions));
+      for (const choice of dessertChoices) {
+        const item = stillNeeded.find((it: any) => it.id === choice?.itemId);
+        const dessert = typeof choice?.dessert === 'string' ? choice.dessert.trim() : '';
+        if (!item) continue;
+        if (!DESSERT_OPTIONS.includes(dessert)) {
+          return new Response(JSON.stringify({ error: 'Please choose a dessert from the list.' }), { status: 400 });
+        }
+        const updated = applyDessertChoice(item.name, item.custom_inclusions, dessert);
+        const { error: dessertErr } = await supabase
+          .from('order_items')
+          .update({ name: updated.name, custom_inclusions: updated.customInclusions })
+          .eq('id', item.id)
+          .eq('order_id', id);
+        if (dessertErr) {
+          console.error('Dessert choice update error', dessertErr);
+          return new Response(JSON.stringify({ error: dessertErr.message || dessertErr }), { status: 500 });
+        }
+      }
     }
 
     // 2. Perform updates
@@ -142,6 +250,10 @@ export const POST: APIRoute = async ({ request }) => {
 
             const fbName = orderData.facebook_name ?? orderData.facebookName;
             const fbSuffix = fbName ? ` (FB: <b>${escapeHtml(fbName)}</b>)` : '';
+            // Meetup, or Delivery to a barangay not on the list: the shop still has to agree the fee by message.
+            const method = orderData.fulfillment_type || 'Delivery';
+            const feeToConfirm = method !== 'Pickup' && deliveryFee === 0;
+            const feeReason = method === 'Meetup' ? 'meetup fee, to agree by message' : 'service area not on the list';
 
             const message = `🎉 <b>Order ID - ${idNumber} link is successfully fulfilled.</b>\n\n` +
               `📋 <b>C O N F I R M A T I O N   S L I P</b>\n\n` +
@@ -153,8 +265,8 @@ export const POST: APIRoute = async ({ request }) => {
               `🛒 List of Order/s:\n` +
               `${itemsText || 'No items'}\n\n` +
               `💰 Subtotal: <b>₱${formattedSubtotal}</b>\n` +
-              `🛵 Delivery/Meetup Fee: <b>₱${formattedDeliveryFee}</b>\n` +
-              `💵 TOTAL: <b>₱${formattedTotal}</b>\n` +
+              `🛵 Delivery/Meetup Fee: <b>${feeToConfirm ? `TO BE CONFIRMED (${feeReason})` : `₱${formattedDeliveryFee}`}</b>\n` +
+              `💵 TOTAL: <b>₱${formattedTotal}</b>${feeToConfirm ? ' + delivery fee' : ''}\n` +
               `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
               `⚖️ BALANCE: <b>₱${formattedBalance}${orderData.status === 'Completed' ? ' (Settled)' : ''}</b>`;
 

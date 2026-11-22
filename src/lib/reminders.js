@@ -95,14 +95,26 @@ export const PACKAGE_INCLUSIONS = {
 
 /** @param {string} itemName @param {string[] | null | undefined} customInclusions @returns {string[]} */
 export function getInclusionsForTelegram(itemName, customInclusions) {
-	if (customInclusions && customInclusions.length > 0) return customInclusions;
+	if (customInclusions && customInclusions.length > 0) return resolveChosenDessert(itemName, customInclusions);
 	for (const key in PACKAGE_INCLUSIONS) {
 		if (itemName.toLowerCase().includes(key.toLowerCase()) ||
 			(key.startsWith('P') && itemName.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
-			return PACKAGE_INCLUSIONS[key];
+			return resolveChosenDessert(itemName, PACKAGE_INCLUSIONS[key]);
 		}
 	}
 	return [];
+}
+
+/**
+ * Swap "Chosen Dessert" for the dessert named in the item, e.g. "P4 Package (Bilao) [Dessert: Fruit Salad]".
+ * Same as resolveChosenDessert in src/lib/menu.ts.
+ * @param {string} itemName @param {string[]} inclusions @returns {string[]}
+ */
+function resolveChosenDessert(itemName, inclusions) {
+	const m = (itemName || '').match(/\[Dessert:\s*([^\]]+)\]/i);
+	if (!m) return inclusions;
+	const dessert = m[1].trim();
+	return inclusions.map((line) => line.replace(/chosen dessert/i, dessert));
 }
 
 /** @param {unknown} text */
