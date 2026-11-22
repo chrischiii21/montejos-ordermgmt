@@ -1,3 +1,25 @@
+---
+// Shared page shell. Pages pass `title` / `description` for the browser tab and link previews.
+// The preview image is /og-image.png (1200×630). Previews never include customer details.
+interface Props {
+	title?: string;
+	description?: string;
+	image?: string;
+	noindex?: boolean;
+}
+const SITE_NAME = "Montejo's Lechon & Food Trays";
+const {
+	title,
+	description = "Whole lechon, lechon belly packages and food trays from Montejo's in Argao, Cebu. Order for pickup, meetup or delivery.",
+	image = '/og-image.png',
+	noindex = true
+} = Astro.props;
+const pageTitle = title ? `${title} · ${SITE_NAME}` : `${SITE_NAME} - Argao`;
+const pageDescription = description;
+// Previews need absolute URLs.
+const pageUrl = new URL(Astro.url.pathname + Astro.url.search, Astro.url.origin).href;
+const imageUrl = new URL(image, Astro.url.origin).href;
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -5,7 +27,26 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/jpeg" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Montejo's Lechon & Food Trays - Argao</title>
+		<title>{pageTitle}</title>
+		<meta name="description" content={pageDescription} />
+		<!-- Link previews (Messenger/Facebook, Telegram, Viber, WhatsApp, X…): title, text and image instead of a bare link -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE_NAME} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:url" content={pageUrl} />
+		<meta property="og:image" content={imageUrl} />
+		<meta property="og:image:secure_url" content={imageUrl} />
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content={`${SITE_NAME} logo`} />
+		<meta property="og:locale" content="en_PH" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={imageUrl} />
+		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<!-- Google Fonts: Poppins everywhere -->
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

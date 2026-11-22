@@ -1,6 +1,19 @@
 # Montejo's Lechon & Food Trays - Argao
-# Private order management app. Nothing here is meant to be indexed:
-# the dashboard is session-gated and /order links are issued per customer.
+# Private order management app. Search engines stay out (pages also carry "noindex"),
+# but link-preview bots may fetch pages so shared links (order links, family calendar)
+# show a title, description and image instead of a bare URL.
+
+User-agent: facebookexternalhit
+User-agent: Facebot
+User-agent: TelegramBot
+User-agent: Twitterbot
+User-agent: WhatsApp
+User-agent: Viber
+User-agent: Discordbot
+User-agent: Slackbot-LinkExpanding
+User-agent: LinkedInBot
+User-agent: SkypeUriPreview
+Allow: /
 
 User-agent: *
 Disallow: /

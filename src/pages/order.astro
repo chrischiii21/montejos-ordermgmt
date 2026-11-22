@@ -1,8 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// Link preview for a shared order link: order number only, never customer details
+// (anyone the link is forwarded to can see a preview).
+const rawId = Astro.url.searchParams.get('id') || '';
+const orderNo = /^ORD-[\w-]{1,20}$/.test(rawId) ? rawId.replace('ORD-', '') : '';
+const previewTitle = orderNo ? `Your Order #${orderNo}` : 'Your Order';
+const previewDescription = 'Tap to review your order, choose Pickup, Meetup or Delivery, and confirm your details. Payment options are shown at the end.';
 ---
 
-<Layout>
+<Layout title={previewTitle} description={previewDescription}>
 	<!-- html2canvas CDN for downloading receipt images -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
@@ -147,7 +154,7 @@ import Layout from '../layouts/Layout.astro';
 						<span id="cust-subtotal">₱0.00</span>
 					</div>
 					<div class="summary-row font-medium" id="cust-delivery-row" style="display: none; opacity: 0.85;">
-						<span>Delivery/Meetup Fee</span>
+						<span id="cust-delivery-fee-label">Delivery/Meetup Fee</span>
 						<span id="cust-delivery-fee">₱0.00</span>
 					</div>
 					<div class="summary-row font-medium">
@@ -275,7 +282,7 @@ import Layout from '../layouts/Layout.astro';
 					<!-- Barangay picker: sets the delivery fee automatically (Settings → Delivery Fees by Barangay).
 					     Shown for Delivery when the shop hasn't set a delivery fee on the order. -->
 					<div class="form-group" id="cust-zone-group" style="display: none;">
-						<label for="cust-input-zone">Service Area</label>
+						<label for="cust-input-zone">Service Area <span class="auto-fee-badge">Automated delivery fee</span></label>
 						<p class="field-hint"><strong>Choose your service area first.</strong> This sets your delivery fee, and it will be added to your total.</p>
 						<p class="field-hint field-hint-warn"><strong>Note:</strong> Listed fees are for places along the highway. If your exact location is away from the highway (uphill, inner or rough roads), the delivery fee may change. We'll message you to confirm, and any difference will be added to your final balance.</p>
 						<div class="input-wrapper">
@@ -410,7 +417,7 @@ import Layout from '../layouts/Layout.astro';
 								<span id="review-subtotal" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
 							</div>
 							<div id="review-delivery-fee-row" style="display: flex; justify-content: space-between;">
-								<span style="color: var(--text-secondary);">Delivery/Meetup Fee:</span>
+								<span style="color: var(--text-secondary);" id="review-delivery-fee-label">Delivery/Meetup Fee:</span>
 								<span id="review-delivery-fee" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
 							</div>
 							<div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 2px;">
@@ -811,6 +818,19 @@ import Layout from '../layouts/Layout.astro';
 		color: var(--text-secondary);
 	}
 	.field-hint strong { color: var(--accent-primary); }
+	.auto-fee-badge {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: rgba(4, 120, 87, 0.12);
+		color: var(--status-completed, #047857);
+		font-size: 0.68rem;
+		font-weight: 800;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		vertical-align: middle;
+	}
 	.field-hint-warn {
 		padding: 8px 10px;
 		border-radius: var(--radius);
@@ -2227,7 +2247,7 @@ import Layout from '../layouts/Layout.astro';
 		if (note) {
 			note.classList.remove('is-pending');
 			note.textContent = zonePickerActive() && selectedZone && selectedZone !== OTHER_ZONE
-				? `Delivery fee: ${peso(fee)} · New total: ${peso(currentOrder.total)} (may change if you're away from the highway)`
+				? `Automated delivery fee: ${peso(fee)} · New total: ${peso(currentOrder.total)} (may change if you're away from the highway)`
 				: '';
 		}
 
@@ -2235,6 +2255,14 @@ import Layout from '../layouts/Layout.astro';
 		const pending = feeToConfirm();
 		const set = (id: string, text: string) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 		set('cust-fulfillment-type', currentOrder.fulfillmentType || 'Delivery');
+		// Fee row label: says "automated" when the fee came from the service-area list.
+		const autoFee = zonePickerActive() && !!selectedZone && selectedZone !== OTHER_ZONE;
+		const feeLabel = autoFee ? 'Delivery Fee (automated)'
+			: chosenMethod === 'Meetup' ? 'Meetup Fee'
+			: chosenMethod === 'Delivery' ? 'Delivery Fee'
+			: 'Delivery/Meetup Fee';
+		set('cust-delivery-fee-label', feeLabel);
+		set('review-delivery-fee-label', feeLabel + ':');
 		set('cust-delivery-fee', pending ? 'To be confirmed' : peso(currentOrder.deliveryFee || 0));
 		set('cust-total-bill', peso(currentOrder.total) + (pending ? ' + fee' : ''));
 		set('cust-balance', peso(Math.max(0, currentOrder.total - (currentOrder.downpayment || 0))) + (pending ? ' + fee' : ''));

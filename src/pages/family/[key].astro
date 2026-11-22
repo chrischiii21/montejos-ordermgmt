@@ -17,7 +17,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.webmanifest`;
 ---
 
-<Layout>
+<Layout title="Family Order Calendar" description="Today's and upcoming orders at a glance, for the Montejo family.">
 	<Fragment slot="head">
 		<meta name="robots" content="noindex, nofollow" />
 		<meta name="theme-color" content="#4a0d0a" />

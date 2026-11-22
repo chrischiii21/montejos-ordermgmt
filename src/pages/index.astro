@@ -11,7 +11,7 @@ const familyPath = `/family/${await getFamilyKey()}`;
 const canGenerateFamilyLink = await canGenerateFamilyKey();
 ---
 
-<Layout>
+<Layout title="Order Management" description="Montejo's order dashboard: orders, prep list, calendar and settings.">
 	<!-- html2canvas CDN for downloading receipt images -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
@@ -408,6 +408,24 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 						)}
 					</section>
 					</div>
+
+					<!-- Telegram Alerts (full width): shows what this server can see and sends a test message -->
+					<section class="glass-panel settings-section settings-section-full">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Telegram Alerts</h2>
+								<p class="settings-head-sub">New orders, customer confirmations, updates and the daily reminders are sent to Telegram. Use the test after moving hosts (e.g. Netlify to Vercel) to check the server has the Telegram settings.</p>
+							</div>
+						</header>
+						<div class="tg-status" id="tg-status">Checking…</div>
+						<div class="tg-result" id="tg-result" hidden></div>
+						<div class="settings-actions">
+							<button type="button" class="btn-save-settings" id="tg-test-btn">Send test message</button>
+						</div>
+					</section>
 
 					<!-- Pickup & Delivery Fees (full width): pickup address + a fee per service area (preset barangays of
 					     Argao, Sibonga, Dalaguete from src/lib/service-areas.ts, plus custom areas). Blank fee = not offered. -->
@@ -1450,6 +1468,29 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 		.settings-section-danger { order: 0; }
 		.settings-section-full { grid-column: 1 / -1; }
 	}
+
+	/* Telegram Alerts */
+	.tg-status { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); }
+	:global(.tg-chip) {
+		display: inline-flex; align-items: center; gap: 6px;
+		padding: 5px 10px;
+		border-radius: var(--radius-pill);
+		border: 1px solid var(--border-color);
+		background: var(--bg-secondary);
+		font-size: 0.78rem; font-weight: 700; color: var(--text-primary);
+	}
+	:global(.tg-chip.is-ok) { border-color: rgba(4, 120, 87, 0.35); background: var(--status-completed-light); color: var(--status-completed); }
+	:global(.tg-chip.is-bad) { border-color: rgba(180, 83, 9, 0.35); background: var(--status-pending-light); color: var(--status-pending); }
+	.tg-result {
+		padding: 12px 14px;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--bg-secondary);
+		font-size: 0.85rem;
+		line-height: 1.5;
+		color: var(--text-primary);
+	}
+	.tg-result[hidden] { display: none; }
 
 	/* Delivery Fees by Barangay */
 	/* Full-width card: barangay rows sit side by side on wide screens, one per line on phones */
@@ -3763,6 +3804,56 @@ function showConfirm(message) {
 		});
 		setupFamilyVisits();
 		setupDeliveryZones();
+		setupTelegramTest();
+	}
+
+	// Settings → Telegram Alerts: what this server can see + a test message.
+	function setupTelegramTest() {
+		const statusEl = document.getElementById('tg-status');
+		const resultEl = document.getElementById('tg-result');
+		const btn = document.getElementById('tg-test-btn') as HTMLButtonElement | null;
+		if (!statusEl || !resultEl || !btn) return;
+		const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+		const chip = (ok: boolean, text: string) => `<span class="tg-chip ${ok ? 'is-ok' : 'is-bad'}">${ok ? '✓' : '✗'} ${esc(text)}</span>`;
+
+		function showStatus(s: any) {
+			statusEl!.innerHTML = [
+				`<span class="tg-chip">Server: ${esc(s.host)}${s.vercelEnv ? ` (${esc(s.vercelEnv)})` : ''}</span>`,
+				chip(s.hasTelegramToken && s.tokenLooksValid, s.hasTelegramToken ? (s.tokenLooksValid ? 'Bot token set' : 'Bot token looks wrong') : 'Bot token missing'),
+				chip(s.chatIdCount > 0, s.chatIdCount ? `${s.chatIdCount} chat ID${s.chatIdCount === 1 ? '' : 's'}` : 'Chat ID missing'),
+				chip(s.hasServiceRoleKey, s.hasServiceRoleKey ? 'Supabase service key set' : 'Supabase service key missing'),
+				chip(s.hasCronSecret || s.host !== 'Vercel', s.hasCronSecret ? 'Cron secret set' : 'No cron secret (optional)')
+			].join('');
+		}
+
+		fetch('/api/telegram-test', { cache: 'no-store' })
+			.then(r => r.json())
+			.then(s => { if (s.error) statusEl.textContent = s.error; else showStatus(s); })
+			.catch(() => { statusEl.textContent = 'Could not check the Telegram settings.'; });
+
+		btn.addEventListener('click', async () => {
+			btn.disabled = true;
+			btn.textContent = 'Sending…';
+			try {
+				const res = await fetch('/api/telegram-test', { method: 'POST' });
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+				showStatus(body);
+				const lines = (body.sent ?? []).map((r: any) => r.ok
+					? `✓ Chat ${esc(r.chat)}: sent`
+					: `✗ Chat ${esc(r.chat)}: ${esc(r.error)}${/chat not found/i.test(r.error) ? ' (the chat ID is wrong, or the bot was never started / added to that group)' : /unauthorized/i.test(r.error) ? ' (the bot token is wrong)' : ''}`);
+				resultEl.hidden = false;
+				resultEl.innerHTML = body.error
+					? `✗ ${esc(body.error)} Add it in your host's environment variables (on Vercel: Project → Settings → Environment Variables, for Production), then redeploy.`
+					: lines.join('<br>') || 'Nothing was sent.';
+			} catch (err) {
+				resultEl.hidden = false;
+				resultEl.textContent = 'Test failed: ' + (err instanceof Error ? err.message : String(err));
+			} finally {
+				btn.disabled = false;
+				btn.textContent = 'Send test message';
+			}
+		});
 	}
 
 	// Settings → Pickup & Delivery Fees (saved to the server; the customer order link reads it).
