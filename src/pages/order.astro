@@ -249,7 +249,9 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 					<!-- How the customer gets the order: their choice (required). Sets which fields and notes show below. -->
 					<div class="form-group" id="cust-method-group">
 						<label>How will you get your order?</label>
-						<p class="field-hint"><strong>Choose one.</strong> This decides your fee and the details we need.</p>
+						<p class="field-hint" id="method-choose-hint"><strong>Choose one.</strong> This decides your fee and the details we need.</p>
+						<!-- Shown instead of the buttons when the shop already set the method -->
+						<div class="method-fixed" id="method-fixed" style="display: none;"></div>
 						<div class="method-options" role="radiogroup" aria-label="Pickup, Meetup or Delivery">
 							<button type="button" class="method-opt" role="radio" aria-checked="false" data-method="Pickup">
 								<span class="method-title">Pickup</span>
@@ -861,6 +863,14 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 	.method-opt.is-selected { border-color: var(--accent-primary); background: rgba(214, 54, 31, 0.08); }
 	.method-opt.is-selected .method-title::before { content: '✓ '; color: var(--accent-primary); }
 	.method-title { font-size: 1rem; font-weight: 800; }
+	.method-fixed {
+		display: flex; flex-direction: column; gap: 3px;
+		padding: 12px 14px;
+		border-radius: var(--radius);
+		border: 2px solid var(--accent-primary);
+		background: rgba(214, 54, 31, 0.08);
+	}
+	.method-fixed .method-title::before { content: '✓ '; color: var(--accent-primary); }
 	.method-sub { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.35; }
 	.form-group.invalid .method-opt { border-color: var(--status-cancelled); }
 
@@ -2030,7 +2040,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 			address: data.address,
 			contact: data.contact,
 			deliveryDateTime: data.delivery_date_time ?? '',
-			fulfillmentType: data.fulfillment_type ?? 'Delivery',
+			fulfillmentType: data.fulfillment_type ?? undefined, // empty = the customer chooses below
 			status: currentStatus,
 			total: parseFloat(data.total),
 			downpayment: parseFloat(data.downpayment),
@@ -2113,6 +2123,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 	let chosenMethod: '' | 'Pickup' | 'Meetup' | 'Delivery' = '';
 	let selectedZone = '';            // '' = not picked, a barangay name, or OTHER_ZONE
 	let ownerMethod = 'Delivery';     // what the shop set when creating the order
+	let methodLocked = false;         // true when the shop set the method (customer can't change it)
 	let ownerFee = 0;                 // fee the shop set (0 = none)
 	let subtotal = 0;                 // order total without any delivery/meetup fee
 	let zoneFees: Record<string, number> = {};
@@ -2120,7 +2131,21 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 
 	async function setupDeliveryZones() {
 		if (!currentOrder) return;
+		// Set by the shop → fixed (customer can't change it). Empty → the customer chooses.
+		methodLocked = !!currentOrder.fulfillmentType;
 		ownerMethod = currentOrder.fulfillmentType || 'Delivery';
+		if (methodLocked) {
+			chosenMethod = ownerMethod as typeof chosenMethod;
+			const options = document.querySelector<HTMLElement>('.method-options');
+			if (options) options.style.display = 'none';
+			const chooseHint = document.getElementById('method-choose-hint');
+			if (chooseHint) chooseHint.style.display = 'none';
+			const fixed = document.getElementById('method-fixed');
+			if (fixed) {
+				fixed.style.display = 'block';
+				fixed.innerHTML = `<span class="method-title">${ownerMethod}</span><span class="method-sub">Set by the shop for this order. Message our page if you need to change it.</span>`;
+			}
+		}
 		ownerFee = currentOrder.deliveryFee || 0;
 		subtotal = parseFloat((currentOrder.total - ownerFee).toFixed(2));
 
@@ -2189,7 +2214,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 
 	/** Shop's own fee is used while the customer keeps the shop's method. */
 	function usesOwnerFee(): boolean {
-		return !!chosenMethod && chosenMethod === ownerMethod && ownerFee > 0;
+		return methodLocked && chosenMethod === ownerMethod && ownerFee > 0;
 	}
 	/** Barangay dropdown applies: Delivery, a list exists, and the shop didn't already set the fee. */
 	function zonePickerActive(): boolean {
@@ -2254,7 +2279,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 		// Keep the step 1 summary in step.
 		const pending = feeToConfirm();
 		const set = (id: string, text: string) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-		set('cust-fulfillment-type', currentOrder.fulfillmentType || 'Delivery');
+		set('cust-fulfillment-type', chosenMethod || 'Choose in the next step');
 		// Fee row label: says "automated" when the fee came from the service-area list.
 		const autoFee = zonePickerActive() && !!selectedZone && selectedZone !== OTHER_ZONE;
 		const feeLabel = autoFee ? 'Delivery Fee (automated)'

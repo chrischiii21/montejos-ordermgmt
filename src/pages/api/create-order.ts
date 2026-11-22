@@ -53,7 +53,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       contact: order.contact,
       note: order.note ?? null,
       delivery_date_time: order.deliveryDateTime ?? order.delivery_date_time ?? null,
-      fulfillment_type: order.fulfillmentType ?? order.fulfillment_type ?? 'Delivery',
+      // null = the customer chooses Pickup / Meetup / Delivery on their order link
+      fulfillment_type: ['Pickup', 'Meetup', 'Delivery'].includes(order.fulfillmentType ?? order.fulfillment_type) ? (order.fulfillmentType ?? order.fulfillment_type) : null,
       status: order.status,
       total: order.total,
       downpayment: order.downpayment,

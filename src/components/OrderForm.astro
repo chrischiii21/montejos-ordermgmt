@@ -111,8 +111,24 @@
 						</div>
 					</div>
 
-					<!-- Fulfillment Type Selector -->
+					<!-- Who picks Pickup / Meetup / Delivery: the customer (on their order link) or the owner (here) -->
 					<div class="form-group">
+						<label>Pickup / Meetup / Delivery</label>
+						<div class="toggle-selector" id="fulfillment-chooser">
+							<label class="toggle-option active" id="chooser-customer-label">
+								<input type="radio" name="fulfillment-chooser" value="customer" checked style="display: none;" />
+								<span>Customer chooses</span>
+							</label>
+							<label class="toggle-option" id="chooser-owner-label">
+								<input type="radio" name="fulfillment-chooser" value="owner" style="display: none;" />
+								<span>I'll set it</span>
+							</label>
+						</div>
+						<span class="form-hint" id="fulfillment-chooser-hint">The customer picks Pickup, Meetup or Delivery on their order link. Delivery fees come from their service area.</span>
+					</div>
+
+					<!-- Fulfillment Type Selector (only when "I'll set it") -->
+					<div class="form-group" id="fulfillment-type-group" style="display: none;">
 						<label>Fulfillment Type</label>
 						<div class="toggle-selector" id="fulfillment-selector">
 							<label class="toggle-option active" id="toggle-pickup-label">
@@ -137,6 +153,7 @@
 							<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
 							<input type="number" id="delivery-fee" step="0.01" min="0.00" placeholder="0.00" value="0.00" style="background: transparent; border: none; outline: none; width: 100%; color: var(--text-primary);" />
 						</div>
+						<span class="form-hint" id="delivery-fee-hint" style="display: none;">Leave at 0 to let the customer's service area set the fee automatically.</span>
 						<span class="error-message" id="delivery-fee-error">Delivery fee is required</span>
 					</div>
 
@@ -324,6 +341,7 @@
 </div>
 
 <style>
+	.form-hint { display: block; margin-top: 6px; font-size: 0.75rem; line-height: 1.4; color: var(--text-muted); }
 	.modal-overlay {
 		position: fixed;
 		top: 0;

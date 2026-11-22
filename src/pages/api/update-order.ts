@@ -125,8 +125,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Total and balance are recalculated here; the downpayment stays as entered.
     if (isCustomerVerification && orderUpdates) {
       const METHODS = ['Pickup', 'Meetup', 'Delivery'];
+      // Set by the shop → fixed, whatever the page sends. Empty → the customer's choice (required).
+      const locked = METHODS.includes(oldOrder.fulfillment_type);
+      if (!locked && !METHODS.includes(fulfillmentType)) return deny('Please choose Pickup, Meetup or Delivery.', 400);
       const oldMethod = oldOrder.fulfillment_type || 'Delivery';
-      const method = METHODS.includes(fulfillmentType) ? fulfillmentType : oldMethod;
+      const method = locked ? oldOrder.fulfillment_type : fulfillmentType;
       const oldFee = parseFloat(oldOrder.delivery_fee ?? 0) || 0;
       const subtotal = (parseFloat(oldOrder.total ?? 0) || 0) - oldFee;
 

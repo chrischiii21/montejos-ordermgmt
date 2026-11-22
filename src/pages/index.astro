@@ -3130,6 +3130,8 @@ function showConfirm(message) {
 	let tempOrderItems: OrderItem[] = [];
 	let slipFiller: 'Owner' | 'Customer' = 'Owner';
 	let selectedFulfillment: 'Pickup' | 'Meetup' | 'Delivery' = 'Pickup';
+	// 'customer' = the customer picks Pickup/Meetup/Delivery on their order link (saved as null); 'owner' = set here.
+	let fulfillmentChooser: 'customer' | 'owner' = 'customer';
 
 	// ── Supabase helpers ──────────────────────────────────────
 	function mapRow(row: any): Order {
@@ -3141,7 +3143,7 @@ function showConfirm(message) {
 			address: row.address,
 			contact: row.contact,
 			deliveryDateTime: row.delivery_date_time ?? '',
-			fulfillmentType: row.fulfillment_type ?? 'Delivery',
+			fulfillmentType: row.fulfillment_type ?? undefined, // empty = customer chooses on their link
 			status: row.status,
 			total: parseFloat(row.total),
 			downpayment: parseFloat(row.downpayment),
@@ -4405,6 +4407,7 @@ function showConfirm(message) {
 					<div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
 						<label style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Fulfillment Type</label>
 						<select id="edit-fulfillment-type" style="width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 10px; border-radius: var(--radius); font-size: 0.875rem; color-scheme: light dark;">
+							<option value="" ${!order.fulfillmentType ? 'selected' : ''}>CUSTOMER CHOOSES</option>
 							<option value="Pickup" ${order.fulfillmentType === 'Pickup' ? 'selected' : ''}>PICKUP</option>
 							<option value="Meetup" ${order.fulfillmentType === 'Meetup' ? 'selected' : ''}>MEETUP</option>
 							<option value="Delivery" ${order.fulfillmentType === 'Delivery' ? 'selected' : ''}>DELIVERY</option>
@@ -4454,7 +4457,7 @@ function showConfirm(message) {
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Fulfillment Type:</span>
-						<span class="field-value" style="color: var(--text-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em;">${order.fulfillmentType || 'Delivery'}</span>
+						<span class="field-value" style="color: var(--text-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em;">${order.fulfillmentType || 'Customer chooses'}</span>
 					</div>
 					<div class="detail-field" style="display: flex; flex-direction: column; gap: 2px;">
 						<span class="field-label" style="color: var(--text-secondary); font-size: 0.75rem;">Order Status:</span>
@@ -4611,7 +4614,7 @@ function showConfirm(message) {
 
 			const orderUpdates = {
 				customer: name,
-				fulfillment_type: fulfillmentType,
+				fulfillment_type: fulfillmentType || null, // empty = customer chooses
 				status: status,
 				address: address,
 				contact: contact,
@@ -4631,7 +4634,7 @@ function showConfirm(message) {
 				}
 				// Update local state
 				order.customer = name;
-				order.fulfillmentType = fulfillmentType as any;
+				order.fulfillmentType = (fulfillmentType || undefined) as any;
 				order.status = status as any;
 				order.address = address;
 				order.contact = contact;
@@ -5233,7 +5236,7 @@ Order Link: ${uniqueLink}`;
 Please fill up the following.
 
 Name: ${order.customer}
-Fulfillment: ${order.fulfillmentType || 'Delivery'}
+Fulfillment: ${order.fulfillmentType || 'Customer chooses'}
 Exact Address: ${order.address}
 Contact Number of the Receiver/s: ${order.contact}
 Time & Date: ${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : 'Pending Customer Input'}
@@ -5536,7 +5539,7 @@ Christy Montejo
 					<div class="details-column">
 						<h3>Order Details</h3>
 						<div class="details-text">
-							<p><strong>Fulfillment:</strong> ${order.fulfillmentType || 'Delivery'}</p>
+							<p><strong>Fulfillment:</strong> ${order.fulfillmentType || 'Customer chooses'}</p>
 							<p><strong>Delivery Date:</strong> ${order.deliveryDateTime ? formatDateTime12h(order.deliveryDateTime) : 'N/A'}</p>
 							<p><strong>Status:</strong> ${order.status}</p>
 						</div>
@@ -5942,10 +5945,33 @@ Christy Montejo
 				if (deliveryFeeInput) deliveryFeeInput.value = '50.00';
 			} else {
 				if (deliveryFeeGroup) deliveryFeeGroup.style.display = 'block';
-				if (deliveryFeeInput) deliveryFeeInput.value = '100.00';
+				// 0 = the customer's service area sets the fee on the order link
+				if (deliveryFeeInput) deliveryFeeInput.value = '0.00';
 			}
+			const feeHint = document.getElementById('delivery-fee-hint');
+			if (feeHint) feeHint.style.display = val === 'Delivery' ? 'block' : 'none';
 			calculateFormTotals(true);
 		};
+
+		// Customer chooses / I'll set it
+		const setChooser = (val: 'customer' | 'owner') => {
+			fulfillmentChooser = val;
+			document.getElementById('chooser-customer-label')?.classList.toggle('active', val === 'customer');
+			document.getElementById('chooser-owner-label')?.classList.toggle('active', val === 'owner');
+			const typeGroup = document.getElementById('fulfillment-type-group');
+			if (typeGroup) typeGroup.style.display = val === 'owner' ? 'block' : 'none';
+			const hint = document.getElementById('fulfillment-chooser-hint');
+			if (hint) hint.style.display = val === 'customer' ? 'block' : 'none';
+			if (val === 'customer') {
+				if (deliveryFeeGroup) deliveryFeeGroup.style.display = 'none';
+				if (deliveryFeeInput) deliveryFeeInput.value = '0.00';
+				calculateFormTotals(true);
+			} else {
+				setFulfillment(selectedFulfillment);
+			}
+		};
+		document.getElementById('chooser-customer-label')?.addEventListener('click', () => setChooser('customer'));
+		document.getElementById('chooser-owner-label')?.addEventListener('click', () => setChooser('owner'));
 
 		togglePickupLabel?.addEventListener('click', () => setFulfillment('Pickup'));
 		toggleMeetupLabel?.addEventListener('click', () => setFulfillment('Meetup'));
@@ -6300,7 +6326,7 @@ Christy Montejo
 				downpayment: parseFloat(downpayment.toFixed(2)),
 				balance: balance,
 				status: initialStatus,
-				fulfillmentType: selectedFulfillment,
+				fulfillmentType: fulfillmentChooser === 'owner' ? selectedFulfillment : undefined,
 				deliveryFee: deliveryFeeVal
 			};
 
@@ -6318,7 +6344,7 @@ Christy Montejo
 							contact: newOrder.contact,
 							facebook_name: newOrder.facebookName || null,
 							deliveryDateTime: newOrder.deliveryDateTime || null,
-							fulfillmentType: newOrder.fulfillmentType ?? 'Delivery',
+							fulfillmentType: newOrder.fulfillmentType ?? null, // null = customer chooses
 							status: newOrder.status,
 							total: newOrder.total,
 							downpayment: newOrder.downpayment,
@@ -6542,8 +6568,9 @@ Christy Montejo
 			// 3. Customer Address (only required for Meetup or Delivery)
 			const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
 			const addressGroup = customerAddress?.parentElement?.parentElement;
-			const isPickup = selectedFulfillment === 'Pickup';
-			if (customerAddress && !isPickup && !customerAddress.value.trim()) {
+			// Required only when you set Meetup/Delivery yourself; otherwise the customer fills it in.
+			const needsAddress = fulfillmentChooser === 'owner' && selectedFulfillment !== 'Pickup';
+			if (customerAddress && needsAddress && !customerAddress.value.trim()) {
 				addressGroup?.classList.add('invalid');
 				isValid = false;
 			} else {
@@ -6564,7 +6591,7 @@ Christy Montejo
 		// 5. Delivery Fee validation (only when shown/not Pickup)
 		const deliveryFeeInput = document.getElementById('delivery-fee') as HTMLInputElement;
 		const deliveryFeeGroup = deliveryFeeInput?.parentElement?.parentElement;
-		if (deliveryFeeInput && selectedFulfillment !== 'Pickup') {
+		if (deliveryFeeInput && fulfillmentChooser === 'owner' && selectedFulfillment !== 'Pickup') {
 			const feeVal = parseFloat(deliveryFeeInput.value);
 			if (isNaN(feeVal) || feeVal < 0) {
 				deliveryFeeGroup?.classList.add('invalid');
@@ -6659,6 +6686,14 @@ Christy Montejo
 			deliveryFeeGroup.style.display = 'none';
 			deliveryFeeInput.value = '0.00';
 		}
+		// Back to "Customer chooses"
+		fulfillmentChooser = 'customer';
+		document.getElementById('chooser-customer-label')?.classList.add('active');
+		document.getElementById('chooser-owner-label')?.classList.remove('active');
+		const typeGroupReset = document.getElementById('fulfillment-type-group');
+		if (typeGroupReset) typeGroupReset.style.display = 'none';
+		const chooserHint = document.getElementById('fulfillment-chooser-hint');
+		if (chooserHint) chooserHint.style.display = 'block';
 
 		// Recalculate totals
 		calculateFormTotals(true);
