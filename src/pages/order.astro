@@ -285,22 +285,24 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 					     Shown for Delivery when the shop hasn't set a delivery fee on the order. -->
 					<div class="form-group" id="cust-zone-group" style="display: none;">
 						<label for="cust-input-zone">Service Area <span class="auto-fee-badge">Automated delivery fee</span></label>
-						<p class="field-hint"><strong>Choose your service area first.</strong> This sets your delivery fee, and it will be added to your total.</p>
+						<p class="field-hint"><strong>Type your barangay only</strong> (e.g. <em>Bogo</em> or <em>Talaga</em>), not your exact place, purok, sitio or landmark, and pick it from the suggestions. This sets your delivery fee, and it will be added to your total. Your exact place goes in the <strong>Full Address Details</strong> box below.</p>
 						<p class="field-hint field-hint-warn"><strong>Note:</strong> Listed fees are for places along the highway. If your exact location is away from the highway (uphill, inner or rough roads), the delivery fee may change. We'll message you to confirm, and any difference will be added to your final balance.</p>
-						<div class="input-wrapper">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-							<select id="cust-input-zone" style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem;">
-								<option value="" disabled selected>Select your service area…</option>
-							</select>
+						<!-- Type-to-search: suggestions from Settings → Pickup & Delivery Fees; "not on the list" when nothing matches -->
+						<div class="zone-combo">
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+								<input type="text" id="cust-input-zone" autocomplete="off" spellcheck="false" placeholder="Barangay only, e.g. Bogo" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cust-zone-list" style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.9rem;" />
+							</div>
+							<ul class="zone-suggest" id="cust-zone-list" role="listbox" hidden></ul>
 						</div>
 						<span class="zone-fee-note" id="cust-zone-fee-note"></span>
-						<span class="error-message">Please select your service area</span>
+						<span class="error-message">Please type your barangay and pick it from the suggestions (or choose "not on the list")</span>
 					</div>
 
 					<!-- Delivery to a barangay that isn't on the list (or no list yet): fee agreed by message -->
 					<div class="method-info is-warn" id="cust-delivery-other-info" style="display: none;">
-						<div class="method-info-title">Delivery fee to be confirmed</div>
-						<div class="method-info-text">Please <strong>message our Facebook page</strong> for the delivery fee to your place. The fee will be added to your final balance.</div>
+						<div class="method-info-title">Not on our list: delivery fee to be confirmed</div>
+						<div class="method-info-text" id="cust-delivery-other-text">Your area isn't on our list yet, so the <strong>delivery fee will be added to your balance</strong> once we confirm it. Please <strong>message us again in our group chat</strong> to ask for your <strong>final e-receipt</strong>.</div>
 						<a class="method-info-link" href="https://m.me/100064148257945" target="_blank" rel="noopener">Message our page</a>
 					</div>
 
@@ -897,6 +899,42 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 		font-weight: 700;
 		text-decoration: none;
 	}
+
+	/* Service area type-to-search */
+	.zone-combo { position: relative; }
+	.zone-suggest {
+		position: absolute;
+		left: 0; right: 0; top: calc(100% + 4px);
+		z-index: 30;
+		max-height: 280px;
+		overflow-y: auto;
+		margin: 0;
+		padding: 4px;
+		list-style: none;
+		border-radius: var(--radius);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+	}
+	.zone-suggest[hidden] { display: none; }
+	.zone-opt {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 11px 12px;
+		border-radius: calc(var(--radius) - 2px);
+		font-size: 0.9rem;
+		color: var(--text-primary);
+		cursor: pointer;
+	}
+	.zone-opt.is-active, .zone-opt:hover { background: rgba(214, 54, 31, 0.08); }
+	.zone-opt-name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+	.zone-opt-town { color: var(--text-muted); font-weight: 500; }
+	.zone-opt-fee { flex-shrink: 0; font-weight: 800; color: var(--accent-primary); }
+	.zone-opt.is-other { border-top: 1px dashed var(--border-color); margin-top: 2px; }
+	.zone-opt.is-other .zone-opt-fee { color: var(--status-pending, #b45309); font-weight: 700; font-size: 0.78rem; }
+	.zone-empty-hint { padding: 10px 12px; font-size: 0.82rem; color: var(--text-muted); }
 
 	.zone-fee-note {
 		display: block;
@@ -2174,39 +2212,104 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 			mapLink.style.display = 'inline-flex';
 		}
 
-		const select = document.getElementById('cust-input-zone') as HTMLSelectElement | null;
-		if (select && zones.length) {
+		const input = document.getElementById('cust-input-zone') as HTMLInputElement | null;
+		const listEl = document.getElementById('cust-zone-list') as HTMLUListElement | null;
+		if (input && listEl && zones.length) {
 			hasZones = true;
-			// Grouped by town; the value is the area's label ("Bogo, Argao"), which the server matches.
+			// The value sent to the server is the area's label ("Bogo, Argao"), which it matches to the fee.
 			const labelOf = (z: { name: string; town?: string }) => z.town ? `${z.name}, ${z.town}` : z.name;
 			zoneFees = Object.fromEntries(zones.map(z => [labelOf(z), z.fee]));
-			const groups = new Map<string, HTMLOptGroupElement>();
-			for (const z of zones) {
-				const groupName = z.town || 'Other areas';
-				let group = groups.get(groupName);
-				if (!group) {
-					group = document.createElement('optgroup');
-					group.label = groupName;
-					groups.set(groupName, group);
-					select.appendChild(group);
-				}
-				const opt = document.createElement('option');
-				opt.value = labelOf(z);
-				opt.textContent = `${z.name} — ${peso(z.fee)}`;
-				group.appendChild(opt);
+			const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+			const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+			type Opt = { kind: 'area'; label: string; name: string; town?: string; fee: number } | { kind: 'other'; text: string };
+			let options: Opt[] = [];
+			let active = -1;
+
+			// Matches: name starts with the text first, then name contains it, then town contains it.
+			function search(text: string): Opt[] {
+				const q = norm(text);
+				if (!q) return [];
+				const scored = zones
+					.map(z => {
+						const n = norm(z.name), t = norm(z.town || ''), full = norm(labelOf(z));
+						const score = n.startsWith(q) ? 0 : n.includes(q) ? 1 : full.includes(q) || t.startsWith(q) ? 2 : -1;
+						return { z, score };
+					})
+					.filter(x => x.score >= 0)
+					.sort((a, b) => a.score - b.score || a.z.name.localeCompare(b.z.name))
+					.slice(0, 8)
+					.map(({ z }) => ({ kind: 'area' as const, label: labelOf(z), name: z.name, town: z.town, fee: z.fee }));
+				// Offer "not on the list" unless the text exactly names a listed area.
+				const exact = scored.some(o => norm(o.label) === q || norm(o.name) === q);
+				return exact ? scored : [...scored, { kind: 'other' as const, text: text.trim() }];
 			}
-			const other = document.createElement('option');
-			other.value = OTHER_ZONE;
-			other.textContent = 'Not on the list (message us for the fee)';
-			select.appendChild(other);
-			select.addEventListener('change', () => {
-				selectedZone = select.value;
+
+			function render() {
+				if (!options.length) {
+					listEl!.hidden = true;
+					input!.setAttribute('aria-expanded', 'false');
+					return;
+				}
+				const noMatch = options.length === 1 && options[0].kind === 'other';
+				listEl!.innerHTML = (noMatch ? '<li class="zone-empty-hint">No matching area on our list.</li>' : '') + options.map((o, i) => o.kind === 'area'
+					? `<li class="zone-opt${i === active ? ' is-active' : ''}" role="option" data-i="${i}" aria-selected="${i === active}">
+						<span class="zone-opt-name">${esc(o.name)}${o.town ? ` <span class="zone-opt-town">· ${esc(o.town)}</span>` : ''}</span>
+						<span class="zone-opt-fee">${peso(o.fee)}</span></li>`
+					: `<li class="zone-opt is-other${i === active ? ' is-active' : ''}" role="option" data-i="${i}" aria-selected="${i === active}">
+						<span class="zone-opt-name">Use “${esc(o.text)}” (not on the list)</span>
+						<span class="zone-opt-fee">fee to be confirmed</span></li>`).join('');
+				listEl!.hidden = false;
+				input!.setAttribute('aria-expanded', 'true');
+			}
+
+			function choose(o: Opt) {
+				if (o.kind === 'area') {
+					selectedZone = o.label;
+					otherAreaText = '';
+					input!.value = o.label;
+				} else {
+					selectedZone = OTHER_ZONE;
+					otherAreaText = o.text;
+					input!.value = o.text;
+				}
+				options = [];
+				active = -1;
+				render();
 				document.getElementById('cust-zone-group')?.classList.remove('invalid');
 				applyMethod();
+			}
+
+			input.addEventListener('input', () => {
+				// Typing again clears the previous pick until a suggestion is chosen.
+				if (selectedZone) { selectedZone = ''; otherAreaText = ''; applyMethod(); }
+				options = search(input.value);
+				active = options.length ? 0 : -1;
+				render();
 			});
+			input.addEventListener('focus', () => {
+				if (!selectedZone && input.value.trim()) { options = search(input.value); active = 0; render(); }
+			});
+			input.addEventListener('keydown', e => {
+				if (listEl.hidden || !options.length) return;
+				if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % options.length; render(); }
+				else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + options.length) % options.length; render(); }
+				else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) choose(options[active]); }
+				else if (e.key === 'Escape') { options = []; render(); }
+			});
+			// pointerdown (not click) so the choice lands before the input loses focus.
+			listEl.addEventListener('pointerdown', e => {
+				const li = (e.target as HTMLElement).closest<HTMLElement>('.zone-opt[data-i]');
+				if (!li) return;
+				e.preventDefault();
+				choose(options[Number(li.dataset.i)]);
+			});
+			input.addEventListener('blur', () => setTimeout(() => { options = []; render(); }, 150));
 		}
 		applyMethod();
 	}
+
+	let otherAreaText = '';           // what the customer typed when their area isn't on the list
+
 
 	function peso(n: number): string {
 		return `₱${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -2548,6 +2651,10 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 				// Add the picked barangay to the address so it shows on the slip, dashboard and family calendar.
 				if (zonePickerActive() && selectedZone && selectedZone !== OTHER_ZONE && !currentOrder.address.toLowerCase().includes(selectedZone.toLowerCase())) {
 					currentOrder.address = `${currentOrder.address}, ${selectedZone}`;
+				}
+				// Not on the list: keep the area they typed so we know where it is.
+				else if (zonePickerActive() && selectedZone === OTHER_ZONE && otherAreaText && !currentOrder.address.toLowerCase().includes(otherAreaText.toLowerCase())) {
+					currentOrder.address = `${currentOrder.address}, ${otherAreaText} (area not on the list)`;
 				}
 				
 				const rawDate = custInputDatetime.value;
