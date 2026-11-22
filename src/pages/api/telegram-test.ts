@@ -53,7 +53,12 @@ export const POST: APIRoute = async ({ cookies }) => {
 			});
 			const body = await res.json().catch(() => ({}));
 			// Only the last 4 characters of the chat ID are shown.
-			sent.push({ chat: `#${i + 1} (…${chatId.slice(-4)})`, ok: !!body.ok, error: body.ok ? '' : String(body.description || res.status) });
+			let error = body.ok ? '' : String(body.description || res.status);
+			// Group chat IDs start with "-"; a dropped minus sign is the usual copy-paste mistake.
+			if (!body.ok && /chat not found/i.test(error) && !chatId.startsWith('-')) {
+				error += ' — this ID has no minus sign at the start. Group chat IDs begin with "-" (e.g. -123456789): add it in your environment variables and redeploy.';
+			}
+			sent.push({ chat: `#${i + 1} (…${chatId.slice(-4)})`, ok: !!body.ok, error });
 		} catch (err) {
 			sent.push({ chat: `#${i + 1} (…${chatId.slice(-4)})`, ok: false, error: err instanceof Error ? err.message : String(err) });
 		}
