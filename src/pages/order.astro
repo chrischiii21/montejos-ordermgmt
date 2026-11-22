@@ -2736,7 +2736,7 @@ const previewDescription = 'Tap to review your order, choose Pickup, Meetup or D
 			const cleanVal = normalizePhMobile(rawVal);
 			if (rawVal !== cleanVal) {
 				custInputContact.value = cleanVal;
-				if (/[^0-9]/.test(rawVal.replace(/^+/, ''))) showContactWarning();
+				if (/[^0-9]/.test(rawVal.replace(/^\+/, ''))) showContactWarning();
 			}
 			if (isValidPhMobile(cleanVal)) custInputContact.parentElement?.parentElement?.classList.remove('invalid');
 		});
