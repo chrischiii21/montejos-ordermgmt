@@ -14,6 +14,56 @@ function env(name: string): string | undefined {
 	return (import.meta.env as Record<string, string | undefined>)[name] ?? process.env[name];
 }
 
+// ---------- Groq helpers ----------
+const GROQ = 'https://api.groq.com/openai/v1';
+// Tried in order; the first one this key can use wins. Anything else chat-capable is the fallback.
+const PREFERRED_MODELS = [
+	'openai/gpt-oss-120b',
+	'llama-3.3-70b-versatile',
+	'moonshotai/kimi-k2-instruct',
+	'qwen/qwen3-32b',
+	'openai/gpt-oss-20b',
+	'meta-llama/llama-4-maverick-17b-128e-instruct',
+	'meta-llama/llama-4-scout-17b-16e-instruct',
+	'llama-3.1-8b-instant'
+];
+// Not text-chat models (speech, safety classifiers, etc.).
+const NOT_CHAT = /whisper|tts|playai|guard|distil|orpheus|compound/i;
+let cachedModel: string | null = null;
+
+async function pickModel(apiKey: string, avoid?: string): Promise<string> {
+	if (cachedModel && cachedModel !== avoid) return cachedModel;
+	const res = await fetch(`${GROQ}/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
+	const body = await res.json().catch(() => ({}));
+	if (!res.ok) throw new Error(body?.error?.message || `model list failed (${res.status})`);
+	const ids: string[] = (body?.data ?? [])
+		.filter((m: any) => m?.active !== false && typeof m?.id === 'string' && !NOT_CHAT.test(m.id) && m.id !== avoid)
+		.map((m: any) => m.id);
+	const wanted = env('GROQ_MODEL');
+	const choice = (wanted && ids.includes(wanted) ? wanted : null)
+		?? PREFERRED_MODELS.find(id => ids.includes(id))
+		?? ids[0];
+	if (!choice) throw new Error('no chat model is available for this Groq API key');
+	cachedModel = choice;
+	return choice;
+}
+
+async function chat(apiKey: string, model: string, messages: unknown[], jsonMode: boolean): Promise<{ ok: true; content: string } | { ok: false; error: string }> {
+	const res = await fetch(`${GROQ}/chat/completions`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+		body: JSON.stringify({
+			model,
+			temperature: 0.1,
+			...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+			messages
+		})
+	});
+	const data = await res.json().catch(() => ({}));
+	if (!res.ok) return { ok: false, error: String(data?.error?.message || res.status) };
+	return { ok: true, content: String(data?.choices?.[0]?.message?.content ?? '') };
+}
+
 interface Priced { label: string; km: number; min: number; fee: number }
 interface Unpriced { label: string; km: number; min: number }
 
@@ -56,32 +106,44 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		'{"rule": "<one short sentence describing the pricing pattern you followed>", "suggestions": [{"label": "<area exactly as given>", "fee": <number>}]}'
 	].join('\n');
 
-	let data: any;
+	const messages = [
+		{ role: 'system', content: 'You are a careful pricing assistant. You reply with valid JSON only.' },
+		{ role: 'user', content: prompt }
+	];
+
+	// Model: GROQ_MODEL if set and available, otherwise the best one this key can use (Groq retires
+	// models over time, so a fixed name eventually breaks).
+	let model: string;
 	try {
-		const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-			body: JSON.stringify({
-				model: env('GROQ_MODEL') || 'llama-3.3-70b-versatile',
-				temperature: 0.1,
-				response_format: { type: 'json_object' },
-				messages: [
-					{ role: 'system', content: 'You are a careful pricing assistant. You reply with valid JSON only.' },
-					{ role: 'user', content: prompt }
-				]
-			})
-		});
-		data = await res.json().catch(() => ({}));
-		if (!res.ok) return json({ error: `Groq error: ${data?.error?.message || res.status}` }, 502);
+		model = await pickModel(apiKey);
+	} catch (err) {
+		return json({ error: `Could not reach Groq: ${err instanceof Error ? err.message : String(err)}` }, 502);
+	}
+
+	let content = '';
+	try {
+		let result = await chat(apiKey, model, messages, true);
+		// Some models don't support JSON mode: ask again without it and read the JSON from the text.
+		if (!result.ok && /response_format|json/i.test(result.error)) result = await chat(apiKey, model, messages, false);
+		// The chosen model just went away: refresh the list once and retry.
+		if (!result.ok && /does not exist|decommissioned|not have access|model_not_found/i.test(result.error)) {
+			cachedModel = null;
+			model = await pickModel(apiKey, model);
+			result = await chat(apiKey, model, messages, true);
+		}
+		if (!result.ok) return json({ error: `Groq error (${model}): ${result.error}` }, 502);
+		content = result.content;
 	} catch (err) {
 		return json({ error: `Could not reach Groq: ${err instanceof Error ? err.message : String(err)}` }, 502);
 	}
 
 	let parsed: any;
 	try {
-		parsed = JSON.parse(data?.choices?.[0]?.message?.content ?? '{}');
+		parsed = JSON.parse(content);
 	} catch {
-		return json({ error: 'The AI reply could not be read. Please try again.' }, 502);
+		const match = content.match(/\{[\s\S]*\}/);
+		try { parsed = match ? JSON.parse(match[0]) : null; } catch { parsed = null; }
+		if (!parsed) return json({ error: 'The AI reply could not be read. Please try again.' }, 502);
 	}
 
 	// Keep only areas we asked about, with sane fees, rounded to ₱10.
@@ -91,5 +153,5 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		.map((s: any) => ({ label: String(s?.label ?? ''), fee: Math.round(Number(s?.fee) / 10) * 10 }))
 		.filter((s: { label: string; fee: number }) => wanted.has(s.label) && isFinite(s.fee) && s.fee >= 0 && s.fee <= maxFee);
 
-	return json({ rule: typeof parsed?.rule === 'string' ? parsed.rule.slice(0, 300) : '', suggestions });
+	return json({ rule: typeof parsed?.rule === 'string' ? parsed.rule.slice(0, 300) : '', suggestions, model });
 };
