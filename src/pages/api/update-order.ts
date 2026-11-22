@@ -5,6 +5,7 @@ import { DESSERT_OPTIONS, needsDessertChoice, applyDessertChoice } from '../../l
 import { isDashboardSession } from '../../lib/family-link';
 import { isValidOrderSignature, isAwaitingCustomer, scheduledStatusAllows } from '../../lib/order-access';
 import { findZone, OTHER_ZONE } from '../../lib/delivery-zones';
+import { normalizePhMobile, isValidPhMobile, PH_MOBILE_HINT } from '../../lib/phone';
 
 const deny = (error: string, status = 403) => new Response(JSON.stringify({ error }), { status });
 
@@ -102,6 +103,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         if (!String(clean.customer ?? '').trim() || !String(clean.delivery_date_time ?? '').trim()) {
           return deny('Please fill in your name and the date & time.', 400);
         }
+        // PH mobile number: 11 digits starting with 09 (+63 / 63 forms are converted).
+        const contact = normalizePhMobile(String(clean.contact ?? ''));
+        if (!isValidPhMobile(contact)) return deny(`Please enter a valid ${PH_MOBILE_HINT}.`, 400);
+        clean.contact = contact;
         // Money is worked out here, never taken from the page.
         const total = parseFloat(oldOrder.total ?? 0) || 0;
         const dp = Math.min(Math.max(parseFloat(updates.downpayment) || 0, 0), total);

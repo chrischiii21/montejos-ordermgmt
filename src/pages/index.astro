@@ -2825,6 +2825,7 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 	import { createClient } from '@supabase/supabase-js';
 	import { MENU_ITEMS, PACKAGE_INCLUSIONS, getInclusionsForForm, getInclusionOptions, resolveChosenDessert } from '../lib/menu';
 	import { SERVICE_AREA_TOWNS, areaDistance } from '../lib/service-areas';
+	import { normalizePhMobile, isValidPhMobile } from '../lib/phone';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,
@@ -4607,7 +4608,12 @@ function showConfirm(message) {
 			const fulfillmentType = (document.getElementById('edit-fulfillment-type') as HTMLSelectElement).value;
 			const status = (document.getElementById('edit-order-status') as HTMLSelectElement).value;
 			const address = (document.getElementById('edit-customer-address') as HTMLInputElement).value.trim();
-			const contact = (document.getElementById('edit-customer-contact') as HTMLInputElement).value.trim();
+			const rawContact = (document.getElementById('edit-customer-contact') as HTMLInputElement).value.trim();
+			const contact = rawContact ? normalizePhMobile(rawContact) : '';
+			if (contact && !isValidPhMobile(contact)) {
+				showToast('Contact number must be an 11-digit mobile number starting with 09 (e.g. 09171234567).');
+				return;
+			}
 			const facebookName = (document.getElementById('edit-facebook-name') as HTMLInputElement).value.trim();
 			const deliveryDateTime = (document.getElementById('edit-delivery-datetime') as HTMLInputElement).value;
 			const formattedDelivery = deliveryDateTime ? deliveryDateTime.replace('T', ' ') : '';
@@ -5741,6 +5747,11 @@ Christy Montejo
 		const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
 		const customerAddress = document.getElementById('customer-address') as HTMLTextAreaElement;
 		const deliveryDateTime = document.getElementById('delivery-date-time') as HTMLInputElement;
+		// PH mobile: digits only, +63/63 → 0, max 11 digits
+		customerContact?.addEventListener('input', () => {
+			const v = normalizePhMobile(customerContact.value);
+			if (v !== customerContact.value) customerContact.value = v;
+		});
 
 		// POS catalog / cart DOM Elements
 		const itemSearchInput = document.getElementById('item-search-input') as HTMLInputElement;
@@ -6556,7 +6567,8 @@ Christy Montejo
 			// 2. Customer Contact
 			const customerContact = document.getElementById('customer-contact') as HTMLInputElement;
 			const contactGroup = customerContact?.parentElement?.parentElement;
-			if (customerContact && !customerContact.value.trim()) {
+			if (customerContact) customerContact.value = normalizePhMobile(customerContact.value);
+			if (customerContact && !isValidPhMobile(customerContact.value)) {
 				contactGroup?.classList.add('invalid');
 				isValid = false;
 			} else {
