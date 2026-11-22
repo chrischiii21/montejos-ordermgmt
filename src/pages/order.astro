@@ -277,6 +277,7 @@ import Layout from '../layouts/Layout.astro';
 					<div class="form-group" id="cust-zone-group" style="display: none;">
 						<label for="cust-input-zone">Service Area</label>
 						<p class="field-hint"><strong>Choose your service area first.</strong> This sets your delivery fee, and it will be added to your total.</p>
+						<p class="field-hint field-hint-warn"><strong>Note:</strong> Listed fees are for places along the highway. If your exact location is away from the highway (uphill, inner or rough roads), the delivery fee may change. We'll message you to confirm, and any difference will be added to your final balance.</p>
 						<div class="input-wrapper">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
 							<select id="cust-input-zone" style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem;">
@@ -810,6 +811,13 @@ import Layout from '../layouts/Layout.astro';
 		color: var(--text-secondary);
 	}
 	.field-hint strong { color: var(--accent-primary); }
+	.field-hint-warn {
+		padding: 8px 10px;
+		border-radius: var(--radius);
+		background: rgba(245, 165, 36, 0.12);
+		border: 1px solid rgba(245, 165, 36, 0.4);
+		color: var(--text-primary);
+	}
 
 	/* Pickup / Meetup / Delivery chooser */
 	.method-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px; }
@@ -2105,7 +2113,7 @@ import Layout from '../layouts/Layout.astro';
 		});
 		applyMethod(); // hide address/barangay until a method is chosen (list loads below)
 
-		let zones: { name: string; fee: number }[] = [];
+		let zones: { name: string; town?: string; fee: number }[] = [];
 		let pickup: { address?: string; mapUrl?: string } = {};
 		try {
 			const res = await fetch('/api/delivery-zones', { cache: 'no-store' });
@@ -2219,7 +2227,7 @@ import Layout from '../layouts/Layout.astro';
 		if (note) {
 			note.classList.remove('is-pending');
 			note.textContent = zonePickerActive() && selectedZone && selectedZone !== OTHER_ZONE
-				? `Delivery fee: ${peso(fee)} · New total: ${peso(currentOrder.total)}`
+				? `Delivery fee: ${peso(fee)} · New total: ${peso(currentOrder.total)} (may change if you're away from the highway)`
 				: '';
 		}
 
