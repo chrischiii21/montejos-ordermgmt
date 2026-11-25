@@ -7,6 +7,7 @@ import { isValidOrderSignature, isAwaitingCustomer, scheduledStatusAllows } from
 import { findZone, OTHER_ZONE } from '../../lib/delivery-zones';
 import { normalizePhMobile, isValidPhMobile, PH_MOBILE_HINT } from '../../lib/phone';
 import { deleteDraft } from '../../lib/order-drafts';
+import { syncOrderToGoogle } from '../../lib/google-calendar';
 
 const deny = (error: string, status = 403) => new Response(JSON.stringify({ error }), { status });
 
@@ -221,6 +222,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     // The customer submitted: their saved draft (order link progress) is no longer needed.
     if (isCustomerVerification) await deleteDraft(id).catch(() => {});
+
+    await syncOrderToGoogle(supabase, id); // live family calendar (also removes it when cancelled); never throws
 
     // 3. Trigger notification
     if (isCustomerVerification) {

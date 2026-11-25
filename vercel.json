@@ -11,6 +11,10 @@
     {
       "path": "/api/no-orders-reminder",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/google-calendar-sync",
+      "schedule": "0 16 * * *"
     }
   ]
 }

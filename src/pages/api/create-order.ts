@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { isDashboardSession } from '../../lib/family-link';
 import { getInclusionsForTelegram, sendTelegramMessage } from '../../lib/telegram';
+import { syncOrderToGoogle } from '../../lib/google-calendar';
 
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return '';
@@ -84,6 +85,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ error: itemsErr.message || itemsErr }), { status: 500 });
       }
     }
+
+    await syncOrderToGoogle(supabase, order.id); // live family calendar; never throws
 
     if (isOwnerFill) {
       const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;

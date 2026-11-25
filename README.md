@@ -62,6 +62,7 @@ Set these in Vercel → Project → Settings → Environment Variables (tick **P
 | `CRON_SECRET` | Optional: protects the reminder routes; Vercel cron sends it automatically |
 | `GROQ_API_KEY` (+ optional `GROQ_MODEL`) | AI delivery-fee suggestions in Settings |
 | `FAMILY_LINK_KEY` | Optional: fixed family calendar link key |
+| `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_CALENDAR_ID` | Optional: live Google Calendar for family (whole service-account .json key + calendar ID; setup steps in `src/lib/google-calendar.ts`) |
 
 Settings → **Telegram Alerts** on the live site shows which of the Telegram/Supabase settings the server can see and can send a test message.
 

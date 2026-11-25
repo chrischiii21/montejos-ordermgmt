@@ -5,6 +5,7 @@
 // Read-only: nothing here writes to the database.
 import Layout from '../../layouts/Layout.astro';
 import { isValidFamilyKey } from '../../lib/family-link';
+import { isGoogleCalendarConfigured } from '../../lib/google-calendar';
 
 if (!(await isValidFamilyKey(Astro.params.key))) {
 	return new Response('Not found', { status: 404 });
@@ -15,6 +16,15 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 Astro.response.headers.set('Cache-Control', 'no-store');
 
 const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.webmanifest`;
+// Calendar subscription feed (calendar.ics.ts). webcal:// opens the iPhone "Subscribe" sheet;
+// Google Calendar takes the same address through its ?cid= link.
+const feedPath = `/family/${encodeURIComponent(Astro.params.key!)}/calendar.ics`;
+const feedUrl = `${Astro.url.origin}${feedPath}`;
+const webcalUrl = `webcal://${Astro.url.host}${feedPath}`;
+const googleCalUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`;
+// With the live Google Calendar set up (src/lib/google-calendar.ts), Google users join that instead:
+// it updates within a minute, and subscribing to the feed as well would show every order twice.
+const googleLive = isGoogleCalendarConfigured();
 ---
 
 <Layout title="Family Order Calendar" description="Today's and upcoming orders at a glance, for the Montejo family.">
@@ -89,6 +99,34 @@ const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.
 				<span><i class="lg-selected"></i>Selected</span>
 			</div>
 			<button class="fam-today-btn" id="fam-today">Go to Today</button>
+		</section>
+
+		<!-- Calendar subscription: orders go into the phone's own calendar, so its home-screen widget shows them. -->
+		<section class="fam-card fam-subcal" aria-labelledby="fam-subcal-title">
+			<h2 class="fam-subcal-title" id="fam-subcal-title">Show orders on your home screen</h2>
+			<p class="fam-subcal-text">Add these orders to your phone's calendar, then add the Calendar widget to your home screen.</p>
+			{googleLive ? (
+				<>
+					<p class="fam-subcal-text"><b>Google Calendar (Android or iPhone):</b> ask the shop to share the live calendar with your Gmail. Tap the link in the email, then open the Google Calendar app. New orders show up within a minute.</p>
+					<p class="fam-subcal-text"><b>iPhone Calendar app:</b> tap below. New orders can take up to an hour to show there.</p>
+					<div class="fam-subcal-actions">
+						<a class="fam-install-btn" href={webcalUrl}>iPhone: Add to Calendar</a>
+					</div>
+				</>
+			) : (
+				<>
+					<div class="fam-subcal-actions">
+						<a class="fam-install-btn" href={webcalUrl}>iPhone: Add to Calendar</a>
+						<a class="fam-install-btn" href={googleCalUrl} target="_blank" rel="noopener noreferrer">Android: Add to Google Calendar</a>
+					</div>
+					<p class="fam-subcal-text">On Android, then open the Google Calendar app → <b>Settings</b> → <b>Montejo's Orders</b> → turn on <b>Sync</b>.</p>
+					<p class="fam-subcal-text">New orders can take a while to show in the calendar (iPhone: usually within the hour, Google: up to a day). This page is always up to date.</p>
+				</>
+			)}
+			<div class="fam-subcal-actions">
+				<button type="button" class="fam-install-btn is-plain" id="fam-subcal-copy" data-url={feedUrl}>Copy calendar link</button>
+				<span class="fam-subcal-tip" role="status"></span>
+			</div>
 		</section>
 
 		<!-- Full-screen panel with one day's orders. Opens from the Today/Tomorrow cards and calendar days.
@@ -309,6 +347,12 @@ const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.
 		font-weight: 600;
 		cursor: pointer;
 	}
+
+	.fam-subcal { margin-top: 16px; padding: 16px; }
+	.fam-subcal-title { font-size: 1.15rem; margin: 0; }
+	.fam-subcal-text { font-size: 1rem; color: var(--text-secondary); margin: 8px 0 0; line-height: 1.45; }
+	.fam-subcal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+	.fam-subcal-tip { font-weight: 700; color: var(--accent-primary); }
 
 	/* Full-screen day panel */
 	/* Three rows: Close bar (fixed) / scrolling orders / Previous-Next bar (fixed).
@@ -957,6 +1001,20 @@ const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.
 	}
 
 	// ---------- Add to Home Screen helper ----------
+	// "Copy calendar link": for adding the feed by hand (Google Calendar on a computer → Other calendars → From URL).
+	// The status bubble next to it is the visible message and the screen-reader announcement.
+	const subcalCopy = document.getElementById('fam-subcal-copy')!;
+	subcalCopy.addEventListener('click', async () => {
+		const tip = subcalCopy.nextElementSibling!;
+		try {
+			await navigator.clipboard.writeText(subcalCopy.dataset.url!);
+			tip.textContent = 'Copied';
+		} catch {
+			tip.textContent = 'Copy failed';
+		}
+		setTimeout(() => { tip.textContent = ''; }, 2500);
+	});
+
 	// Browsers never let a page add itself to the home screen; the best we can do is
 	// one tap on Android (install prompt) and clear steps everywhere else.
 	setupInstallHelper();

@@ -132,7 +132,7 @@ function formatTime12h(timeStr) {
 }
 
 /** @param {unknown} n */
-function peso(n) {
+export function peso(n) {
 	return '₱' + (parseFloat(String(n ?? 0)) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 

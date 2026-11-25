@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { isDashboardSession } from '../../lib/family-link';
 import { markOrdersChanged } from '../../lib/reminders.js';
+import { syncOrderToGoogle } from '../../lib/google-calendar';
 
 // POST { id }: delete an order and its items. No Telegram alert is sent for deletions,
 // but it counts as a change for the daily reminder.
@@ -43,6 +44,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     await markOrdersChanged(supabase);
+    await syncOrderToGoogle(supabase, id); // order is gone, so this removes its calendar event; never throws
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err: any) {
     console.error('delete-order API error', err);

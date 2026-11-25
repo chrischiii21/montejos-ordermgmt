@@ -4,11 +4,13 @@ import PrepList from '../components/PrepList.astro';
 import OrderForm from '../components/OrderForm.astro';
 import OrderTable from '../components/OrderTable.astro';
 import { getFamilyKey, canGenerateFamilyKey } from '../lib/family-link';
+import { isGoogleCalendarConfigured } from '../lib/google-calendar';
 
 // Safe to render: this page is behind the dashboard password (see middleware).
 const familyPath = `/family/${await getFamilyKey()}`;
 // The Generate button needs the Supabase app_settings table; hide it until that exists.
 const canGenerateFamilyLink = await canGenerateFamilyKey();
+const googleCalendarReady = isGoogleCalendarConfigured();
 ---
 
 <Layout title="Order Management" description="Montejo's order dashboard: orders, prep list, calendar and settings.">
@@ -424,6 +426,28 @@ const canGenerateFamilyLink = await canGenerateFamilyKey();
 						<div class="tg-result" id="tg-result" hidden></div>
 						<div class="settings-actions">
 							<button type="button" class="btn-save-settings" id="tg-test-btn">Send test message</button>
+						</div>
+					</section>
+
+					<!-- Live Google Calendar (full width): orders are copied to a shared Google Calendar as they're saved -->
+					<section class="glass-panel settings-section settings-section-full">
+						<header class="settings-head">
+							<span class="settings-head-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+							</span>
+							<div class="settings-head-text">
+								<h2 class="settings-head-title">Live Google Calendar</h2>
+								<p class="settings-head-sub">Every order is copied to a shared Google Calendar the moment it's saved, so family using the Google Calendar app and its home-screen widget see it within about a minute. Share that calendar with their Gmail from Google Calendar.</p>
+							</div>
+						</header>
+						<div class="tg-status">
+							{googleCalendarReady
+								? <span class="tg-chip is-ok">✓ Connected</span>
+								: <span class="tg-chip is-bad">✗ Not set up: add GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID in Vercel (steps in src/lib/google-calendar.ts), then redeploy</span>}
+						</div>
+						<div class="tg-result" id="gcal-result" role="status" hidden></div>
+						<div class="settings-actions">
+							<button type="button" class="btn-save-settings" id="gcal-sync-btn" disabled={!googleCalendarReady}>Sync all orders now</button>
 						</div>
 					</section>
 
@@ -3855,6 +3879,31 @@ function showConfirm(message) {
 		setupFamilyVisits();
 		setupDeliveryZones();
 		setupTelegramTest();
+		setupGoogleCalendarSync();
+	}
+
+	// Settings → Live Google Calendar: copy every order to the calendar now (first setup, or after a problem).
+	function setupGoogleCalendarSync() {
+		const btn = document.getElementById('gcal-sync-btn') as HTMLButtonElement | null;
+		const resultEl = document.getElementById('gcal-result');
+		if (!btn || !resultEl || btn.dataset.bound) return;
+		btn.dataset.bound = '1';
+		btn.addEventListener('click', async () => {
+			btn.disabled = true;
+			btn.textContent = 'Syncing…';
+			resultEl.hidden = false;
+			try {
+				const res = await fetch('/api/google-calendar-sync', { method: 'POST' });
+				const body = await res.json().catch(() => ({}));
+				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+				resultEl.textContent = `✓ Done. ${body.orders} order${body.orders === 1 ? '' : 's'} on the calendar: ${body.saved} added or updated, ${body.removed} removed.`;
+			} catch (err) {
+				resultEl.textContent = '✗ Sync failed: ' + (err instanceof Error ? err.message : String(err));
+			} finally {
+				btn.disabled = false;
+				btn.textContent = 'Sync all orders now';
+			}
+		});
 	}
 
 	// Settings → Telegram Alerts: what this server can see + a test message.
@@ -7726,6 +7775,7 @@ Christy Montejo
 				if (await showConfirm('Clear ALL orders from the database? This cannot be undone.')) {
 					const { error } = await supabase.from('orders').delete().neq('id', '');
 					if (error) { showToast('Failed to clear orders.'); return; }
+					fetch('/api/google-calendar-sync', { method: 'POST' }).catch(() => {}); // take them off the live calendar too
 					orders = [];
 					updateDashboard();
 					showToast('All orders cleared.');
