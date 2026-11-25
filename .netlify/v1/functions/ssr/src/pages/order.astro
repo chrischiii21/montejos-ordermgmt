@@ -1,0 +1,2382 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+	<!-- html2canvas CDN for downloading receipt images -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
+	<!-- Floating Theme Toggle Button -->
+	<button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" style="position: fixed; top: 16px; right: 16px; z-index: 1000; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: var(--radius); cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--card-shadow); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+		<svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+		<svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+	</button>
+
+	<div class="customer-portal-container">
+		<header class="portal-header animate-fade-in">
+			<div class="logo-glow"></div>
+			<div class="logo-group" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+				<img src="/logo.jpg" alt="Montejo's Logo" class="logo-img" style="width: 42px; height: 42px; border-radius: var(--radius); object-fit: cover; box-shadow: 0 0 15px rgba(214, 54, 31, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.15);" />
+				<h2 style="font-size: 1.35rem; line-height: 1.2; font-weight: 800; background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">Montejo's Lechon & Food Trays - Argao</h2>
+			</div>
+			<p class="portal-subtitle" style="margin-top: 6px;">Customer Order Verification Portal</p>
+		</header>
+
+		<!-- Error Screens -->
+		<div id="error-screen" class="glass-panel error-panel animate-fade-in" style="display: none;">
+			<div class="error-icon-wrapper">
+				<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+			</div>
+			<h3 id="error-title">Order Link Expired</h3>
+			<p id="error-desc">This order link is no longer valid. The order may have already been completed, cancelled, or does not exist.</p>
+			<a href="https://www.facebook.com/profile.php?id=100064148257945" target="_blank" class="btn btn-primary" style="text-decoration: none; margin-top: 16px; display: inline-flex; align-items: center; gap: 8px;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+				<span>Visit Facebook Page</span>
+			</a>
+		</div>
+
+		<!-- Already Verified Screen -->
+		<div id="verified-screen" class="glass-panel animate-fade-in" style="display: none; flex-direction: column; gap: 20px; padding: 32px 24px; text-align: center;">
+			<div class="success-checkmark-wrapper" style="margin: 0 auto;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+			</div>
+			<h3 style="font-size: 1.4rem; font-weight: 800;">Order Verification Completed</h3>
+			<p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto; line-height: 1.5;">
+				You have already verified this order and submitted your details. Below is your official receipt.
+			</p>
+
+			<!-- Mode of Payments Card -->
+			<div class="mode-of-payments-card">
+				<h4>M O D E   O F   P A Y M E N T S</h4>
+				
+				<div class="payment-methods-grid">
+					<div class="payment-box">
+						<div class="payment-box-header">
+							<span class="payment-brand">MARIBANK</span>
+							<button class="btn-copy-mini" data-copy="11953471393">Copy</button>
+						</div>
+						<div class="payment-box-body maribank-box">
+							<span class="label">Account Name:</span>
+							<span class="val maribank-name">Christy Montejo</span>
+							<span class="label">Account Number:</span>
+							<span class="val monospace maribank-num">11953471393</span>
+						</div>
+					</div>
+
+					<div class="payment-box">
+						<div class="payment-box-header">
+							<span class="payment-brand font-gcash">GCASH</span>
+							<button class="btn-copy-mini" data-copy="09760721404">Copy</button>
+						</div>
+						<div class="payment-box-body gcash-box">
+							<span class="label">Account Name:</span>
+							<span class="val gcash-name">Christy Montejo</span>
+							<span class="label">Mobile Number:</span>
+							<span class="val monospace gcash-num">09760721404</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Receipt Preview -->
+			<div id="receipt-container-verified" style="width: 100%; display: flex; justify-content: center; padding: 12px 0;">
+				<!-- Dynamic Receipt HTML -->
+			</div>
+
+			<div style="display: flex; flex-direction: column; gap: 12px; max-width: 420px; margin: 12px auto 0; width: 100%;">
+				<button id="btn-download-receipt-verified" class="btn btn-primary" style="padding: 14px; width: 100%; border-radius: var(--radius); font-weight: 700;">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+					<span>Download Receipt Image</span>
+				</button>
+				<a href="https://m.me/100064148257945" target="_blank" class="btn btn-secondary" style="padding: 14px; width: 100%; border-radius: var(--radius); font-weight: 700; text-decoration: none;">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+					<span>Message Us on Facebook</span>
+				</a>
+			</div>
+		</div>
+
+		<!-- Wizard Portal -->
+		<main id="portal-wizard" class="animate-fade-in" style="display: none;">
+			<!-- Step Indicator -->
+			<div class="step-indicator">
+				<div class="step active" id="step-1-indicator">
+					<span class="step-num">1</span>
+					<span class="step-text">Verify Items</span>
+				</div>
+				<div class="step-line" id="line-1-indicator"></div>
+				<div class="step" id="step-2-indicator">
+					<span class="step-num">2</span>
+					<span class="step-text">Delivery Info</span>
+				</div>
+				<div class="step-line" id="line-2-indicator"></div>
+				<div class="step" id="step-3-indicator">
+					<span class="step-num">3</span>
+					<span class="step-text">Review Details</span>
+				</div>
+				<div class="step-line" id="line-3-indicator"></div>
+				<div class="step" id="step-4-indicator">
+					<span class="step-num">4</span>
+					<span class="step-text">Secure Payment</span>
+				</div>
+			</div>
+
+			<!-- Step 1 Content: Order Verification -->
+			<section id="step-1-content" class="glass-panel step-content-card">
+				<div class="card-header-group">
+					<h3>Review Your Food Order</h3>
+					<p>Please review the list of dishes ordered by the organizer for accuracy.</p>
+				</div>
+
+				<!-- Payment Location Notice Banner -->
+				<div class="payment-notice-banner animate-fade-in" style="background: rgba(214, 54, 31, 0.08); border: 1.5px solid rgba(214, 54, 31, 0.2); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; text-align: left; display: flex; align-items: flex-start; gap: 10px;">
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 1px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+					<span><strong>Notice:</strong> The payment details (GCash/Maribank mode of payment options) will be displayed on-screen at the end of the form once you submit your details.</span>
+				</div>
+
+				<div class="order-items-summary" id="customer-items-list">
+					<!-- Dynamic items list -->
+				</div>
+
+				<div class="order-totals-summary">
+					<div class="summary-row font-medium" id="cust-fulfillment-row" style="display: none; opacity: 0.85;">
+						<span>Fulfillment Method</span>
+						<span id="cust-fulfillment-type">-</span>
+					</div>
+					<div class="summary-row font-medium" id="cust-subtotal-row" style="display: none; opacity: 0.85;">
+						<span>Subtotal</span>
+						<span id="cust-subtotal">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium" id="cust-delivery-row" style="display: none; opacity: 0.85;">
+						<span>Delivery/Meetup Fee</span>
+						<span id="cust-delivery-fee">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium">
+						<span>Total Bill</span>
+						<span id="cust-total-bill">₱0.00</span>
+					</div>
+					<div class="summary-row accent">
+						<span id="required-downpayment-label">Required Downpayment (50%)</span>
+						<span id="cust-downpayment">₱0.00</span>
+					</div>
+					<div class="summary-row font-medium">
+						<span id="cust-balance-label">Remaining Balance Upon Delivery</span>
+						<span id="cust-balance">₱0.00</span>
+					</div>
+				</div>
+
+				<div class="terms-note">
+					<p id="required-downpayment-note"><strong>Note:</strong> To confirm your order, we request a 50% downpayment of the total bill. The rest will be paid upon pickup/delivery of orders.</p>
+				</div>
+
+				<div class="verification-agreement">
+					<label class="custom-checkbox-container">
+						<input type="checkbox" id="verify-order-checkbox" />
+						<span class="checkmark"></span>
+						<span class="checkbox-label">I verify that the food items and pricing listed above are correct.</span>
+					</label>
+				</div>
+
+				<div class="form-actions-right">
+					<button type="button" class="btn btn-primary" id="btn-goto-step-2" disabled>
+						<span>Verify & Continue</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					</button>
+				</div>
+			</section>
+
+			<!-- Step 2 Content: Customer Details -->
+			<section id="step-2-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="card-header-group">
+					<h3>Complete Contact & Delivery Details</h3>
+					<p>Please enter the delivery information so we can coordinate your food prep and drop-off.</p>
+				</div>
+
+				<form id="customer-info-form" novalidate style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+					<!-- Prefill Notice Banner -->
+					<div id="prefill-notice" style="display: none; background: rgba(214, 54, 31, 0.08); border: 1.5px solid rgba(214, 54, 31, 0.2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45; text-align: left;">
+						<div style="display: flex; align-items: flex-start; gap: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+							<span>Some details were pre-filled based on the information we have, but please feel free to edit them if there are changes.</span>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group flex-1">
+							<label for="cust-input-name">Receiver Name</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+								<input type="text" id="cust-input-name" placeholder="Name of receiver/s" required />
+							</div>
+							<span id="name-prefill-subtext" style="display: none; font-size: 0.725rem; color: var(--text-muted); margin-top: 1px; font-style: italic;">
+								Pre-filled based on details we have. You can still change it.
+							</span>
+							<span class="error-message">Name is required</span>
+						</div>
+
+						<div class="form-group flex-1">
+							<label for="cust-input-contact">Contact Number</label>
+							<div class="input-wrapper">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+								<input type="text" inputmode="numeric" pattern="[0-9]*" id="cust-input-contact" placeholder="Receiver contact number" required />
+							</div>
+							<span id="contact-warning-subtext" style="display: none; font-size: 0.725rem; color: #ef4444; margin-top: 2px; font-weight: 500;">
+								Only numbers are allowed.
+							</span>
+							<span id="contact-prefill-subtext" style="display: none; font-size: 0.725rem; color: var(--text-muted); margin-top: 1px; font-style: italic;">
+								Pre-filled based on details we have. You can still change it.
+							</span>
+							<span class="error-message">Contact number is required</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="cust-input-fb">Facebook Name (Optional)</label>
+						<div class="input-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+							<input type="text" id="cust-input-fb" placeholder="Facebook Profile Name (optional)" style="background: transparent; border: none; outline: none; width: 100%; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem;" />
+						</div>
+					</div>
+
+					<div class="form-group" id="cust-address-group">
+						<label for="cust-input-address">Exact Address (for Delivery/Meetup)</label>
+						<div class="input-wrapper" style="align-items: flex-start; padding-top: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon" style="margin-top: 4px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+							<textarea id="cust-input-address" rows="3" placeholder="Enter complete address, landmark, block/lot, etc." style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-family); font-size: 0.875rem; resize: vertical;" required></textarea>
+						</div>
+						<span class="error-message">Delivery address is required</span>
+					</div>
+
+					<div class="form-group">
+						<label for="cust-input-datetime" id="cust-datetime-label">Delivery/Meetup Date & Time</label>
+						<div class="input-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+							<input type="datetime-local" id="cust-input-datetime" required autocomplete="off" />
+						</div>
+						<span class="error-message">Delivery date and time are required</span>
+					</div>
+
+					<div class="form-group">
+						<label for="cust-input-downpayment">Downpayment Amount to Send (₱)</label>
+							<div class="input-wrapper">
+								<span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; margin-right: 8px;">₱</span>
+								<input type="number" id="cust-input-downpayment" min="0" step="any" placeholder="Enter downpayment amount" required style="background: transparent; border: none; outline: none; width: 100%; color: var(--text-primary);" />
+							</div>
+						<span id="required-downpayment-subtext" style="font-size: 0.725rem; color: var(--text-muted); margin-top: 1px;">
+							Pre-filled with the requested 50% downpayment. Feel free to adjust if paying more or less.
+						</span>
+						<span class="error-message">Please enter a valid downpayment amount</span>
+					</div>
+
+					<div class="downpayment-calculation-preview" style="background: rgba(var(--tint-rgb), 0.02); padding: 14px; border-radius: var(--radius); border: 1px dashed var(--border-color); font-size: 0.85rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px;">
+						<div style="display: flex; justify-content: space-between;">
+							<span>Total Order Value:</span>
+							<span id="cust-calc-total" style="font-weight: 700;">₱0.00</span>
+						</div>
+						<div style="display: flex; justify-content: space-between; color: var(--accent-primary);">
+							<span>Custom Downpayment:</span>
+							<span id="cust-calc-downpayment" style="font-weight: 700;">₱0.00</span>
+						</div>
+						<div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 6px; margin-top: 2px;">
+							<span id="cust-calc-balance-label">Remaining Balance:</span>
+							<span id="cust-calc-balance" style="font-weight: 700; color: var(--text-primary);">₱0.00</span>
+						</div>
+					</div>
+
+					<div class="form-actions-right" style="margin-top: 10px; display: flex; gap: 12px; justify-content: flex-end;">
+						<button type="button" class="btn btn-secondary" id="btn-backto-step-1">
+							Back
+						</button>
+						<button type="submit" class="btn btn-primary" id="btn-submit-step-2">
+							<span>Confirm & Next</span>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+						</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- Step 3 Content: Review Details -->
+			<section id="step-3-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="card-header-group">
+					<h3>Review & Confirm Order Details</h3>
+					<p>Please double-check all details below. You can go back and make changes if needed.</p>
+				</div>
+
+				<div class="review-details-summary" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+					<!-- Customer details card -->
+					<div class="review-card" style="background: rgba(var(--tint-rgb), 0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+						<h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+							<span>Customer & Fulfillment Info</span>
+						</h4>
+						<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; font-size: 0.9rem;">
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Receiver Name</span>
+								<strong id="review-customer-name" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Contact Number</span>
+								<strong id="review-customer-contact" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Facebook Name</span>
+								<strong id="review-customer-fb" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Fulfillment Method</span>
+								<strong id="review-fulfillment-type" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div style="grid-column: span 2; display: flex; flex-direction: column; gap: 2px;">
+								<span id="review-datetime-label" style="font-size: 0.75rem; color: var(--text-secondary);">Delivery Date & Time</span>
+								<strong id="review-delivery-datetime" style="color: var(--text-primary);">-</strong>
+							</div>
+							<div id="review-address-container" style="grid-column: span 2; display: flex; flex-direction: column; gap: 2px;">
+								<span style="font-size: 0.75rem; color: var(--text-secondary);">Delivery Address</span>
+								<strong id="review-delivery-address" style="color: var(--text-primary);">-</strong>
+							</div>
+						</div>
+					</div>
+
+					<!-- Order items list summary -->
+					<div class="review-card" style="background: rgba(var(--tint-rgb), 0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+						<h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+							<span>Order Items & Pricing</span>
+						</h4>
+						<div id="review-items-list" style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; max-height: 200px; overflow-y: auto;">
+							<!-- Dynamic item summary lines -->
+						</div>
+						<div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem;">
+							<div style="display: flex; justify-content: space-between;">
+								<span style="color: var(--text-secondary);">Subtotal:</span>
+								<span id="review-subtotal" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
+							</div>
+							<div id="review-delivery-fee-row" style="display: flex; justify-content: space-between;">
+								<span style="color: var(--text-secondary);">Delivery/Meetup Fee:</span>
+								<span id="review-delivery-fee" style="color: var(--text-primary); font-weight: 600;">₱0.00</span>
+							</div>
+							<div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 2px;">
+								<span style="color: var(--text-secondary); font-weight: 700;">Total Bill:</span>
+								<strong id="review-total-bill" style="color: var(--text-primary); font-size: 1.05rem;">₱0.00</strong>
+							</div>
+							<div style="display: flex; justify-content: space-between; color: var(--accent-primary);">
+								<span style="font-weight: 700;">Selected Downpayment:</span>
+								<strong id="review-downpayment" style="font-size: 1.05rem;">₱0.00</strong>
+							</div>
+							<div style="display: flex; justify-content: space-between;">
+								<span id="review-balance-label" style="color: var(--text-secondary); font-weight: 700;">Remaining Balance:</span>
+								<strong id="review-balance" style="color: var(--text-primary); font-size: 1.05rem;">₱0.00</strong>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-actions-right" style="margin-top: 10px; display: flex; gap: 12px; justify-content: flex-end;">
+					<button type="button" class="btn btn-secondary" id="btn-backto-step-2">
+						Back
+					</button>
+					<button type="button" class="btn btn-primary" id="btn-submit-order">
+						<span>Submit Order Details</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					</button>
+				</div>
+			</section>
+
+			<!-- Step 4 Content: Payment -->
+			<section id="step-4-content" class="glass-panel step-content-card" style="display: none;">
+				<div class="success-header">
+					<div class="success-checkmark-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+					</div>
+					<h3>Details Submitted Successfully!</h3>
+					<p>To finalize your reservation, please send your chosen downpayment using GCash or Maribank. Send a screenshot of the receipt to our Facebook Messenger page.</p>
+				</div>
+
+				<div class="payment-summary-block" style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--radius); padding: 16px; margin-bottom: 8px; font-size: 0.9rem; text-align: left; display: flex; flex-direction: column; gap: 6px;">
+					<div style="display: flex; justify-content: space-between;">
+						<span style="color: var(--text-secondary);">Fulfillment Method:</span>
+						<strong id="cust-step4-fulfillment" style="color: var(--text-primary);">-</strong>
+					</div>
+					<div style="display: flex; justify-content: space-between;">
+						<span style="color: var(--text-secondary);">Total Bill:</span>
+						<strong id="cust-step4-total" style="color: var(--text-primary);">₱0.00</strong>
+					</div>
+					<div style="display: flex; justify-content: space-between; color: var(--accent-primary);">
+						<span>Downpayment to Send:</span>
+						<strong id="cust-step4-downpayment">₱0.00</strong>
+					</div>
+					<div style="display: flex; justify-content: space-between; border-top: 1px dashed rgba(16, 185, 129, 0.2); padding-top: 6px; margin-top: 2px;">
+						<span style="color: var(--text-secondary);" id="cust-step4-balance-label">Remaining Balance:</span>
+						<strong id="cust-step4-balance" style="color: var(--text-primary);">₱0.00</strong>
+					</div>
+				</div>
+
+				<!-- Mode of Payments Card -->
+				<div class="mode-of-payments-card">
+					<h4>M O D E   O F   P A Y M E N T S</h4>
+					
+					<div class="payment-methods-grid">
+						<div class="payment-box">
+							<div class="payment-box-header">
+								<span class="payment-brand">MARIBANK</span>
+								<button class="btn-copy-mini" data-copy="11953471393">Copy</button>
+							</div>
+							<div class="payment-box-body maribank-box">
+								<span class="label">Account Name:</span>
+								<span class="val maribank-name">Christy Montejo</span>
+								<span class="label">Account Number:</span>
+								<span class="val monospace maribank-num">11953471393</span>
+							</div>
+						</div>
+
+						<div class="payment-box">
+							<div class="payment-box-header">
+								<span class="payment-brand font-gcash">GCASH</span>
+								<button class="btn-copy-mini" data-copy="09760721404">Copy</button>
+							</div>
+							<div class="payment-box-body gcash-box">
+								<span class="label">Account Name:</span>
+								<span class="val gcash-name">Christy Montejo</span>
+								<span class="label">Mobile Number:</span>
+								<span class="val monospace gcash-num">09760721404</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Receipt Preview in Step 4 -->
+				<div id="receipt-container-step4" style="width: 100%; display: flex; justify-content: center; padding: 12px 0;">
+					<!-- Dynamic Receipt HTML -->
+				</div>
+
+				<button id="btn-download-receipt-step4" class="btn btn-primary" style="padding: 14px; width: 100%; border-radius: var(--radius); font-weight: 700; margin-bottom: 24px;">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+					<span>Download Receipt Image</span>
+				</button>
+
+				<div class="receipt-note">
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="note-icon"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+					<span>Please capture a screenshot of your payment transfer and message it directly to our FB Page. Mention Order ID: <strong id="cust-order-id-display">ORD-XXX</strong>.</span>
+				</div>
+
+				<div class="form-actions-center" style="margin-top: 16px;">
+					<a href="https://m.me/100064148257945" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 14px 28px; width: 100%; border-radius: var(--radius); font-size: 1rem; box-shadow: 0 4px 15px rgba(214, 54, 31, 0.4);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+						<span>Send Receipt to Facebook Page</span>
+					</a>
+				</div>
+			</section>
+		</main>
+	</div>
+</Layout>
+
+<style is:global>
+	.customer-portal-container {
+		max-width: 680px;
+		margin: 0 auto;
+		padding: 40px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.portal-header {
+		text-align: center;
+		margin-bottom: 8px;
+		position: relative;
+	}
+
+	.logo-group {
+		display: inline-flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 8px;
+	}
+
+	.logo-icon {
+		color: var(--accent-primary);
+		filter: drop-shadow(0 0 8px rgba(214, 54, 31, 0.5));
+	}
+
+	.portal-header h2 {
+		font-family: var(--font-display);
+		font-size: 2.1rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1.2;
+		color: var(--text-primary);
+	}
+
+	.portal-subtitle {
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+		font-weight: 600;
+	}
+
+	/* Errors */
+	.error-panel {
+		padding: 40px 24px;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+	}
+
+	.error-icon-wrapper {
+		width: 80px;
+		height: 80px;
+		border-radius: var(--radius);
+		background: rgba(239, 68, 68, 0.08);
+		border: 2px dashed rgba(239, 68, 68, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--status-cancelled);
+	}
+
+	.error-panel h3 {
+		font-size: 1.4rem;
+		font-weight: 800;
+	}
+
+	.error-panel p {
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+		max-width: 400px;
+		line-height: 1.5;
+	}
+
+	/* Indicator */
+	.step-indicator {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 24px;
+		background: rgba(var(--tint-rgb), 0.02);
+		border: 1px solid var(--border-color);
+		padding: 16px 20px;
+		border-radius: var(--radius);
+	}
+
+	.step {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		opacity: 0.5;
+		transition: var(--transition-smooth);
+	}
+
+	.step.active {
+		opacity: 1;
+		color: var(--accent-primary);
+	}
+
+	.step.completed {
+		opacity: 1;
+		color: #10b981;
+	}
+
+	.step-num {
+		width: 24px;
+		height: 24px;
+		border-radius: var(--radius);
+		background: rgba(var(--tint-rgb), 0.05);
+		border: 1px solid var(--border-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		font-size: 0.8rem;
+	}
+
+	.step.active .step-num {
+		background: var(--accent-primary);
+		border-color: var(--accent-primary);
+		color: white;
+		box-shadow: 0 0 10px rgba(214, 54, 31, 0.3);
+	}
+
+	.step.completed .step-num {
+		background: #10b981;
+		border-color: #10b981;
+		color: white;
+	}
+
+	.step-text {
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+
+	.step-line {
+		flex-grow: 1;
+		height: 1px;
+		background: var(--border-color);
+		margin: 0 12px;
+	}
+
+	.step-line.completed {
+		background: #10b981;
+	}
+
+	@media (max-width: 600px) {
+		.step-indicator {
+			padding: 12px 14px;
+		}
+		.step-text {
+			display: none;
+		}
+		.step-line {
+			margin: 0 6px;
+		}
+	}
+
+	/* Cards */
+	.step-content-card {
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.card-header-group {
+		text-align: left;
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 16px;
+	}
+
+	.card-header-group h3 {
+		font-size: 1.25rem;
+		font-weight: 800;
+		margin-bottom: 4px;
+	}
+
+	.card-header-group p {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+	}
+
+	/* Summary Table */
+	.order-items-summary {
+		display: flex;
+		flex-direction: column;
+		background: var(--bg-secondary);
+		border-radius: var(--radius);
+		overflow: hidden;
+		border: 1px solid var(--border-color);
+		margin-bottom: 8px;
+	}
+
+	.summary-item-row {
+		display: flex;
+		flex-direction: column;
+		font-size: 0.95rem;
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.summary-item-row:last-child {
+		border-bottom: none;
+	}
+
+	.summary-item-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px 20px;
+		width: 100%;
+	}
+
+	.item-inclusions {
+		padding: 0 20px 16px 54px;
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	.inclusions-title {
+		font-weight: 500;
+		text-transform: uppercase;
+		font-size: 0.68rem;
+		color: var(--accent-primary);
+		margin-bottom: 6px;
+		letter-spacing: 0.18em;
+	}
+
+	.inclusions-list {
+		margin: 0;
+		padding-left: 14px;
+		list-style-type: disc;
+		color: var(--text-secondary);
+	}
+
+	.inclusions-list li {
+		margin-bottom: 3px;
+	}
+
+	.summary-item-qty {
+		background: var(--accent-primary-light);
+		color: var(--accent-primary);
+		padding: 3px 8px;
+		border-radius: var(--radius);
+		font-weight: 700;
+		font-size: 0.8rem;
+		border: 1px solid rgba(214, 54, 31, 0.15);
+		margin-right: 12px;
+		display: inline-block;
+	}
+
+	.summary-item-name {
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+
+	.summary-item-right {
+		color: var(--text-primary);
+		font-weight: 700;
+	}
+
+	.order-totals-summary {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		background: rgba(var(--tint-rgb), 0.01);
+		border: 1px dashed var(--border-color);
+		border-radius: var(--radius);
+		padding: 16px;
+	}
+
+	.summary-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+	}
+
+	.summary-row.accent {
+		color: var(--accent-primary);
+		font-weight: 700;
+	}
+
+	.summary-row.font-medium {
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+
+	.terms-note {
+		font-size: 0.775rem;
+		color: var(--text-muted);
+		line-height: 1.4;
+		text-align: left;
+		background: rgba(214, 54, 31, 0.05);
+		border-left: 3px solid var(--accent-primary);
+		padding: 10px 12px;
+		border-radius: var(--radius);
+	}
+
+	.verification-agreement {
+		text-align: left;
+		padding: 4px 0;
+	}
+
+	/* Custom Checkbox */
+	.custom-checkbox-container {
+		display: flex;
+		align-items: center;
+		position: relative;
+		padding-left: 28px;
+		cursor: pointer;
+		font-size: 0.825rem;
+		user-select: none;
+		color: var(--text-secondary);
+		line-height: 1.4;
+	}
+
+	.custom-checkbox-container input {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+		height: 0;
+		width: 0;
+	}
+
+	.checkmark {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		left: 0;
+		height: 18px;
+		width: 18px;
+		background-color: rgba(var(--tint-rgb), 0.04);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		transition: var(--transition-smooth);
+	}
+
+	.custom-checkbox-container:hover input ~ .checkmark {
+		background-color: rgba(var(--tint-rgb), 0.08);
+		border-color: var(--accent-primary);
+	}
+
+	.custom-checkbox-container input:checked ~ .checkmark {
+		background-color: var(--accent-primary);
+		border-color: var(--accent-primary);
+	}
+
+	.checkmark:after {
+		content: "";
+		position: absolute;
+		display: none;
+	}
+
+	.custom-checkbox-container input:checked ~ .checkmark:after {
+		display: block;
+	}
+
+	.custom-checkbox-container .checkmark:after {
+		left: 5px;
+		top: 2px;
+		width: 4px;
+		height: 8px;
+		border: solid white;
+		border-width: 0 2px 2px 0;
+		transform: rotate(45deg);
+	}
+
+	/* Inputs */
+	.form-row {
+		display: flex;
+		gap: 16px;
+		flex-direction: column;
+	}
+
+	@media (min-width: 640px) {
+		.form-row {
+			flex-direction: row;
+		}
+	}
+
+	.flex-1 {
+		flex: 1;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.form-group label {
+		font-size: 0.775rem;
+		font-weight: 700;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.input-wrapper {
+		display: flex;
+		align-items: center;
+		background: rgba(var(--tint-rgb), 0.03);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		padding: 12px 14px;
+		gap: 10px;
+		transition: var(--transition-smooth);
+	}
+
+	.input-wrapper:focus-within {
+		border-color: var(--accent-primary);
+		box-shadow: 0 0 10px rgba(214, 54, 31, 0.15);
+		background: rgba(var(--tint-rgb), 0.05);
+	}
+
+	.input-icon {
+		color: var(--text-muted);
+		flex-shrink: 0;
+	}
+
+	.input-wrapper input {
+		background: transparent;
+		border: none;
+		outline: none;
+		color: var(--text-primary);
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		width: 100%;
+	}
+
+	.error-message {
+		font-size: 0.75rem;
+		color: var(--status-cancelled);
+		display: none;
+		text-align: left;
+		margin-top: 2px;
+	}
+
+	.form-group.invalid .input-wrapper {
+		border-color: var(--status-cancelled);
+		background: rgba(239, 68, 68, 0.05);
+	}
+
+	.form-group.invalid .error-message {
+		display: block;
+	}
+
+	/* Buttons */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 10px 20px;
+		border-radius: var(--radius-pill);
+		font-family: var(--font-family);
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: var(--transition-smooth);
+		border: none;
+		outline: none;
+	}
+
+	.btn-primary {
+		background: var(--accent-gradient);
+		color: white;
+		box-shadow: 0 4px 15px rgba(214, 54, 31, 0.35);
+	}
+
+	.btn-primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 20px rgba(214, 54, 31, 0.45);
+	}
+
+	.btn-primary:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		transform: none !important;
+	}
+
+	.btn-secondary {
+		background: rgba(var(--tint-rgb), 0.04);
+		border: 1px solid var(--border-color);
+		color: var(--text-primary);
+	}
+
+	.btn-secondary:hover {
+		background: rgba(var(--tint-rgb), 0.08);
+		border-color: var(--text-secondary);
+	}
+
+	.form-actions-right {
+		display: flex;
+		justify-content: flex-end;
+		gap: 12px;
+	}
+
+	/* Step 3 Styling */
+	.success-header {
+		text-align: center;
+		padding: 10px 0;
+	}
+
+	.success-checkmark-wrapper {
+		width: 72px;
+		height: 72px;
+		border-radius: var(--radius);
+		background: rgba(16, 185, 129, 0.08);
+		border: 2px solid rgba(16, 185, 129, 0.3);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 16px;
+	}
+
+	.success-header h3 {
+		font-size: 1.35rem;
+		font-weight: 800;
+		margin-bottom: 6px;
+	}
+
+	.success-header p {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+		line-height: 1.5;
+	}
+
+	.mode-of-payments-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		padding: 20px;
+	}
+
+	.mode-of-payments-card h4 {
+		font-size: 0.775rem;
+		color: var(--accent-primary);
+		letter-spacing: 0.1em;
+		margin-bottom: 16px;
+		font-weight: 800;
+	}
+
+	.payment-methods-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+
+	@media (min-width: 580px) {
+		.payment-methods-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.payment-box {
+		background: rgba(var(--tint-rgb), 0.02);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		padding: 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		text-align: left;
+	}
+
+	.payment-box-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 8px;
+	}
+
+	.payment-brand {
+		font-weight: 800;
+		font-size: 0.85rem;
+		color: #ffffff;
+		letter-spacing: 0.05em;
+	}
+
+	.font-gcash {
+		color: #1e3a8a;
+		background: #3b82f6;
+		padding: 2px 6px;
+		border-radius: var(--radius);
+		font-size: 0.725rem;
+	}
+
+	.btn-copy-mini {
+		background: rgba(var(--tint-rgb), 0.04);
+		border: 1px solid var(--border-color);
+		color: var(--text-secondary);
+		padding: 3px 8px;
+		border-radius: var(--radius-pill);
+		font-size: 0.7rem;
+		cursor: pointer;
+		font-weight: 700;
+		transition: var(--transition-smooth);
+	}
+
+	.btn-copy-mini:hover {
+		color: #ffffff;
+		background: var(--accent-primary);
+		border-color: var(--accent-primary);
+	}
+
+	.btn-copy-mini.copied {
+		color: #ffffff;
+		background: #10b981;
+		border-color: #10b981;
+	}
+
+	.payment-box-body {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.payment-box-body .label {
+		font-size: 0.7rem;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.payment-box-body .val {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--text-primary);
+		margin-bottom: 6px;
+	}
+
+	.payment-box-body .val:last-child {
+		margin-bottom: 0;
+	}
+
+	.payment-box-body .val.monospace {
+		font-family: monospace;
+		color: var(--accent-primary);
+		font-size: 0.9rem;
+	}
+
+	.receipt-note {
+		display: flex;
+		gap: 12px;
+		align-items: flex-start;
+		background: rgba(16, 185, 129, 0.04);
+		border: 1px solid rgba(16, 185, 129, 0.15);
+		padding: 12px 16px;
+		border-radius: var(--radius);
+		font-size: 0.8rem;
+		color: #10b981;
+		line-height: 1.5;
+		text-align: left;
+	}
+
+	.receipt-note .note-icon {
+		flex-shrink: 0;
+		margin-top: 2px;
+	}
+
+	/* Receipt Card styling */
+	.receipt-card {
+		background: #ffffff;
+		color: #1a1a1a;
+		padding: 24px;
+		border-radius: var(--radius);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+		font-family: 'Courier New', Courier, monospace; /* Classic receipt look */
+		width: 100%;
+		max-width: 420px;
+		margin: 0 auto;
+		border: 1px solid #e0e0e0;
+		position: relative;
+		text-align: left;
+	}
+
+	/* Force light text color contrast */
+	.receipt-card, .receipt-card * {
+		color: #1a1a1a !important;
+	}
+
+	.receipt-card-header {
+		text-align: center;
+		border-bottom: 2px dashed #999;
+		padding-bottom: 16px;
+		margin-bottom: 16px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.receipt-card-logo {
+		width: 54px;
+		height: 54px;
+		border-radius: var(--radius);
+		object-fit: cover;
+		margin-bottom: 8px;
+	}
+
+	.receipt-card-title {
+		font-family: var(--font-display);
+		font-size: 1.45rem;
+		font-weight: 600;
+		margin: 4px 0;
+		letter-spacing: 0.03em;
+	}
+
+	.receipt-card-subtitle {
+		font-size: 0.75rem;
+		color: #666 !important;
+	}
+
+	.receipt-info-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.8rem;
+		margin-bottom: 6px;
+	}
+
+	.receipt-divider {
+		border-top: 1px dashed #ccc;
+		margin: 12px 0;
+	}
+
+	.receipt-item-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.8rem;
+		margin-bottom: 6px;
+	}
+
+	.receipt-totals {
+		font-size: 0.85rem;
+		margin-top: 12px;
+	}
+
+	.receipt-total-row {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 6px;
+	}
+
+	.receipt-total-row.grand-total {
+		font-size: 1.05rem;
+		font-weight: 800;
+		border-top: 1.5px solid #000;
+		padding-top: 6px;
+		margin-top: 4px;
+	}
+
+	.receipt-footer {
+		text-align: center;
+		margin-top: 20px;
+		padding-top: 12px;
+		border-top: 2px dashed #999;
+		font-size: 0.75rem;
+		line-height: 1.4;
+	}
+</style>
+
+<script>
+	import { createClient } from '@supabase/supabase-js';
+
+	const supabase = createClient(
+		import.meta.env.PUBLIC_SUPABASE_URL,
+		import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+	);
+
+	function getOrderSignature(orderId: string): string {
+		const salt = 'montejo_order_security_salt_2026'; 
+		let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+		const str = orderId + salt;
+		for (let i = 0, ch; i < str.length; i++) {
+			ch = str.charCodeAt(i);
+			h1 = Math.imul(h1 ^ ch, 2654435761);
+			h2 = Math.imul(h2 ^ ch, 1597334903);
+		}
+		h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+		h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+		h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+		h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+		return ((h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0')).slice(0, 10);
+	}
+
+	// 1. Script State
+	interface OrderItem {
+		name: string;
+		quantity: number;
+		price: number;
+		total: number;
+		customInclusions?: string[];
+	}
+
+	interface Order {
+		id: string;
+		date: string;
+		customer: string;
+		address: string;
+		contact: string;
+		deliveryDateTime: string;
+		items: OrderItem[];
+		total: number;
+		downpayment: number;
+		balance: number;
+		status: 'Pending' | 'Preparing' | 'Completed' | 'Cancelled';
+		fulfillmentType?: 'Pickup' | 'Meetup' | 'Delivery';
+		deliveryFee?: number;
+		facebookName?: string;
+	}
+
+	let currentOrder: Order | null = null;
+	let currentStep = 1;
+
+	const PACKAGE_INCLUSIONS: Record<string, string[]> = {
+		"Set A Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"100 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken"
+		],
+		"Set B Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"150 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken",
+			"1 tray Calamares"
+		],
+		"Set C Lechon Package": [
+			"1 whole Lechon Baboy",
+			"1 tray Buttered Shrimps",
+			"200 pieces Lumpia Shanghai",
+			"1 tray Chicken Cordon Bleu",
+			"1 tray Special Bam-e",
+			"1 tray Diniguan",
+			"1 tray Spicy Buffalo Chicken",
+			"1 tray Calamares",
+			"1 tray Chicken Guisado"
+		],
+		"P1 Package": [
+			"1 whole Lechon Manok",
+			"30 pieces Pork Lumpia",
+			"10 pieces Battered Chicken",
+			"1/2 kilo Buttered Shrimps",
+			"25 pieces Calamares",
+			"Half tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P2 Package": [
+			"3 kilos Lechon Belly",
+			"30 pieces Pork Lumpia",
+			"10 pieces Battered Chicken",
+			"1/2 kilo Buttered Shrimps",
+			"25 pieces Calamares",
+			"Half tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P3 Package": [
+			"4 kilos Lechon Belly",
+			"40 pieces Pork Lumpia",
+			"15 pieces Battered Chicken",
+			"10 pieces Buffalo / Teriyaki Chicken",
+			"3/4 kilo Buttered Shrimps",
+			"40 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P4 Package": [
+			"5 kilos Lechon Belly",
+			"50 pieces Pork Lumpia",
+			"20 pieces Battered Chicken",
+			"15 pieces Buffalo / Teriyaki Chicken",
+			"3/4 kilo Buttered Shrimps",
+			"50 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P5 Package": [
+			"6 kilos Lechon Belly",
+			"70 pieces Pork Lumpia",
+			"25 pieces Battered Chicken",
+			"20 pieces Buffalo / Teriyaki Chicken",
+			"1 kilo Buttered Shrimps",
+			"60 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		],
+		"P6 Package": [
+			"7 kilos Lechon Belly",
+			"80 pieces Pork Lumpia",
+			"30 pieces Battered Chicken",
+			"25 pieces Buffalo / Teriyaki Chicken",
+			"1 kilo Buttered Shrimps",
+			"70 pieces Calamares",
+			"1 tray Special Bam-i",
+			"1 tray Chosen Dessert"
+		]
+	};
+
+	function getInclusions(it: OrderItem): string[] | null {
+		if (it.customInclusions && it.customInclusions.length > 0) {
+			return it.customInclusions;
+		}
+		for (const key in PACKAGE_INCLUSIONS) {
+			if (it.name.toLowerCase().includes(key.toLowerCase()) || 
+				(key.startsWith('P') && it.name.toLowerCase().includes(key.toLowerCase().split(' ')[0] + ' package'))) {
+				return PACKAGE_INCLUSIONS[key];
+			}
+		}
+	}
+
+	function checkAndTransitionOrderStatus(order: { id: string; status: string; delivery_date_time?: string; total?: any; downpayment?: any; balance?: any }) {
+		if (order.status === 'Completed' || order.status === 'Cancelled') {
+			return order.status;
+		}
+		const deliveryStr = order.delivery_date_time;
+		if (!deliveryStr) return order.status;
+
+		const deliveryTime = new Date(deliveryStr.replace(' ', 'T'));
+		if (isNaN(deliveryTime.getTime())) return order.status;
+
+		const now = new Date();
+		const diffMs = deliveryTime.getTime() - now.getTime();
+		const diffHours = diffMs / (1000 * 60 * 60);
+
+		let newStatus = order.status;
+		if (now >= deliveryTime) {
+			newStatus = 'Completed';
+		} else if (diffHours <= 4) {
+			newStatus = 'Preparing';
+		}
+
+		if (newStatus !== order.status) {
+			order.status = newStatus;
+			
+			fetch('/api/update-order', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id: order.id,
+					orderUpdates: { status: newStatus }
+				})
+			}).then(resp => {
+				if (!resp.ok) {
+					console.error(`Error auto-updating order status for ${order.id}`);
+				}
+			}).catch(err => {
+				console.error(`Error auto-updating order status for ${order.id}:`, err);
+			});
+		}
+
+		return newStatus;
+	}
+
+	// Elements
+	const errorScreen = document.getElementById('error-screen');
+	const errorTitle = document.getElementById('error-title');
+	const errorDesc = document.getElementById('error-desc');
+	const portalWizard = document.getElementById('portal-wizard');
+
+	// Step elements
+	const step1Content = document.getElementById('step-1-content');
+	const step2Section = document.getElementById('step-2-content');
+	const step3Section = document.getElementById('step-3-content');
+	const step4Section = document.getElementById('step-4-content');
+
+	// Indicator elements
+	const step1Indicator = document.getElementById('step-1-indicator');
+	const step2Indicator = document.getElementById('step-2-indicator');
+	const step3Indicator = document.getElementById('step-3-indicator');
+	const step4Indicator = document.getElementById('step-4-indicator');
+	const line1Indicator = document.getElementById('line-1-indicator');
+	const line2Indicator = document.getElementById('line-2-indicator');
+	const line3Indicator = document.getElementById('line-3-indicator');
+
+	// Checkbox & Navigation Step 1
+	const verifyCheckbox = document.getElementById('verify-order-checkbox') as HTMLInputElement;
+	const btnGotoStep2 = document.getElementById('btn-goto-step-2') as HTMLButtonElement;
+
+	// Form & Navigation Step 2
+	const customerInfoForm = document.getElementById('customer-info-form') as HTMLFormElement;
+	const btnBacktoStep1 = document.getElementById('btn-backto-step-1');
+	const custInputName = document.getElementById('cust-input-name') as HTMLInputElement;
+	const custInputContact = document.getElementById('cust-input-contact') as HTMLInputElement;
+	const custInputFb = document.getElementById('cust-input-fb') as HTMLInputElement;
+	const custInputAddress = document.getElementById('cust-input-address') as HTMLTextAreaElement;
+	const custInputDatetime = document.getElementById('cust-input-datetime') as HTMLInputElement;
+	const custInputDownpayment = document.getElementById('cust-input-downpayment') as HTMLInputElement;
+
+	// Warning element for contact
+	const contactWarningSubtext = document.getElementById('contact-warning-subtext');
+
+	// Calc preview elements
+	const custCalcTotal = document.getElementById('cust-calc-total');
+	const custCalcDownpayment = document.getElementById('cust-calc-downpayment');
+	const custCalcBalance = document.getElementById('cust-calc-balance');
+	const custCalcBalanceLabel = document.getElementById('cust-calc-balance-label');
+
+	// Step 3 (Review) elements
+	const btnBacktoStep2 = document.getElementById('btn-backto-step-2');
+	const btnSubmitOrder = document.getElementById('btn-submit-order');
+	const reviewCustomerName = document.getElementById('review-customer-name');
+	const reviewCustomerContact = document.getElementById('review-customer-contact');
+	const reviewCustomerFb = document.getElementById('review-customer-fb');
+	const reviewFulfillmentType = document.getElementById('review-fulfillment-type');
+	const reviewDeliveryDatetime = document.getElementById('review-delivery-datetime');
+	const reviewDeliveryAddress = document.getElementById('review-delivery-address');
+	const reviewAddressContainer = document.getElementById('review-address-container');
+	const reviewDatetimeLabel = document.getElementById('review-datetime-label');
+	const reviewItemsList = document.getElementById('review-items-list');
+	const reviewSubtotal = document.getElementById('review-subtotal');
+	const reviewDeliveryFeeRow = document.getElementById('review-delivery-fee-row');
+	const reviewDeliveryFee = document.getElementById('review-delivery-fee');
+	const reviewTotalBill = document.getElementById('review-total-bill');
+	const reviewDownpayment = document.getElementById('review-downpayment');
+	const reviewBalance = document.getElementById('review-balance');
+	const reviewBalanceLabel = document.getElementById('review-balance-label');
+
+	// Step 4 summary elements
+	const custStep4Fulfillment = document.getElementById('cust-step4-fulfillment');
+	const custStep4Total = document.getElementById('cust-step4-total');
+	const custStep4Downpayment = document.getElementById('cust-step4-downpayment');
+	const custStep4Balance = document.getElementById('cust-step4-balance');
+	const custStep4BalanceLabel = document.getElementById('cust-step4-balance-label');
+
+	// Step 4 copy details
+	const custOrderIdDisplay = document.getElementById('cust-order-id-display');
+
+	function updateLiveCalculation() {
+		if (!currentOrder) return;
+		const total = currentOrder.total;
+		const val = custInputDownpayment.value.trim();
+		const downpayment = val ? Math.max(0, parseFloat(val)) : 0;
+		const balance = Math.max(0, total - downpayment);
+
+		if (custCalcTotal) custCalcTotal.textContent = `₱${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custCalcDownpayment) custCalcDownpayment.textContent = `₱${downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custCalcBalance) custCalcBalance.textContent = `₱${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+		if (custCalcBalanceLabel) {
+			const type = currentOrder.fulfillmentType || 'Delivery';
+			if (type === 'Pickup') {
+				custCalcBalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
+			} else if (type === 'Meetup') {
+				custCalcBalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
+			} else {
+				custCalcBalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
+			}
+		}
+	}
+
+	// Apply settings passed via shareable link (encoded in 's' query param) or fallback to localStorage
+	function applySharedSettingsFromUrl() {
+		try {
+			const params = new URLSearchParams(window.location.search);
+			let s = params.get('s');
+			
+			let decoded: any = null;
+			if (s) {
+				// Decode UTF-8 Base64, replace spaces back to + in case browser URL decoded it
+				const decodedStr = decodeURIComponent(escape(atob(s.replace(/ /g, '+'))));
+				if (decodedStr.startsWith('{')) {
+					// Fallback for old JSON links
+					decoded = JSON.parse(decodedStr);
+				} else {
+					// New compact pipe-separated format
+					const [maribankName, maribankNum, gcashName, gcashNum, dpPct] = decodedStr.split('|');
+					decoded = { maribankName, maribankNum, gcashName, gcashNum, dpPct: dpPct ? parseFloat(dpPct) : 50 };
+				}
+			} else {
+				// Fallback to localStorage if available (useful for local admin tests)
+				const localSettingsStr = localStorage.getItem('flavorflow_settings');
+				if (localSettingsStr) {
+					decoded = JSON.parse(localSettingsStr);
+				}
+			}
+
+			if (!decoded) return;
+
+			if (decoded.maribankName) {
+				document.querySelectorAll('.maribank-name').forEach(el => el.textContent = decoded.maribankName);
+			}
+			if (decoded.maribankNum) {
+				document.querySelectorAll('.maribank-num').forEach(el => el.textContent = decoded.maribankNum);
+				// Find copy button in Maribank header(s)
+				document.querySelectorAll('.payment-box').forEach(box => {
+					const brand = box.querySelector('.payment-brand');
+					if (brand && brand.textContent?.includes('MARIBANK')) {
+						const copyBtn = box.querySelector('.btn-copy-mini');
+						if (copyBtn) copyBtn.setAttribute('data-copy', decoded.maribankNum);
+					}
+				});
+			}
+			if (decoded.gcashName) {
+				document.querySelectorAll('.gcash-name').forEach(el => el.textContent = decoded.gcashName);
+			}
+			if (decoded.gcashNum) {
+				document.querySelectorAll('.gcash-num').forEach(el => el.textContent = decoded.gcashNum);
+				// Find copy button in GCash header(s)
+				document.querySelectorAll('.payment-box').forEach(box => {
+					const brand = box.querySelector('.payment-brand');
+					if (brand && brand.textContent?.includes('GCASH')) {
+						const copyBtn = box.querySelector('.btn-copy-mini');
+						if (copyBtn) copyBtn.setAttribute('data-copy', decoded.gcashNum);
+					}
+				});
+			}
+
+			// Update downpayment percentages in text label/notes
+			const pct = decoded.dpPct !== undefined ? decoded.dpPct : 50;
+			const labelEl = document.getElementById('required-downpayment-label');
+			if (labelEl) labelEl.textContent = `Required Downpayment (${pct}%)`;
+			const noteEl = document.getElementById('required-downpayment-note');
+			if (noteEl) {
+				noteEl.innerHTML = `<strong>Note:</strong> To confirm your order, we request a ${pct}% downpayment of the total bill. The rest will be paid upon pickup/delivery of orders.`;
+			}
+			const subtextEl = document.getElementById('required-downpayment-subtext');
+			if (subtextEl) {
+				subtextEl.textContent = `Pre-filled with the requested ${pct}% downpayment. Feel free to adjust if paying more or less.`;
+			}
+		} catch (e) { /* ignore */ }
+	}
+
+	function generateReceiptHtml(order: Order): string {
+		const itemsHtml = order.items.map(it => `
+			<div class="receipt-item-row">
+				<span>${it.quantity}x ${it.name}</span>
+				<span>₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+			</div>
+		`).join('');
+
+		const formattedDate = new Date(order.date.replace(' ', 'T')).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+
+		const formattedDeliveryDate = order.deliveryDateTime ? new Date(order.deliveryDateTime.replace(' ', 'T')).toLocaleString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
+		}) : 'Not set';
+
+		return `
+			<div class="receipt-card" id="receipt-card-element">
+				<div class="receipt-card-header">
+					<img src="/logo.jpg" alt="Logo" class="receipt-card-logo" style="width: 54px; height: 54px; border-radius: var(--radius); object-fit: cover;" />
+					<div class="receipt-card-title">MONTEJO'S LECHON</div>
+					<div class="receipt-card-subtitle">& FOOD TRAYS - ARGAO</div>
+					<div class="receipt-card-subtitle" style="font-size: 0.65rem; margin-top: 2px;">Poblacion, Argao, Cebu | 0976 072 1404</div>
+				</div>
+
+				<div class="receipt-info-row">
+					<span>Order ID:</span>
+					<strong>${order.id}</strong>
+				</div>
+				<div class="receipt-info-row">
+					<span>Order Date:</span>
+					<span>${formattedDate}</span>
+				</div>
+				<div class="receipt-info-row">
+					<span>Customer Name:</span>
+					<strong>${order.customer || 'Guest'}</strong>
+				</div>
+				<div class="receipt-info-row">
+					<span>Contact No:</span>
+					<span>${order.contact || '-'}</span>
+				</div>
+				<div class="receipt-info-row">
+					<span>Fulfillment:</span>
+					<strong>${order.fulfillmentType || 'Delivery'}</strong>
+				</div>
+				${order.fulfillmentType !== 'Pickup' ? `
+					<div class="receipt-info-row" style="text-align: left; display: block;">
+						<span style="display: block;">Delivery Address:</span>
+						<strong style="font-size: 0.75rem; white-space: pre-wrap; display: block; margin-top: 2px;">${order.address || '-'}</strong>
+					</div>
+				` : ''}
+				<div class="receipt-info-row">
+					<span>Fulfillment Date:</span>
+					<strong>${formattedDeliveryDate}</strong>
+				</div>
+
+				<div class="receipt-divider"></div>
+
+				<div style="font-weight: bold; font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; text-align: left;">Items Ordered</div>
+				${itemsHtml}
+
+				<div class="receipt-divider"></div>
+
+				<div class="receipt-totals">
+					<div class="receipt-total-row">
+						<span>Subtotal:</span>
+						<span>₱${(order.total - (order.deliveryFee || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+					</div>
+					${order.deliveryFee ? `
+						<div class="receipt-total-row">
+							<span>Delivery/Meetup Fee:</span>
+							<span>₱${order.deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+						</div>
+					` : ''}
+					<div class="receipt-total-row" style="font-weight: bold;">
+						<span>Total Bill:</span>
+						<span>₱${order.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+					</div>
+					<div class="receipt-total-row" style="color: #d6361f !important; font-weight: bold;">
+						<span>Downpayment Selected:</span>
+						<span>₱${order.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+					</div>
+					<div class="receipt-total-row grand-total">
+						<span>Remaining Balance:</span>
+						<span>₱${order.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+					</div>
+				</div>
+
+				<div class="receipt-footer">
+					<div style="font-weight: bold; margin-bottom: 4px;">THANK YOU FOR YOUR PATRONAGE!</div>
+					<div>Please send a screenshot of this receipt and proof of downpayment to confirm your slot.</div>
+				</div>
+			</div>
+		`;
+	}
+
+	function downloadReceiptImage(orderId: string) {
+		const receiptCard = document.getElementById('receipt-card-element');
+		if (!receiptCard) return;
+
+		// @ts-ignore
+		if (typeof html2canvas !== 'undefined') {
+			// @ts-ignore
+			html2canvas(receiptCard, {
+				scale: 2,
+				backgroundColor: '#ffffff',
+				useCORS: true
+			}).then(canvas => {
+				canvas.toBlob(blob => {
+					if (!blob) {
+						console.error('Failed to create blob from canvas');
+						return;
+					}
+					const url = URL.createObjectURL(blob);
+					const link = document.createElement('a');
+					link.download = `Receipt-${orderId}.png`;
+					link.href = url;
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					URL.revokeObjectURL(url);
+				}, 'image/png');
+			}).catch(err => {
+				console.error('Error rendering receipt image:', err);
+			});
+		} else {
+			alert('Receipt rendering library is still loading. Please try again in a second.');
+		}
+	}
+
+	function showAlreadyVerifiedScreen(order: Order) {
+		const verifiedScreen = document.getElementById('verified-screen');
+		const receiptContainer = document.getElementById('receipt-container-verified');
+		const portalWizard = document.getElementById('portal-wizard');
+		const errorScreen = document.getElementById('error-screen');
+
+		if (verifiedScreen && receiptContainer && portalWizard && errorScreen) {
+			receiptContainer.innerHTML = generateReceiptHtml(order);
+			verifiedScreen.style.display = 'flex';
+			portalWizard.style.display = 'none';
+			errorScreen.style.display = 'none';
+
+			// Bind verified download button
+			const btnDownloadVerified = document.getElementById('btn-download-receipt-verified');
+			btnDownloadVerified?.addEventListener('click', () => {
+				downloadReceiptImage(order.id);
+			});
+		}
+	}
+
+	// Load Order
+	document.addEventListener('DOMContentLoaded', async () => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const id = urlParams.get('id');
+
+		if (!id) {
+			showError('Invalid Link', 'No order identifier was found in the link. Please ask the food service owner for a correct link.');
+			return;
+		}
+
+		// Validate secure URL signature to prevent link tampering / enumeration
+		const sig = urlParams.get('t');
+		if (!sig || sig !== getOrderSignature(id)) {
+			showError('Access Denied', 'This order link is invalid, corrupted, or has expired. Please request a new link from the food service owner.');
+			return;
+		}
+
+		// Fetch order + items from Supabase
+		const { data, error } = await supabase
+			.from('orders')
+			.select('*, order_items(*)')
+			.eq('id', id)
+			.single();
+
+		if (error || !data) {
+			showError('Order Not Found', `We could not find any order ticket matching ID: #${id.replace('ORD-', '')}.`);
+			return;
+		}
+
+		const currentStatus = checkAndTransitionOrderStatus(data);
+
+		// Validate if expired
+		if (currentStatus === 'Completed' || currentStatus === 'Cancelled') {
+			showError('Order Link Expired', `This link has expired because Order #${id.replace('ORD-', '')} has already been marked as ${currentStatus.toUpperCase()}.`);
+			return;
+		}
+
+		currentOrder = {
+			id: data.id,
+			date: data.date,
+			customer: data.customer,
+			address: data.address,
+			contact: data.contact,
+			deliveryDateTime: data.delivery_date_time ?? '',
+			fulfillmentType: data.fulfillment_type ?? 'Delivery',
+			status: currentStatus,
+			total: parseFloat(data.total),
+			downpayment: parseFloat(data.downpayment),
+			balance: parseFloat(data.balance),
+			deliveryFee: parseFloat(data.delivery_fee ?? 0),
+			facebookName: data.facebook_name ?? '',
+			items: (data.order_items ?? []).map((it: any) => ({
+				name: it.name,
+				quantity: it.quantity,
+				price: parseFloat(it.price),
+				total: parseFloat(it.total),
+				customInclusions: it.custom_inclusions ?? []
+			}))
+		};
+
+		// Check if already filled up/verified (either locally in localStorage, or in the database details)
+		// We consider it verified in database only if customer is not 'Pending Customer Details' AND deliveryDateTime is already filled
+		const isVerifiedInDb = currentOrder.customer && 
+							   currentOrder.customer !== 'Pending Customer Details' && 
+							   currentOrder.deliveryDateTime && 
+							   currentOrder.deliveryDateTime.trim() !== '';
+
+		if (localStorage.getItem('verified_order_' + id) === 'true' || isVerifiedInDb) {
+			showAlreadyVerifiedScreen(currentOrder);
+			applySharedSettingsFromUrl();
+			return;
+		}
+
+		initializeWizard();
+		// Apply any shared settings passed in the URL
+		applySharedSettingsFromUrl();
+	});
+
+	function showError(title: string, description: string) {
+		if (errorScreen && errorTitle && errorDesc && portalWizard) {
+			errorTitle.textContent = title;
+			errorDesc.textContent = description;
+			errorScreen.style.display = 'flex';
+			portalWizard.style.display = 'none';
+		}
+	}
+
+	function initializeWizard() {
+		if (!currentOrder || !portalWizard) return;
+		portalWizard.style.display = 'block';
+
+		// Step 1: Render Items & Inclusions
+		const itemsContainer = document.getElementById('customer-items-list');
+		if (itemsContainer) {
+			itemsContainer.innerHTML = currentOrder.items.map(it => {
+				const inclusions = getInclusions(it);
+				const inclusionsHtml = inclusions ? `
+					<div class="item-inclusions">
+						<div class="inclusions-title">Inclusions:</div>
+						<ul class="inclusions-list">
+							${inclusions.map(inc => `<li>${inc}</li>`).join('')}
+						</ul>
+					</div>
+				` : '';
+				return `
+					<div class="summary-item-row">
+						<div class="summary-item-content">
+							<div style="display: flex; align-items: center; gap: 8px;">
+								<span class="summary-item-qty">${it.quantity}x</span>
+								<span class="summary-item-name">${it.name}</span>
+							</div>
+							<span class="summary-item-right">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+						</div>
+						${inclusionsHtml}
+					</div>
+				`;
+			}).join('');
+		}
+
+		// Render totals
+		const custFulfillmentRow = document.getElementById('cust-fulfillment-row');
+		const custFulfillmentType = document.getElementById('cust-fulfillment-type');
+		const custSubtotalRow = document.getElementById('cust-subtotal-row');
+		const custSubtotal = document.getElementById('cust-subtotal');
+		const custDeliveryRow = document.getElementById('cust-delivery-row');
+		const custDeliveryFee = document.getElementById('cust-delivery-fee');
+		const custTotalBill = document.getElementById('cust-total-bill');
+		const custDownpayment = document.getElementById('cust-downpayment');
+		const custBalanceLabel = document.getElementById('cust-balance-label');
+		const custBalance = document.getElementById('cust-balance');
+
+		const deliveryFee = currentOrder.deliveryFee || 0;
+		const subtotal = currentOrder.total - deliveryFee;
+		const fulfillmentType = currentOrder.fulfillmentType || 'Delivery';
+
+		if (custFulfillmentRow && custFulfillmentType) {
+			custFulfillmentRow.style.display = 'flex';
+			custFulfillmentType.textContent = fulfillmentType;
+		}
+
+		if (custSubtotalRow && custSubtotal) {
+			custSubtotalRow.style.display = 'flex';
+			custSubtotal.textContent = `₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
+		if (custDeliveryRow && custDeliveryFee) {
+			custDeliveryRow.style.display = 'flex';
+			custDeliveryFee.textContent = `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
+		if (custTotalBill) custTotalBill.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custDownpayment) custDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		if (custBalance) custBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+		if (custBalanceLabel) {
+			const type = currentOrder.fulfillmentType || 'Delivery';
+			if (type === 'Pickup') {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Pickup';
+			} else if (type === 'Meetup') {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Meetup';
+			} else {
+				custBalanceLabel.textContent = 'Remaining Balance Upon Delivery';
+			}
+		}
+
+		// Configure address/delivery fields based on fulfillment type
+		const addressGroup = document.getElementById('cust-address-group');
+		const datetimeLabel = document.getElementById('cust-datetime-label');
+		const isPickup = currentOrder.fulfillmentType === 'Pickup';
+
+		if (addressGroup) {
+			addressGroup.style.display = isPickup ? 'none' : 'block';
+		}
+		if (custInputAddress) {
+			if (isPickup) {
+				custInputAddress.removeAttribute('required');
+			} else {
+				custInputAddress.setAttribute('required', 'required');
+			}
+		}
+		if (datetimeLabel) {
+			datetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : 'Delivery/Meetup Date & Time';
+		}
+
+		// Prefill fields from currentOrder — treat the special placeholder marker as empty
+		if (custInputName && currentOrder.customer && currentOrder.customer !== 'Pending Customer Details') custInputName.value = currentOrder.customer;
+		if (custInputContact && currentOrder.contact) custInputContact.value = currentOrder.contact;
+		if (custInputFb && currentOrder.facebookName) custInputFb.value = currentOrder.facebookName;
+		if (custInputAddress && currentOrder.address) custInputAddress.value = currentOrder.address;
+		// Date is never prefilled: the customer must pick it themselves
+		if (custInputDatetime) custInputDatetime.value = '';
+		if (custInputDownpayment && currentOrder.downpayment) {
+			custInputDownpayment.value = currentOrder.downpayment.toString();
+		}
+
+		// Show notice if Receiver Name or Contact were prefilled by owner
+		const prefillNotice = document.getElementById('prefill-notice');
+		const namePrefillSubtext = document.getElementById('name-prefill-subtext');
+		const contactPrefillSubtext = document.getElementById('contact-prefill-subtext');
+		const hasPrefilledName = currentOrder.customer && currentOrder.customer !== 'Pending Customer Details' && currentOrder.customer.trim() !== '';
+		const hasPrefilledContact = currentOrder.contact && currentOrder.contact.trim() !== '';
+		if (prefillNotice) {
+			if (hasPrefilledName || hasPrefilledContact) {
+				prefillNotice.style.display = 'block';
+			} else {
+				prefillNotice.style.display = 'none';
+			}
+		}
+		if (namePrefillSubtext) {
+			namePrefillSubtext.style.display = hasPrefilledName ? 'block' : 'none';
+		}
+		if (contactPrefillSubtext) {
+			contactPrefillSubtext.style.display = hasPrefilledContact ? 'block' : 'none';
+		}
+
+		// Update calculation view
+		updateLiveCalculation();
+
+		custInputDownpayment?.addEventListener('input', () => {
+			updateLiveCalculation();
+		});
+
+		// Add input restrictions on custInputContact
+		custInputContact?.addEventListener('keydown', (e) => {
+			// Allow control keys (Backspace, Delete, Tab, Escape, Enter, Arrow keys) and Select All (Ctrl+A / Cmd+A) etc.
+			const isControlKey = e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+				e.key === 'Escape' || e.key === 'Enter' || e.key.startsWith('Arrow') ||
+				((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'c' || e.key === 'v' || e.key === 'x'));
+
+			if (isControlKey) return;
+
+			// If it's a character and not a digit 0-9, prevent it
+			if (e.key.length === 1 && !/^[0-9]$/.test(e.key)) {
+				e.preventDefault();
+				showContactWarning();
+			}
+		});
+
+		custInputContact?.addEventListener('input', () => {
+			const rawVal = custInputContact.value;
+			const cleanVal = rawVal.replace(/[^0-9]/g, '');
+			if (rawVal !== cleanVal) {
+				custInputContact.value = cleanVal;
+				showContactWarning();
+			}
+		});
+
+		custInputContact?.addEventListener('paste', (e) => {
+			const pastedData = e.clipboardData?.getData('text') || '';
+			if (/[^0-9]/.test(pastedData)) {
+				e.preventDefault();
+				const cleanPasted = pastedData.replace(/[^0-9]/g, '');
+				
+				const start = custInputContact.selectionStart || 0;
+				const end = custInputContact.selectionEnd || 0;
+				const val = custInputContact.value;
+				custInputContact.value = val.substring(0, start) + cleanPasted + val.substring(end);
+				custInputContact.setSelectionRange(start + cleanPasted.length, start + cleanPasted.length);
+				
+				showContactWarning();
+			}
+		});
+
+		let warningTimeout: any = null;
+		function showContactWarning() {
+			if (contactWarningSubtext) {
+				contactWarningSubtext.style.display = 'block';
+				if (warningTimeout) clearTimeout(warningTimeout);
+				warningTimeout = setTimeout(() => {
+					contactWarningSubtext.style.display = 'none';
+				}, 2000);
+			}
+		}
+
+		// Checkbox controller
+		verifyCheckbox?.addEventListener('change', () => {
+			if (btnGotoStep2) {
+				btnGotoStep2.disabled = !verifyCheckbox.checked;
+			}
+		});
+
+		// Navigation Step 1 -> 2
+		btnGotoStep2?.addEventListener('click', () => {
+			goToStep(2);
+		});
+
+		// Navigation Step 2 -> 1
+		btnBacktoStep1?.addEventListener('click', () => {
+			goToStep(1);
+		});
+
+		// Form Step 2 Submission (Goes to Step 3 Review instead of saving directly to DB)
+		customerInfoForm?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			if (!validateStep2Form()) return;
+
+			if (currentOrder) {
+				currentOrder.customer = custInputName.value.trim();
+				currentOrder.contact = custInputContact.value.trim();
+				currentOrder.facebookName = custInputFb.value.trim();
+				currentOrder.address = custInputAddress.value.trim();
+				
+				const rawDate = custInputDatetime.value;
+				currentOrder.deliveryDateTime = rawDate.replace('T', ' ');
+
+				const downpaymentVal = custInputDownpayment.value.trim();
+				const customDownpayment = downpaymentVal ? Math.max(0, parseFloat(downpaymentVal)) : 0;
+				currentOrder.downpayment = customDownpayment;
+				currentOrder.balance = Math.max(0, currentOrder.total - customDownpayment);
+
+				// Update Review Details Content
+				if (reviewCustomerName) reviewCustomerName.textContent = currentOrder.customer;
+				if (reviewCustomerContact) reviewCustomerContact.textContent = currentOrder.contact;
+				if (reviewCustomerFb) reviewCustomerFb.textContent = currentOrder.facebookName || 'N/A';
+				
+				const isPickup = currentOrder.fulfillmentType === 'Pickup';
+				if (reviewFulfillmentType) reviewFulfillmentType.textContent = currentOrder.fulfillmentType || 'Delivery';
+				
+				if (reviewDatetimeLabel) reviewDatetimeLabel.textContent = isPickup ? 'Pickup Date & Time' : 'Delivery Date & Time';
+				if (reviewDeliveryDatetime) {
+					reviewDeliveryDatetime.textContent = currentOrder.deliveryDateTime ? new Date(currentOrder.deliveryDateTime.replace(' ', 'T')).toLocaleString('en-US', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+						hour: 'numeric',
+						minute: '2-digit',
+						hour12: true
+					}) : 'Not set';
+				}
+				
+				if (reviewAddressContainer) reviewAddressContainer.style.display = isPickup ? 'none' : 'flex';
+				if (reviewDeliveryAddress) reviewDeliveryAddress.textContent = currentOrder.address || '-';
+
+				// Items review table list
+				if (reviewItemsList) {
+					reviewItemsList.innerHTML = currentOrder.items.map(it => `
+						<div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0;">
+							<span style="color: var(--text-primary); font-weight: 500;">${it.quantity}x ${it.name}</span>
+							<span style="color: var(--text-secondary);">₱${it.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+						</div>
+					`).join('');
+				}
+
+				const deliveryFee = currentOrder.deliveryFee || 0;
+				const subtotal = currentOrder.total - deliveryFee;
+
+				if (reviewSubtotal) reviewSubtotal.textContent = `₱${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewDeliveryFeeRow) reviewDeliveryFeeRow.style.display = isPickup ? 'none' : 'flex';
+				if (reviewDeliveryFee) reviewDeliveryFee.textContent = `₱${deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewTotalBill) reviewTotalBill.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewDownpayment) reviewDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (reviewBalance) reviewBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				
+				if (reviewBalanceLabel) {
+					if (isPickup) {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
+					} else if (currentOrder.fulfillmentType === 'Meetup') {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
+					} else {
+						reviewBalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
+					}
+				}
+
+				goToStep(3);
+			}
+		});
+
+		// Navigation Step 3 -> 2
+		btnBacktoStep2?.addEventListener('click', () => {
+			goToStep(2);
+		});
+
+		// Navigation Step 3 Submission (Saves to DB and goes to Step 4 Payment)
+		btnSubmitOrder?.addEventListener('click', async () => {
+			if (!currentOrder) return;
+
+			// Add visual loading state
+			const oldBtnHtml = btnSubmitOrder.innerHTML;
+			btnSubmitOrder.setAttribute('disabled', 'disabled');
+			btnSubmitOrder.innerHTML = `
+				<svg class="animate-spin" style="animation: spin 1s linear infinite; margin-right: 8px; display: inline-block; vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle><path class="opacity-75" fill="currentColor" style="opacity: 0.75;" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+				<span>Submitting...</span>
+			`;
+
+			try {
+				// Update Step 1 totals summary in case they go back
+				const custDownpayment = document.getElementById('cust-downpayment');
+				const custBalance = document.getElementById('cust-balance');
+				if (custDownpayment) custDownpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custBalance) custBalance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+				// Update Step 4 summary values
+				if (custStep4Fulfillment) custStep4Fulfillment.textContent = currentOrder.fulfillmentType || 'Delivery';
+				if (custStep4Total) custStep4Total.textContent = `₱${currentOrder.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4Downpayment) custStep4Downpayment.textContent = `₱${currentOrder.downpayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4Balance) custStep4Balance.textContent = `₱${currentOrder.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+				if (custStep4BalanceLabel) {
+					const type = currentOrder.fulfillmentType || 'Delivery';
+					if (type === 'Pickup') {
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Pickup:';
+					} else if (type === 'Meetup') {
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Meetup:';
+					} else {
+						custStep4BalanceLabel.textContent = 'Remaining Balance Upon Delivery:';
+					}
+				}
+
+				// Render Step 4 Receipt Card
+				const receiptContainerStep4 = document.getElementById('receipt-container-step4');
+				if (receiptContainerStep4) {
+					receiptContainerStep4.innerHTML = generateReceiptHtml(currentOrder);
+				}
+
+				// Save verified flag to localStorage
+				localStorage.setItem('verified_order_' + currentOrder.id, 'true');
+
+				// Save updated order via serverless function to bypass RLS
+				const resp = await fetch('/api/update-order', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: currentOrder.id,
+						isCustomerVerification: true,
+						orderUpdates: {
+							customer: currentOrder.customer,
+							contact: currentOrder.contact,
+							facebook_name: currentOrder.facebookName || null,
+							address: currentOrder.address,
+							delivery_date_time: currentOrder.deliveryDateTime,
+							downpayment: currentOrder.downpayment,
+							balance: currentOrder.balance
+						}
+					})
+				});
+
+				const result = await resp.json().catch(() => ({}));
+				if (!resp.ok) {
+					console.error('Failed to save customer details (server):', result);
+					alert('Failed to save your details. Please try again.');
+					btnSubmitOrder.removeAttribute('disabled');
+					btnSubmitOrder.innerHTML = oldBtnHtml;
+					return;
+				}
+
+				if (custOrderIdDisplay) {
+					custOrderIdDisplay.textContent = currentOrder.id;
+				}
+
+				goToStep(4);
+			} catch (e) {
+				console.error('Failed to save customer details:', e);
+				alert('Failed to save your details. Please try again.');
+				btnSubmitOrder.removeAttribute('disabled');
+				btnSubmitOrder.innerHTML = oldBtnHtml;
+			}
+		});
+
+		// Bind Step 4 download button
+		const btnDownloadStep4 = document.getElementById('btn-download-receipt-step4');
+		btnDownloadStep4?.addEventListener('click', () => {
+			if (currentOrder) {
+				downloadReceiptImage(currentOrder.id);
+			}
+		});
+
+		// Setup Click to Copy for MoPs
+		document.querySelectorAll('.btn-copy-mini').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const text = (e.currentTarget as HTMLButtonElement).getAttribute('data-copy');
+				if (text) {
+					navigator.clipboard.writeText(text).then(() => {
+						const oldText = btn.textContent;
+						btn.textContent = 'Copied!';
+						btn.classList.add('copied');
+						
+						// Trigger premium browser notification if function exists
+						setTimeout(() => {
+							btn.textContent = oldText;
+							btn.classList.remove('copied');
+						}, 2000);
+					});
+				}
+			});
+		});
+	}
+
+	function goToStep(step: number) {
+		currentStep = step;
+
+		// Toggle sections visibility
+		if (step1Content) step1Content.style.display = step === 1 ? 'flex' : 'none';
+		if (step2Section) step2Section.style.display = step === 2 ? 'flex' : 'none';
+		if (step3Section) step3Section.style.display = step === 3 ? 'flex' : 'none';
+		if (step4Section) step4Section.style.display = step === 4 ? 'flex' : 'none';
+
+		// Toggle indicators
+		if (step === 1) {
+			step1Indicator?.classList.add('active');
+			step1Indicator?.classList.remove('completed');
+			step2Indicator?.classList.remove('active', 'completed');
+			step3Indicator?.classList.remove('active', 'completed');
+			step4Indicator?.classList.remove('active', 'completed');
+			line1Indicator?.classList.remove('completed');
+			line2Indicator?.classList.remove('completed');
+			line3Indicator?.classList.remove('completed');
+		} else if (step === 2) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.add('active');
+			step2Indicator?.classList.remove('completed');
+			step3Indicator?.classList.remove('active', 'completed');
+			step4Indicator?.classList.remove('active', 'completed');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.remove('completed');
+			line3Indicator?.classList.remove('completed');
+		} else if (step === 3) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.remove('active');
+			step2Indicator?.classList.add('completed');
+			step3Indicator?.classList.add('active');
+			step3Indicator?.classList.remove('completed');
+			step4Indicator?.classList.remove('active', 'completed');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.add('completed');
+			line3Indicator?.classList.remove('completed');
+		} else if (step === 4) {
+			step1Indicator?.classList.remove('active');
+			step1Indicator?.classList.add('completed');
+			step2Indicator?.classList.remove('active');
+			step2Indicator?.classList.add('completed');
+			step3Indicator?.classList.remove('active');
+			step3Indicator?.classList.add('completed');
+			step4Indicator?.classList.add('active');
+			line1Indicator?.classList.add('completed');
+			line2Indicator?.classList.add('completed');
+			line3Indicator?.classList.add('completed');
+		}
+	}
+
+	function validateStep2Form(): boolean {
+		let isValid = true;
+
+		// Receiver Name
+		const nameGroup = custInputName.parentElement?.parentElement;
+		if (!custInputName.value.trim()) {
+			nameGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			nameGroup?.classList.remove('invalid');
+		}
+
+		// Contact Number
+		const contactGroup = custInputContact.parentElement?.parentElement;
+		if (!custInputContact.value.trim()) {
+			contactGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			contactGroup?.classList.remove('invalid');
+		}
+
+		// Address (Only validate if not Pickup)
+		const addressGroup = custInputAddress.parentElement?.parentElement;
+		const isPickup = currentOrder?.fulfillmentType === 'Pickup';
+		if (!isPickup && !custInputAddress.value.trim()) {
+			addressGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			addressGroup?.classList.remove('invalid');
+		}
+
+		// Datetime
+		const datetimeGroup = custInputDatetime.parentElement?.parentElement;
+		if (!custInputDatetime.value) {
+			datetimeGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			datetimeGroup?.classList.remove('invalid');
+		}
+
+		// Downpayment validation
+		const downpaymentGroup = custInputDownpayment.parentElement?.parentElement;
+		const dpVal = parseFloat(custInputDownpayment.value.trim());
+		if (isNaN(dpVal) || dpVal < 0) {
+			downpaymentGroup?.classList.add('invalid');
+			isValid = false;
+		} else {
+			downpaymentGroup?.classList.remove('invalid');
+		}
+
+		return isValid;
+	}
+
+	// Theme Toggle Logic
+	const themeToggleBtn = document.getElementById('theme-toggle-btn');
+	const sunIcon = document.querySelector('.sun-icon') as HTMLElement;
+	const moonIcon = document.querySelector('.moon-icon') as HTMLElement;
+
+	function updateThemeIcons(theme: string) {
+		if (theme === 'light') {
+			if (sunIcon) sunIcon.style.display = 'none';
+			if (moonIcon) moonIcon.style.display = 'block';
+		} else {
+			if (sunIcon) sunIcon.style.display = 'block';
+			if (moonIcon) moonIcon.style.display = 'none';
+		}
+	}
+
+	// Initialize theme icon display
+	const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+	updateThemeIcons(currentTheme);
+
+	themeToggleBtn?.addEventListener('click', () => {
+		const current = document.documentElement.getAttribute('data-theme') || 'dark';
+		const nextTheme = current === 'dark' ? 'light' : 'dark';
+		document.documentElement.setAttribute('data-theme', nextTheme);
+		localStorage.setItem('theme', nextTheme);
+		updateThemeIcons(nextTheme);
+	});
+</script>

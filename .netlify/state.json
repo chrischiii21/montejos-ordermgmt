@@ -1,0 +1,21 @@
+{
+	"dbConnectionString": "postgres://localhost:59923/postgres",
+	"geolocation": {
+		"data": {
+			"city": "Cebu City",
+			"country": {
+				"code": "PH",
+				"name": "Philippines"
+			},
+			"subdivision": {
+				"code": "07",
+				"name": "Central Visayas"
+			},
+			"timezone": "Asia/Manila",
+			"latitude": 10.3099,
+			"longitude": 123.893,
+			"postalCode": "6000"
+		},
+		"timestamp": 1793325030060
+	}
+}
