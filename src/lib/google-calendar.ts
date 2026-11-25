@@ -71,12 +71,18 @@ async function accessToken(c: Config): Promise<string> {
 }
 
 async function gcal(c: Config, method: string, path: string, body?: unknown): Promise<Response> {
-	return fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.calendarId)}/events${path}`, {
-		method,
-		headers: { Authorization: `Bearer ${await accessToken(c)}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
-		body: body ? JSON.stringify(body) : undefined,
-		signal: AbortSignal.timeout(8000)
-	});
+	for (let attempt = 0; ; attempt++) {
+		const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.calendarId)}/events${path}`, {
+			method,
+			headers: { Authorization: `Bearer ${await accessToken(c)}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+			body: body ? JSON.stringify(body) : undefined,
+			signal: AbortSignal.timeout(8000)
+		});
+		// Google limits how fast events can be written ("Rate Limit Exceeded", as 403 or 429): wait 1, 2, 4, 8 s and retry.
+		const limited = res.status === 429 || (res.status === 403 && /rate ?limit/i.test(await res.clone().text()));
+		if (!limited || attempt === 4) return res;
+		await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt));
+	}
 }
 
 async function fail(res: Response, what: string): Promise<never> {
@@ -138,7 +144,10 @@ const sameTime = (a: string | undefined, b: string) => Date.parse(a ?? '') === D
  * Makes the calendar match the orders from 2 months ago onward: saves what's missing or different,
  * removes events of orders that no longer exist or were cancelled. Older events are left alone.
  */
-export async function syncAllOrdersToGoogle(db: SupabaseClient): Promise<{ orders: number; saved: number; removed: number }> {
+export async function syncAllOrdersToGoogle(
+	db: SupabaseClient
+): Promise<{ orders: number; saved: number; removed: number; remaining: number }> {
+	const started = Date.now();
 	const c = config();
 	if (!c) throw new Error('Google Calendar is not set up yet (GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID).');
 	const since = `${phtDate(-60).dateStr} 00:00`;
@@ -181,8 +190,16 @@ export async function syncAllOrdersToGoogle(db: SupabaseClient): Promise<{ order
 		.filter(ev => ev.extendedProperties?.private?.orderId && !wanted.has(ev.id))
 		.map(ev => ev.id as string);
 
-	// ponytail: 5 requests at a time stays under Google's per-user rate limit; plenty for hundreds of orders.
+	// One write at a time: Google rejects bursts of event writes on one calendar (gcal() retries when it does).
+	// ponytail: stops after 45 s to stay inside Vercel's function time limit. The next sync (button or nightly
+	// cron) carries on, because events that are already right are skipped.
 	const jobs = [...toSave.map(ev => () => save(c, ev)), ...toRemove.map(id => () => remove(c, id))];
-	for (let i = 0; i < jobs.length; i += 5) await Promise.all(jobs.slice(i, i + 5).map(job => job()));
-	return { orders: wanted.size, saved: toSave.length, removed: toRemove.length };
+	let done = 0;
+	while (done < jobs.length && Date.now() - started < 45_000) await jobs[done++]();
+	return {
+		orders: wanted.size,
+		saved: Math.min(done, toSave.length),
+		removed: Math.max(0, done - toSave.length),
+		remaining: jobs.length - done
+	};
 }

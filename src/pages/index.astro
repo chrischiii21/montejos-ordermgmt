@@ -3896,7 +3896,9 @@ function showConfirm(message) {
 				const res = await fetch('/api/google-calendar-sync', { method: 'POST' });
 				const body = await res.json().catch(() => ({}));
 				if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
-				resultEl.textContent = `✓ Done. ${body.orders} order${body.orders === 1 ? '' : 's'} on the calendar: ${body.saved} added or updated, ${body.removed} removed.`;
+				resultEl.textContent = body.remaining > 0
+					? `Partly done: ${body.saved} added or updated, ${body.removed} removed, ${body.remaining} still to go. Click "Sync all orders now" again to finish.`
+					: `✓ Done. ${body.orders} order${body.orders === 1 ? '' : 's'} on the calendar: ${body.saved} added or updated, ${body.removed} removed.`;
 			} catch (err) {
 				resultEl.textContent = '✗ Sync failed: ' + (err instanceof Error ? err.message : String(err));
 			} finally {

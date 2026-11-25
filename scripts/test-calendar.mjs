@@ -53,6 +53,7 @@ const calendarNow = [
 
 let calls = [];
 let googleDown = false;
+let rateLimitOnce = true; // Google's "slow down" answer for the first ORD-2 write: must be retried, not reported
 globalThis.fetch = async (url, init = {}) => {
 	if (googleDown) throw new Error('network down');
 	const method = init.method || 'GET';
@@ -66,6 +67,10 @@ globalThis.fetch = async (url, init = {}) => {
 	const path = decodeURIComponent(new URL(url).pathname).replace('/calendar/v3/calendars/cal@group.calendar.google.com/events', '');
 	calls.push(`${method} ${path || '/'}`);
 	if (method === 'GET') return Response.json({ items: calendarNow });
+	if (method === 'PUT' && path === `/${eventId('ORD-2')}` && rateLimitOnce) {
+		rateLimitOnce = false;
+		return Response.json({ error: { code: 403, message: 'Rate Limit Exceeded' } }, { status: 403 });
+	}
 	if (method === 'PUT' && path === `/${eventId('ORD-3')}`) return new Response('{}', { status: 404 }); // never synced before
 	if (method === 'DELETE' && path === `/${eventId('ORD-404')}`) return new Response('', { status: 410 }); // already gone
 	return Response.json({});
@@ -83,11 +88,12 @@ const fakeDb = (rows) => ({
 });
 
 const result = await syncAllOrdersToGoogle(fakeDb([o1, o2, o3]));
-assert.deepEqual(result, { orders: 3, saved: 2, removed: 1 });
+assert.deepEqual(result, { orders: 3, saved: 2, removed: 1, remaining: 0 });
 assert.deepEqual(calls.filter(c => !c.startsWith('GET')).sort(), [
 	`DELETE /${eventId('ORD-9')}`, // orphan removed; hand-made event left alone; ORD-1 untouched
 	`POST /`, // ORD-3 created after the 404
-	`PUT /${eventId('ORD-2')}`,
+	`PUT /${eventId('ORD-2')}`, // rate-limited once…
+	`PUT /${eventId('ORD-2')}`, // …then retried
 	`PUT /${eventId('ORD-3')}`
 ].sort());
 
