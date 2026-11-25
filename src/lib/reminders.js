@@ -233,9 +233,34 @@ export async function sendTelegramMessages(token, chatIdList, messages) {
 
 const SHOP = "Montejo's Lechon & Food Trays";
 
+// app_settings row holding when the last order alert went out (new order, confirmation slip,
+// edit, cancel) or an order was deleted. Today's reminder only sends when this is after 6 PM,
+// so it lands as the latest message in the chat.
+const ORDERS_CHANGED_KEY = 'orders_changed_at';
+
+export async function markOrdersChanged(supabase) {
+	try {
+		const now = new Date().toISOString();
+		const { error } = await supabase.from('app_settings').upsert({ key: ORDERS_CHANGED_KEY, value: now, updated_at: now });
+		if (error) throw error;
+	} catch (err) {
+		console.error('Could not record the order change for the daily reminder:', err);
+	}
+}
+
+/** True when an order changed after 6 PM yesterday (Philippine time). Can't tell → true, better twice than missed. */
+async function changedSince6pm(supabase) {
+	const since = new Date(`${phtDate(-1).dateStr}T18:00:00+08:00`);
+	const { data, error } = await supabase.from('app_settings').select('value').eq('key', ORDERS_CHANGED_KEY).maybeSingle();
+	if (error) return true;
+	return !!data?.value && new Date(data.value) >= since;
+}
+
 /**
  * Runs one reminder end to end.
- * @param {'today' | 'tomorrow'} which
+ * @param {'today' | 'tomorrow' | 'no-orders'} which
+ *   tomorrow (6 PM): tomorrow's list. today (2 AM): today's list, only if something changed after 6 PM.
+ *   no-orders (5 AM): "no orders today", only on a day with no orders.
  * @param {{ supabase: any, token: string, chatIds: string }} deps
  * @returns {Promise<{ sent: boolean, orders: number, date: string }>}
  */
@@ -243,9 +268,12 @@ export async function runOrderReminder(which, { supabase, token, chatIds }) {
 	const isTomorrow = which === 'tomorrow';
 	const { dateStr, label } = phtDate(isTomorrow ? 1 : 0);
 	const orders = await fetchOrdersForDate(supabase, dateStr);
+	const skip = { sent: false, orders: orders.length, date: dateStr };
 
-	// Tomorrow's reminder is skipped when there is nothing scheduled.
-	if (isTomorrow && orders.length === 0) return { sent: false, orders: 0, date: dateStr };
+	// 6 PM and 2 AM stay silent on a day with no orders; 5 AM speaks only then.
+	if (which === 'no-orders' ? orders.length > 0 : orders.length === 0) return skip;
+	// 2 AM is skipped when nothing changed after 6 PM: the 6 PM list is still the latest message.
+	if (which === 'today' && !(await changedSince6pm(supabase))) return skip;
 
 	const messages = buildReminderMessages(orders, isTomorrow
 		? {

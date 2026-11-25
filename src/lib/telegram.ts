@@ -1,4 +1,12 @@
+import { serviceClient } from './family-link';
+import { markOrdersChanged } from './reminders.js';
+
+// Order alerts (new order, confirmation slip, edit, cancel). Each one also counts as
+// "changed after 6 PM" for the daily reminder.
 export async function sendTelegramMessage(message: string): Promise<void> {
+  const db = serviceClient();
+  if (db) await markOrdersChanged(db);
+
   const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
   const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
 

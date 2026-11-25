@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { isDashboardSession } from '../../lib/family-link';
+import { markOrdersChanged } from '../../lib/reminders.js';
 
-// POST { id }: delete an order and its items. No Telegram alert is sent for deletions.
+// POST { id }: delete an order and its items. No Telegram alert is sent for deletions,
+// but it counts as a change for the daily reminder.
 export const POST: APIRoute = async ({ request, cookies }) => {
   // Only the logged-in dashboard may create or delete orders (/api is exempt from the middleware).
   if (!isDashboardSession(cookies.get('dashboard_token')?.value)) {
@@ -40,6 +42,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ error: orderErr.message || orderErr }), { status: 500 });
     }
 
+    await markOrdersChanged(supabase);
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err: any) {
     console.error('delete-order API error', err);

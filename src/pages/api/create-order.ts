@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { isDashboardSession } from '../../lib/family-link';
-import { getInclusionsForTelegram } from '../../lib/telegram';
+import { getInclusionsForTelegram, sendTelegramMessage } from '../../lib/telegram';
 
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return '';
@@ -133,27 +133,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             `💳 DOWNPAYMENT: <b>₱${formattedDownpayment}</b>\n` +
             `⚖️ BALANCE: <b>₱${formattedBalance}${order.status === 'Completed' ? ' (Settled)' : ''}</b>`;
 
-          const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-          const chatIds = TELEGRAM_CHAT_ID.split(',').map(id => id.trim()).filter(id => id !== '');
-
-          for (const chatId of chatIds) {
-            await fetch(telegramUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'HTML'
-              })
-            }).then(async (teleResp) => {
-              if (!teleResp.ok) {
-                const errBody = await teleResp.text();
-                console.error(`Telegram bot API error for chat ID ${chatId}:`, errBody);
-              } else {
-                console.log(`Telegram notification sent successfully to chat ID ${chatId} for order ${order.id}.`);
-              }
-            });
-          }
+          await sendTelegramMessage(message);
         } catch (teleErr) {
           console.error('Failed to send Telegram notification:', teleErr);
         }

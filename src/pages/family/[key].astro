@@ -541,7 +541,7 @@ const manifestHref = `/family/${encodeURIComponent(Astro.params.key!)}/manifest.
 
 <script>
 	import { createClient } from '@supabase/supabase-js';
-	import { getInclusionsForTelegram } from '../../lib/telegram';
+	import { getInclusionsForTelegram } from '../../lib/reminders.js';
 
 	const supabase = createClient(
 		import.meta.env.PUBLIC_SUPABASE_URL,

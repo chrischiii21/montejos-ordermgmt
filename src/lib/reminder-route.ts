@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { runOrderReminder } from './reminders.js';
 
-// Builds the GET handler used by the Vercel cron routes (/api/daily-reminder, /api/tomorrow-reminder).
-export function reminderRoute(which: 'today' | 'tomorrow'): APIRoute {
+// Builds the GET handler used by the Vercel cron routes (/api/daily-reminder, /api/tomorrow-reminder, /api/no-orders-reminder).
+export function reminderRoute(which: 'today' | 'tomorrow' | 'no-orders'): APIRoute {
 	return async ({ request }) => {
 		const env = (name: string) => process.env[name] || (import.meta.env as Record<string, string | undefined>)[name];
 
