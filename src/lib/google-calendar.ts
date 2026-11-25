@@ -36,7 +36,7 @@ export const isGoogleCalendarConfigured = () => !!(env('GOOGLE_SERVICE_ACCOUNT_J
 
 function config(): Config | null {
 	const raw = env('GOOGLE_SERVICE_ACCOUNT_JSON');
-	const calendarId = env('GOOGLE_CALENDAR_ID');
+	const calendarId = env('GOOGLE_CALENDAR_ID')?.trim(); // a pasted trailing space/newline would make Google answer Not Found
 	if (!raw || !calendarId) return null;
 	let key: { client_email?: string; private_key?: string };
 	try { key = JSON.parse(raw); } catch { throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON. Paste the whole .json key file.'); }
@@ -160,6 +160,10 @@ export async function syncAllOrdersToGoogle(db: SupabaseClient): Promise<{ order
 		const q = new URLSearchParams({ timeMin: manilaTime(since)!.toISOString(), maxResults: '2500' });
 		if (pageToken) q.set('pageToken', pageToken);
 		const res = await gcal(c, 'GET', `?${q}`);
+		// Google says 404 both for a wrong ID and for a calendar the service account can't see.
+		if (res.status === 404) {
+			throw new Error(`Google can't find calendar "${c.calendarId}". Check GOOGLE_CALENDAR_ID, and that the calendar is shared with ${c.email} as "Make changes to events".`);
+		}
 		if (!res.ok) await fail(res, 'Could not read the Google Calendar');
 		const page = await res.json();
 		for (const ev of page.items ?? []) existing.set(ev.id, ev);
